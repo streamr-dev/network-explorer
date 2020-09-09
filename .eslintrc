@@ -25,6 +25,7 @@
     "@typescript-eslint/semi": ["error", "never"],
     "eol-last": "error",
     "linebreak-style": ["error", "unix"],
+    "comma-dangle": "error",
     "object-curly-spacing": [
       "warn",
       "always"
