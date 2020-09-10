@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom'
 
 import Map from '../components/Map'
+import SearchBox from '../components/SearchBox'
 import Stream from '../components/Stream'
 import Node from '../components/Node'
 import Debug from '../components/Debug'
@@ -24,6 +25,7 @@ const App = () => (
         </Switch>
         <LoadingIndicator />
         <Map />
+        <SearchBox />
         <Debug />
       </MapStateProvider>
     </LoadingProvider>
