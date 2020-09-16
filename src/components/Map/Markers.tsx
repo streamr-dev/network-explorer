@@ -1,6 +1,8 @@
 import React from 'react'
 import styled from 'styled-components/macro'
 
+import { SANS } from '../../utils/styled'
+
 // eslint-disable-next-line react/require-default-props
 const NodeIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -17,6 +19,10 @@ const ClusterContainer = styled.div`
   height: 32px;
   cursor: pointer;
   transform: translate(-50%, -50%);
+  font-family: ${SANS};
+  font-weight: bold;
+  font-size: 10px;
+  line-height: 24px;
 
   & span {
     position: absolute;

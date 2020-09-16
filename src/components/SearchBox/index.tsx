@@ -1,5 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components/macro'
+
+import { SANS } from '../../utils/styled'
+
+import StreamrLogo from './StreamrLogo'
+import SearchInput from './SearchInput'
+import Stats from './Stats'
+import Graphs from './Graphs'
 
 const Container = styled.div`
   position: absolute;
@@ -9,49 +16,56 @@ const Container = styled.div`
   background: #ffffff;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
+  font-family: ${SANS};
 `
 
 const Search = styled.div`
   height: 64px;
   display: grid;
   grid-template-columns: 64px 1fr;
+  border-bottom: 1px solid #EFEFEF;
 `
 
-const Logo = styled.div`
-  content: 'LOGO';
+const LogoContainer = styled.div`
+  border-right: 1px solid #EFEFEF;
 `
 
-const SearchInput = styled.div`
+const SearchInputContainer = styled.div`
   width: 100%;
 `
 
-const Statistics = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-`
-
-const Stat = styled.div`
-  height: 64px;
-  color: #323232;
-`
-
-const Graph = styled.div`
-  height: 264px;
+const GraphContainer = styled.div`
+  border-top: 1px solid #EFEFEF;
 `
 
 const SearchBox = () => {
+  const [selectedStat, setSelectedStat] = useState<string | null>(null)
+
+  const stats = {
+    'Msgs/sec': 123,
+    'Nodes': 45,
+    'Latency ms': 25,
+  }
+
   return (
     <Container>
       <Search>
-        <Logo />
-        <SearchInput />
+        <LogoContainer>
+          <StreamrLogo />
+        </LogoContainer>
+        <SearchInputContainer>
+          <SearchInput />
+        </SearchInputContainer>
       </Search>
-      <Statistics>
-        <Stat>123</Stat>
-        <Stat>456</Stat>
-        <Stat>789</Stat>
-      </Statistics>
-      <Graph />
+      <Stats
+        values={stats}
+        onSelectedStatChanged={(name) => {
+          setSelectedStat(name)
+        }}
+      />
+      <GraphContainer hidden={selectedStat == null}>
+        <Graphs name={selectedStat} />
+      </GraphContainer>
     </Container>
   )
 }
