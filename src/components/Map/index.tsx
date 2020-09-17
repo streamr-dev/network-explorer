@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import ReactMapGL, {
   NavigationControl,
-  ViewportProps,
   InteractiveMap,
 } from 'react-map-gl'
 import styled from 'styled-components/macro'
@@ -14,6 +13,7 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
+import { useMapState } from '../../contexts/MapState'
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig'
 
@@ -25,53 +25,11 @@ const NavigationContainer = styled.div`
 
 const Map = () => {
   const mapRef = useRef<InteractiveMap>(null)
-
-  const [viewport, setViewport] = useState<ViewportProps>({
-    width: 400,
-    height: 400,
-    latitude: 60.16952,
-    longitude: 24.93545,
-    zoom: 10,
-    bearing: 0,
-    pitch: 0,
-    altitude: 0,
-    maxZoom: 20,
-    minZoom: 0,
-    maxPitch: 60,
-    minPitch: 0,
-  })
-
-  const [nodeLocations] = useState([
-    {
-      id: 1,
-      latitude: 60.15952,
-      longitude: 24.93545,
-    },
-    {
-      id: 2,
-      latitude: 60.15852,
-      longitude: 24.94545,
-    },
-    {
-      id: 3,
-      latitude: 60.18952,
-      longitude: 24.91545,
-    },
-    {
-      id: 4,
-      latitude: 60.19952,
-      longitude: 24.92545,
-    },
-    {
-      id: 5,
-      latitude: 60.17952,
-      longitude: 24.92545,
-    },
-  ])
+  const { nodes, viewport, setViewport } = useMapState()
 
   const [nodeConnections] = useState<Array<NodeConnection>>([[1, 2], [1, 3], [4, 5]])
 
-  const points: Array<PointFeature<NodeProperties>> = nodeLocations.map((node) => ({
+  const points: Array<PointFeature<NodeProperties>> = nodes.map((node) => ({
     type: 'Feature',
     properties: {
       nodeId: node.id,
@@ -118,14 +76,14 @@ const Map = () => {
       width: windowSize.width ?? prev.width,
       height: windowSize.height ?? prev.height,
     }))
-  }, [windowSize.width, windowSize.height])
+  }, [setViewport, windowSize.width, windowSize.height])
 
   return (
     <ReactMapGL
       {...viewport}
       mapboxApiAccessToken={MAPBOX_TOKEN}
       mapStyle='mapbox://styles/mattinnes/ckdtszq5m0iht19qk0zuz52oy'
-      onViewportChange={(v: ViewportProps) => setViewport({ ...v })}
+      onViewportChange={setViewport}
       ref={mapRef}
     >
       {supercluster != null && (
@@ -146,7 +104,7 @@ const Map = () => {
       <NavigationContainer>
         <NavigationControl
           showCompass={false}
-          onViewportChange={(v: ViewportProps) => setViewport({ ...v })}
+          onViewportChange={setViewport}
         />
       </NavigationContainer>
     </ReactMapGL>
