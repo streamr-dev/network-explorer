@@ -27,8 +27,11 @@ const IntervalChoice = styled.div<ChoiceProps>`
   font-weight: 500;
   font-size: 12px;
   line-height: 32px;
+  color: ${(props) => props.active ? '#323232' : '#A3A3A3'};
   background-color: ${(props) => props.active ? '#F8F8F8' : 'transparent'};
   cursor: pointer;
+  padding: 0 13.5px;
+  border-radius: 4px;
 `
 
 type Props = {
