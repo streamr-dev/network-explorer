@@ -1,39 +1,18 @@
 import React, { useEffect } from 'react'
 import { withRouter } from 'react-router-dom'
 
-import { useMapState } from '../../contexts/MapState'
+import { useNodes } from '../../contexts/Nodes'
 
 type NodeProps = {
   id: string,
 }
 
 const Node = ({ id }: NodeProps) => {
-  const { setNodes } = useMapState()
+  const { setVisibleNodes } = useNodes()
 
   useEffect(() => {
-    setNodes([
-      {
-        id: 1,
-        latitude: 20.15952,
-        longitude: 44.93545,
-      },
-      {
-        id: 2,
-        latitude: 20.15852,
-        longitude: 44.94545,
-      },
-      {
-        id: 3,
-        latitude: 20.18952,
-        longitude: 44.91545,
-      },
-      {
-        id: 4,
-        latitude: 20.19952,
-        longitude: 44.92545,
-      },
-    ])
-  }, [setNodes, id])
+    setVisibleNodes([1, 2, 3, 4])
+  }, [setVisibleNodes, id])
 
   return null
 }

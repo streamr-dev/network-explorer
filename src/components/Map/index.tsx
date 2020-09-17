@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import ReactMapGL, {
   NavigationControl,
   InteractiveMap,
+  ViewportProps,
+  WebMercatorViewport,
 } from 'react-map-gl'
 import styled from 'styled-components/macro'
 import useSupercluster from 'use-supercluster'
@@ -13,7 +15,7 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
-import { useMapState } from '../../contexts/MapState'
+import { useNodes } from '../../contexts/Nodes'
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig'
 
@@ -25,11 +27,26 @@ const NavigationContainer = styled.div`
 
 const Map = () => {
   const mapRef = useRef<InteractiveMap>(null)
-  const { nodes, viewport, setViewport } = useMapState()
+  const { visibleNodes } = useNodes()
+
+  const [viewport, setViewport] = useState<ViewportProps>({
+    width: 400,
+    height: 400,
+    latitude: 60.16952,
+    longitude: 24.93545,
+    zoom: 10,
+    bearing: 0,
+    pitch: 0,
+    altitude: 0,
+    maxZoom: 20,
+    minZoom: 0,
+    maxPitch: 60,
+    minPitch: 0,
+  })
 
   const [nodeConnections] = useState<Array<NodeConnection>>([[1, 2], [1, 3], [4, 5]])
 
-  const points: Array<PointFeature<NodeProperties>> = nodes.map((node) => ({
+  const points: Array<PointFeature<NodeProperties>> = visibleNodes.map((node) => ({
     type: 'Feature',
     properties: {
       nodeId: node.id,
@@ -77,6 +94,32 @@ const Map = () => {
       height: windowSize.height ?? prev.height,
     }))
   }, [setViewport, windowSize.width, windowSize.height])
+
+  useEffect(() => {
+    if (visibleNodes.length <= 0) { return }
+
+    setViewport((prev) => {
+      const pointsLong = visibleNodes.map(point => point.longitude)
+      const pointsLat = visibleNodes.map(point => point.latitude)
+      const cornersLongLat: [[number, number], [number, number]] = [
+        [Math.min(...pointsLong), Math.min(...pointsLat)],
+        [Math.max(...pointsLong), Math.max(...pointsLat)],
+      ]
+
+      // Use WebMercatorViewport to get center longitude/latitude and zoom
+      const { longitude, latitude } = new WebMercatorViewport({
+        width: prev.width,
+        height: prev.height,
+      })
+        .fitBounds(cornersLongLat, { padding: 200 }) // Can also use option: offset: [0, -100]
+
+      return {
+        ...prev,
+        longitude,
+        latitude,
+      }
+    })
+  }, [visibleNodes])
 
   return (
     <ReactMapGL
