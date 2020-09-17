@@ -44,7 +44,7 @@ const Map = () => {
     minPitch: 0,
   })
 
-  const [nodeConnections] = useState<Array<NodeConnection>>([[1, 2], [1, 3], [4, 5]])
+  const [nodeConnections] = useState<Array<NodeConnection>>([['1', '2'], ['1', '3'], ['4', '5']])
 
   const points: Array<PointFeature<NodeProperties>> = visibleNodes.map((node) => ({
     type: 'Feature',

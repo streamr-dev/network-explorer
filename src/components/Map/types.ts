@@ -1,6 +1,6 @@
 import Supercluster from 'supercluster'
 
-export type NodeId = number
+export type NodeId = string
 
 export type NodeProperties = {
   nodeId: NodeId,

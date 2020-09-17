@@ -16,11 +16,11 @@ import { Provider as NodesProvider, useNodes } from '../contexts/Nodes'
 import { Provider as LoadingProvider } from '../contexts/Loading'
 
 function useProductLoadEffect() {
-  const { loadNodes } = useNodes()
+  const { updateTrackers } = useNodes()
 
   useEffect(() => {
-    loadNodes()
-  }, [loadNodes])
+    updateTrackers()
+  }, [updateTrackers])
 }
 
 const LoadTrackersEffect = () => {

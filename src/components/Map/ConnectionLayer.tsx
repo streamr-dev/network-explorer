@@ -16,7 +16,7 @@ const NodeConnectionPath = styled.path`
 const getClusterConnections = (
   supercluster: SuperClusterType,
   clusters: Array<ClusterPointFeature>,
-  nodeConnections: Array<[number, number]>,
+  nodeConnections: Array<[string, string]>,
 ) => {
   const clusterNodes = clusters.map((cluster) => ({
     id: cluster.properties.cluster ? cluster.id : cluster.properties.nodeId,
@@ -46,7 +46,7 @@ const getClusterConnections = (
 const getNodesInCluster = (
   supercluster: SuperClusterType,
   cluster: ClusterPointFeature,
-): Array<number> => {
+): Array<string> => {
   // Get all chilren recursively
   if (cluster.properties.cluster && typeof cluster.id === 'number') {
     const children = supercluster.getChildren(cluster.id)
