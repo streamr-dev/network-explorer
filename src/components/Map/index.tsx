@@ -10,7 +10,7 @@ import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { NodeProperties, NodeConnection } from './types'
+import { NodeProperties } from './types'
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
@@ -27,7 +27,7 @@ const NavigationContainer = styled.div`
 
 const Map = () => {
   const mapRef = useRef<InteractiveMap>(null)
-  const { visibleNodes } = useNodes()
+  const { visibleNodes, nodeConnections } = useNodes()
 
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
@@ -43,8 +43,6 @@ const Map = () => {
     maxPitch: 60,
     minPitch: 0,
   })
-
-  const [nodeConnections] = useState<Array<NodeConnection>>([['1', '2'], ['1', '3'], ['4', '5']])
 
   const points: Array<PointFeature<NodeProperties>> = visibleNodes.map((node) => ({
     type: 'Feature',

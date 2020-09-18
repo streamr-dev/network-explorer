@@ -10,9 +10,11 @@ import * as api from '../utils/api'
 import { useLoading } from './Loading'
 
 type ContextProps = {
+  nodes: api.Node[],
   visibleNodes: api.Node[],
-  setVisibleNodes: Function,
+  nodeConnections: Array<string[]>,
   updateTrackers: Function,
+  setTopology: Function,
 }
 
 const NodesContext = React.createContext<ContextProps | undefined>(undefined)
@@ -20,14 +22,14 @@ const NodesContext = React.createContext<ContextProps | undefined>(undefined)
 function useNodesContext() {
   const [trackers, setTrackers] = useState<string[]>([])
   const [nodes, setNodes] = useState<api.Node[]>([])
-  const [currentNodes, setCurrentNodes] = useState<string[]>([])
+  const [topology, setTopology] = useState<api.Topology>({})
   const { setLoading } = useLoading()
 
   const updateTrackers = useCallback(async () => {
     const nextTrackers = await api.getTrackers()
 
     setNodes([])
-    setCurrentNodes([])
+    setTopology({})
     setTrackers(nextTrackers)
   }, [])
 
@@ -54,25 +56,25 @@ function useNodesContext() {
     }
   }, [trackers, loadNodes, setLoading])
 
-  const nodeSet = useMemo(() => new Set<string>(currentNodes), [currentNodes])
+  const nodeSet = useMemo(() => new Set<string>(Object.keys(topology)), [topology])
   const visibleNodes: api.Node[] = useMemo(() => (
     nodes.filter(({ id }) => nodeSet.has(id))
   ), [nodes, nodeSet])
 
-  const setVisibleNodes = useCallback((nextNodes) => {
-    const nextNodeSet = new Set<string>(nextNodes)
-
-    setCurrentNodes([...nextNodeSet])
-  }, [])
+  const nodeConnections: Array<string[]> = useMemo(() => Object.values(topology), [topology])
 
   return useMemo(() => ({
+    nodes,
     visibleNodes,
-    setVisibleNodes,
+    nodeConnections,
     updateTrackers,
+    setTopology,
   }), [
+    nodes,
     visibleNodes,
-    setVisibleNodes,
+    nodeConnections,
     updateTrackers,
+    setTopology,
   ])
 }
 

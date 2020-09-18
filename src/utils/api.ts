@@ -66,7 +66,7 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     })
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load nodes from ${url}`)
+    console.warn(`Failed to load nodes from ${url}/location/`)
   }
 
   return Object.keys(result || []).map((id: string) => {
@@ -78,4 +78,26 @@ export const getNodes = async (url: string): Promise<Node[]> => {
       longitude,
     }
   })
+}
+
+export type Topology = Record<string, string[]>
+
+export type Topologyresult = Record<string, Topology>
+
+export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
+  const [url] = defaultTrackers // todo: need to go through all trackers?
+  let result: Topologyresult = {}
+
+  try {
+    result = await get<Topologyresult>({
+      url: `${url}/topology/${id}`,
+    })
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`Failed to load topology from ${url}/topology/${id}`)
+  }
+
+  const [topology] = Object.values(result || [])
+
+  return topology
 }

@@ -16,7 +16,7 @@ const NodeConnectionPath = styled.path`
 const getClusterConnections = (
   supercluster: SuperClusterType,
   clusters: Array<ClusterPointFeature>,
-  nodeConnections: Array<[string, string]>,
+  nodeConnections: Array<string[]>,
 ) => {
   const clusterNodes = clusters.map((cluster) => ({
     id: cluster.properties.cluster ? cluster.id : cluster.properties.nodeId,
