@@ -11,6 +11,7 @@ import Stream from '../components/Stream'
 import Node from '../components/Node'
 import Debug from '../components/Debug'
 import LoadingIndicator from '../components/LoadingIndicator'
+import Layout from '../components/Layout'
 
 import { Provider as NodesProvider, useNodes } from '../contexts/Nodes'
 import { Provider as Pendingrovider } from '../contexts/Pending'
@@ -33,14 +34,16 @@ const App = () => (
     <Pendingrovider>
       <NodesProvider>
         <LoadTrackersEffect />
-        <Switch>
-          <Route exact path="/streams/:id" component={Stream} />
-          <Route exact path="/nodes/:id" component={Node} />
-        </Switch>
-        <LoadingIndicator />
         <Map />
-        <SearchBox />
-        <Debug />
+        <LoadingIndicator />
+        <Layout>
+          <SearchBox />
+          <Switch>
+            <Route exact path="/streams/:id" component={Stream} />
+            <Route exact path="/nodes/:id" component={Node} />
+          </Switch>
+          <Debug />
+        </Layout>
       </NodesProvider>
     </Pendingrovider>
   </BrowserRouter>

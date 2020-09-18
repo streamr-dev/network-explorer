@@ -15,6 +15,8 @@ type ContextProps = {
   nodeConnections: Array<string[]>,
   updateTrackers: Function,
   setTopology: Function,
+  selectedNode: string | undefined,
+  setSelectedNode: Function,
 }
 
 const NodesContext = React.createContext<ContextProps | undefined>(undefined)
@@ -23,6 +25,7 @@ function useNodesContext() {
   const [trackers, setTrackers] = useState<string[]>([])
   const [nodes, setNodes] = useState<api.Node[]>([])
   const [topology, setTopology] = useState<api.Topology>({})
+  const [selectedNode, setSelectedNode] = useState(undefined)
   const { start, end } = usePending('nodes')
 
   const updateTrackers = useCallback(async () => {
@@ -75,12 +78,16 @@ function useNodesContext() {
     nodeConnections,
     updateTrackers,
     setTopology,
+    selectedNode,
+    setSelectedNode,
   }), [
     nodes,
     visibleNodes,
     nodeConnections,
     updateTrackers,
     setTopology,
+    selectedNode,
+    setSelectedNode,
   ])
 }
 

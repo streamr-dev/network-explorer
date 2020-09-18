@@ -1,4 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react'
 import ReactMapGL, {
   NavigationControl,
   InteractiveMap,
@@ -27,7 +32,10 @@ const NavigationContainer = styled.div`
 
 const Map = () => {
   const mapRef = useRef<InteractiveMap>(null)
-  const { visibleNodes, nodeConnections } = useNodes()
+  const { visibleNodes, nodeConnections, selectedNode } = useNodes()
+  const selectedNodeObj = useMemo(() => (
+    visibleNodes.find(({ id }) => id === selectedNode)
+  ), [visibleNodes, selectedNode])
 
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
@@ -93,6 +101,7 @@ const Map = () => {
     }))
   }, [setViewport, windowSize.width, windowSize.height])
 
+  // zoom topology into view
   useEffect(() => {
     if (visibleNodes.length <= 0) { return }
 
@@ -119,6 +128,17 @@ const Map = () => {
       }
     })
   }, [visibleNodes])
+
+  // zoom selected network node into view
+  useEffect(() => {
+    if (selectedNodeObj) {
+      setViewport((prev) => ({
+        ...prev,
+        longitude: selectedNodeObj.longitude,
+        latitude: selectedNodeObj.latitude,
+      }))
+    }
+  }, [selectedNodeObj])
 
   return (
     <ReactMapGL

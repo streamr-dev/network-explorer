@@ -51,9 +51,9 @@ const LoadingBar = styled.div`
 
 const LoadingIndicator = () => {
   const { isPending: isLoadingNodes } = usePending('nodes')
-  const { isPending: isLoadingStream } = usePending('stream')
+  const { isPending: isLoadingTopology } = usePending('topology')
 
-  const isLoading = !!(isLoadingNodes || isLoadingStream)
+  const isLoading = !!(isLoadingNodes || isLoadingTopology)
 
   return (
     <LoadingBar

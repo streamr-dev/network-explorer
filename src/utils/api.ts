@@ -1,10 +1,11 @@
 import { Contract, providers, BigNumber } from 'ethers'
+import { entropyToMnemonic, wordlists } from 'bip39'
 
 import trackerRegistryConfig from './abis/trackerRegistryDev.json'
 import { get } from './request'
 
 const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
-const PROVIDER = 'http://10.200.10.1:8545'
+const PROVIDER = 'http://localhost:8545'
 
 type NodeInfo = {
   url: string,
@@ -13,9 +14,9 @@ type NodeInfo = {
 }
 
 export const mapApiUrl = (url: string) => {
-  const ip = url.slice(5).slice(0, -6)
+  const ip = url.slice(5)
 
-  return `http://${ip}:11111`
+  return `http://${ip}`
 }
 
 const defaultTrackers = [
@@ -45,6 +46,7 @@ export const getTrackers = async (): Promise<string[]> => {
 
 export type Node = {
   id: string,
+  title: string,
   latitude: number,
   longitude: number,
 }
@@ -56,6 +58,14 @@ type NodeResult = {
   longitude: number,
 }
 type NodeResultList = Record<string, NodeResult>
+
+const generateMnemonic = (id: string) => (
+  entropyToMnemonic(id.slice(2), wordlists.english)
+    .split(' ')
+    .slice(0, 3)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+)
 
 export const getNodes = async (url: string): Promise<Node[]> => {
   let result: NodeResultList = {}
@@ -76,6 +86,7 @@ export const getNodes = async (url: string): Promise<Node[]> => {
       id,
       latitude,
       longitude,
+      title: generateMnemonic(id),
     }
   })
 }

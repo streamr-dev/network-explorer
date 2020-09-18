@@ -1,9 +1,10 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect } from 'react'
 import { withRouter } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
-import { usePending } from '../../contexts/Pending'
 import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
+
+import TopologyList from './TopologyList'
 
 type StreamProps = {
   id: string,
@@ -13,22 +14,16 @@ interface Props  {
   children: React.ReactNode
 }
 
-const StreamLoadEffect = ({ id }: StreamProps) => {
-  const { loadTopology } = useTopology()
-  const { setTopology } = useNodes()
-  const { wrap } = usePending('stream')
-
-  const loadStreamTopology = useCallback(async (streamId: string) => (
-    wrap(async () => {
-      const newTopology = await loadTopology({ id: streamId })
-
-      setTopology(newTopology)
-    })
-  ), [wrap, loadTopology, setTopology])
+const LoadTopologyEffect = ({ id }: StreamProps) => {
+  const { loadTopology, resetTopology } = useTopology()
 
   useEffect(() => {
-    loadStreamTopology(id)
-  }, [loadStreamTopology, id])
+    loadTopology(id)
+
+    return () => {
+      resetTopology()
+    }
+  }, [loadTopology, resetTopology, id])
 
   return null
 }
@@ -43,7 +38,8 @@ export default withRouter(({ match }) => {
 
   return (
     <TopologyProvider key={id}>
-      <StreamLoadEffect id={id} />
+      <LoadTopologyEffect id={id} />
+      <TopologyList id={id} />
     </TopologyProvider>
   )
 })
