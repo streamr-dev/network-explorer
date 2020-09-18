@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   BrowserRouter,
   Route,
@@ -12,13 +12,27 @@ import Node from '../components/Node'
 import Debug from '../components/Debug'
 import LoadingIndicator from '../components/LoadingIndicator'
 
-import { Provider as MapStateProvider } from '../contexts/MapState'
-import { Provider as LoadingProvider } from '../contexts/Loading'
+import { Provider as NodesProvider, useNodes } from '../contexts/Nodes'
+import { Provider as Pendingrovider } from '../contexts/Pending'
+
+function useProductLoadEffect() {
+  const { updateTrackers } = useNodes()
+
+  useEffect(() => {
+    updateTrackers()
+  }, [updateTrackers])
+}
+
+const LoadTrackersEffect = () => {
+  useProductLoadEffect()
+  return null
+}
 
 const App = () => (
   <BrowserRouter>
-    <LoadingProvider>
-      <MapStateProvider>
+    <Pendingrovider>
+      <NodesProvider>
+        <LoadTrackersEffect />
         <Switch>
           <Route exact path="/streams/:id" component={Stream} />
           <Route exact path="/nodes/:id" component={Node} />
@@ -27,8 +41,8 @@ const App = () => (
         <Map />
         <SearchBox />
         <Debug />
-      </MapStateProvider>
-    </LoadingProvider>
+      </NodesProvider>
+    </Pendingrovider>
   </BrowserRouter>
 )
 

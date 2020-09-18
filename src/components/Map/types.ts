@@ -1,6 +1,6 @@
 import Supercluster from 'supercluster'
 
-export type NodeId = number
+export type NodeId = string
 
 export type NodeProperties = {
   nodeId: NodeId,
@@ -16,7 +16,7 @@ export type ClusterPointFeature =
   | Supercluster.PointFeature<NodeProperties>
   | Supercluster.PointFeature<Supercluster.ClusterProperties & Supercluster.AnyProps>
 
-export type NodeConnection = [NodeId, NodeId]
+export type NodeConnection = string[]
 
 export type ClusterConnection = {
   sourceId: string | number | undefined,

@@ -1,37 +1,50 @@
-import React, { useCallback, ChangeEvent } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
-import { useLoading } from '../../contexts/Loading'
+import { useAllPending } from '../../contexts/Pending'
+import { useNodes } from '../../contexts/Nodes'
 
 const DebugWrapper = styled.div`
   position: fixed;
   bottom: 40px;
   left: 40px;
-  width: 200px;
-  height: 200px;
+  width: 300px;
   padding: 10px;
   background: white;
+  font-size: 12px;
+`
+
+const Variables = styled.pre`
+  overflow: scroll;
+  display: block;
+  height: 200px;
+  font-size: 8px;
+  background-color: #EFEFEF;
+  padding: 5px 10px;
 `
 
 const Debug = () => {
-  const { loading, setLoading } = useLoading()
-  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setLoading(e.target.checked)
-  }, [setLoading])
+  const { pending } = useAllPending()
+  const { nodes, visibleNodes, nodeConnections } = useNodes()
 
   return (
     <DebugWrapper>
       <Link to="/">Top</Link>
       <br />
-      <Link to="/streams/123">stream 1</Link>
+      <Link to="/streams/1Llar67vQnSqEq8Dwr_hRQ">stream 1Llar67vQnSqEq8Dwr_hRQ</Link>
       <br />
-      <Link to="/streams/456">stream 2</Link>
-      <br />
-      <Link to="/nodes/abc">node 1</Link>
+      <Link to="/streams/x5KBQw5eRKWl5OIjEr1_3A">stream x5KBQw5eRKWl5OIjEr1_3A</Link>
       <br />
       <br />
-      <input type="checkbox" onChange={onChange} checked={loading} /> loading
+      <Variables>
+        {JSON.stringify({
+          pending,
+          visibleNodes,
+          nodeConnections,
+          nodes,
+        }, null, 2)}
+      </Variables>
     </DebugWrapper>
   )
 }
