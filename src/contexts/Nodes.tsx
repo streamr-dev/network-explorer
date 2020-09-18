@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 
 import * as api from '../utils/api'
-import { useLoading } from './Loading'
+import { usePending } from './Pending'
 
 type ContextProps = {
   nodes: api.Node[],
@@ -23,7 +23,7 @@ function useNodesContext() {
   const [trackers, setTrackers] = useState<string[]>([])
   const [nodes, setNodes] = useState<api.Node[]>([])
   const [topology, setTopology] = useState<api.Topology>({})
-  const { setLoading } = useLoading()
+  const { start, end } = usePending('nodes')
 
   const updateTrackers = useCallback(async () => {
     const nextTrackers = await api.getTrackers()
@@ -48,13 +48,13 @@ function useNodesContext() {
     }
 
     if (trackers && trackers.length > 0) {
-      setLoading(true)
+      start()
 
       doLoadTrackers().then(() => {
-        setLoading(false)
+        end()
       })
     }
-  }, [trackers, loadNodes, setLoading])
+  }, [trackers, loadNodes, start, end])
 
   const nodeSet = useMemo(() => new Set<string>(Object.keys(topology)), [topology])
   const visibleNodes: api.Node[] = useMemo(() => (

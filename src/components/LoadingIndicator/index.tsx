@@ -1,7 +1,7 @@
 import React from 'react'
 import styled, { keyframes } from 'styled-components/macro'
 
-import { useLoading } from '../../contexts/Loading'
+import { usePending } from '../../contexts/Pending'
 
 const animation = keyframes`
   0% {
@@ -50,12 +50,15 @@ const LoadingBar = styled.div`
 `
 
 const LoadingIndicator = () => {
-  const { loading } = useLoading()
+  const { isPending: isLoadingNodes } = usePending('nodes')
+  const { isPending: isLoadingStream } = usePending('stream')
+
+  const isLoading = !!(isLoadingNodes || isLoadingStream)
 
   return (
     <LoadingBar
       style={{
-        opacity: loading ? '1' : '0',
+        opacity: isLoading ? '1' : '0',
       }}
     />
   )

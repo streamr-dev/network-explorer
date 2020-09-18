@@ -13,7 +13,7 @@ import Debug from '../components/Debug'
 import LoadingIndicator from '../components/LoadingIndicator'
 
 import { Provider as NodesProvider, useNodes } from '../contexts/Nodes'
-import { Provider as LoadingProvider } from '../contexts/Loading'
+import { Provider as Pendingrovider } from '../contexts/Pending'
 
 function useProductLoadEffect() {
   const { updateTrackers } = useNodes()
@@ -30,7 +30,7 @@ const LoadTrackersEffect = () => {
 
 const App = () => (
   <BrowserRouter>
-    <LoadingProvider>
+    <Pendingrovider>
       <NodesProvider>
         <LoadTrackersEffect />
         <Switch>
@@ -42,7 +42,7 @@ const App = () => (
         <SearchBox />
         <Debug />
       </NodesProvider>
-    </LoadingProvider>
+    </Pendingrovider>
   </BrowserRouter>
 )
 

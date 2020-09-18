@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react'
 import { withRouter } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
-import { useLoading } from '../../contexts/Loading'
+import { usePending } from '../../contexts/Pending'
 import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
 
 type StreamProps = {
@@ -16,15 +16,15 @@ interface Props  {
 const StreamLoadEffect = ({ id }: StreamProps) => {
   const { loadTopology } = useTopology()
   const { setTopology } = useNodes()
-  const { setLoading } = useLoading()
+  const { wrap } = usePending('stream')
 
-  const loadStreamTopology = useCallback(async (streamId: string) => {
-    setLoading(true)
-    const newTopology = await loadTopology({ id: streamId })
+  const loadStreamTopology = useCallback(async (streamId: string) => (
+    wrap(async () => {
+      const newTopology = await loadTopology({ id: streamId })
 
-    setLoading(false)
-    setTopology(newTopology)
-  }, [loadTopology, setTopology, setLoading])
+      setTopology(newTopology)
+    })
+  ), [wrap, loadTopology, setTopology])
 
   useEffect(() => {
     loadStreamTopology(id)
@@ -35,9 +35,9 @@ const StreamLoadEffect = ({ id }: StreamProps) => {
 
 export default withRouter(({ match }) => {
   const { params: { id } } = match || {}
-  const { nodes } = useNodes()
+  const { isPending } = usePending('nodes')
 
-  if (!id || !nodes || nodes.length <= 1) {
+  if (!id || !!isPending) {
     return null
   }
 
