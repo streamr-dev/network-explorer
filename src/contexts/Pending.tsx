@@ -5,7 +5,9 @@ import React, {
   useCallback,
 } from 'react'
 
+type Pending = Record<string, boolean>
 type ContextProps = {
+  pending: Pending,
   isPending: (name: string) => boolean,
   setPending: (name: string, value: boolean) => void,
 }
@@ -13,7 +15,7 @@ type ContextProps = {
 const PendingContext = React.createContext<ContextProps | undefined>(undefined)
 
 function usePendingContext() {
-  const [pending, setPendingState] = useState<Record<string, boolean>>({})
+  const [pending, setPendingState] = useState<Pending>({})
 
   const isPending = useCallback((name: string) => !!pending[name], [pending])
 
@@ -25,9 +27,11 @@ function usePendingContext() {
   }, [])
 
   return useMemo(() => ({
+    pending,
     isPending,
     setPending,
   }), [
+    pending,
     isPending,
     setPending,
   ])
@@ -43,14 +47,18 @@ const PendingProvider = ({ children }: Props) => (
   </PendingContext.Provider>
 )
 
-const usePending = (name: string) => {
+const useAllPending  = () => {
   const context = useContext(PendingContext)
 
   if (!context) {
     throw new Error('PendingContext must be inside a Provider with a value')
   }
 
-  const { isPending, setPending } = context
+  return context
+}
+
+const usePending = (name: string) => {
+  const { isPending, setPending } = useAllPending()
 
   const start = useCallback(() => {
     setPending(name, true)
@@ -82,5 +90,6 @@ const usePending = (name: string) => {
 export {
   PendingProvider as Provider,
   PendingContext as Context,
+  useAllPending,
   usePending,
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
+import { useAllPending } from '../../contexts/Pending'
 import { useNodes } from '../../contexts/Nodes'
 
 const DebugWrapper = styled.div`
@@ -24,6 +25,7 @@ const Variables = styled.pre`
 `
 
 const Debug = () => {
+  const { pending } = useAllPending()
   const { nodes, visibleNodes, nodeConnections } = useNodes()
 
   return (
@@ -37,6 +39,7 @@ const Debug = () => {
       <br />
       <Variables>
         {JSON.stringify({
+          pending,
           visibleNodes,
           nodeConnections,
           nodes,

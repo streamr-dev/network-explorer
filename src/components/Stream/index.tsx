@@ -35,9 +35,9 @@ const StreamLoadEffect = ({ id }: StreamProps) => {
 
 export default withRouter(({ match }) => {
   const { params: { id } } = match || {}
-  const { isPending } = usePending('nodes')
+  const { nodes } = useNodes()
 
-  if (!id || !!isPending) {
+  if (!id || !nodes || nodes.length < 1) {
     return null
   }
 
