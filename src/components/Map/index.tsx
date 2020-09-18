@@ -105,7 +105,7 @@ const Map = () => {
       ]
 
       // Use WebMercatorViewport to get center longitude/latitude and zoom
-      const { longitude, latitude } = new WebMercatorViewport({
+      const { longitude, latitude, zoom } = new WebMercatorViewport({
         width: prev.width,
         height: prev.height,
       })
@@ -115,6 +115,7 @@ const Map = () => {
         ...prev,
         longitude,
         latitude,
+        zoom,
       }
     })
   }, [visibleNodes])

@@ -61,7 +61,13 @@ function useNodesContext() {
     nodes.filter(({ id }) => nodeSet.has(id))
   ), [nodes, nodeSet])
 
-  const nodeConnections: Array<string[]> = useMemo(() => Object.values(topology), [topology])
+  // Convert topology to a list of node connection pairs
+  const nodeConnections = useMemo(() => (
+    Object.keys(topology).flatMap((key) => {
+      const nodeList = topology[key]
+      return nodeList.map((n) => [key, n])
+    })
+  ), [topology])
 
   return useMemo(() => ({
     nodes,

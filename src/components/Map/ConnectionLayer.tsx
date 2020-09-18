@@ -1,6 +1,7 @@
 import React from 'react'
 import { SVGOverlay, HTMLRedrawOptions } from 'react-map-gl'
 import styled from 'styled-components/macro'
+import uniqBy from 'lodash/uniqBy'
 import {
   SuperClusterType,
   ClusterPointFeature,
@@ -40,7 +41,11 @@ const getClusterConnections = (
     }
   })
 
-  return connections
+  const uniqueConnections = uniqBy(connections, (v) => (
+    [v.sourceId, v.targetId].sort().map((i) => i?.toString()).join()
+  ))
+
+  return uniqueConnections
 }
 
 const getNodesInCluster = (
