@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react'
 import styled from 'styled-components/macro'
+import { useParams, useHistory } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
 import ControlBox from '../ControlBox'
@@ -31,17 +32,19 @@ type Props = {
 }
 
 const TopologyList = ({ id }: Props) => {
-  const { visibleNodes, selectedNode, setSelectedNode } = useNodes()
+  const { visibleNodes } = useNodes()
+  const { nodeId: activeNodeId } = useParams()
+  const history = useHistory()
 
   const toggleNode = useCallback((nodeId) => {
-    setSelectedNode((prevNode: string) => {
-      if (prevNode === nodeId) {
-        return undefined
-      }
+    let path = `/streams/${id}`
 
-      return nodeId
-    })
-  }, [setSelectedNode])
+    if (activeNodeId !== nodeId) {
+      path += `/nodes/${nodeId}`
+    }
+
+    history.replace(path)
+  }, [id, history, activeNodeId])
 
   return (
     <ControlBox>
@@ -60,7 +63,7 @@ const TopologyList = ({ id }: Props) => {
             key={nodeId}
             nodeId={nodeId}
             title={title}
-            active={selectedNode === nodeId}
+            active={activeNodeId === nodeId}
             onClick={() => toggleNode(nodeId)}
           />
         ))}

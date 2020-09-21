@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { withRouter } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
 import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
@@ -28,18 +28,35 @@ const LoadTopologyEffect = ({ id }: StreamProps) => {
   return null
 }
 
-export default withRouter(({ match }) => {
-  const { params: { id } } = match || {}
+type NodeProps = {
+  id: string,
+}
+
+const SetActiveNodeEffect = ({ id }: NodeProps) => {
+  const { setSelectedNode } = useNodes()
+
+  useEffect(() => {
+    setSelectedNode(id)
+
+    return () => setSelectedNode(undefined)
+  }, [id, setSelectedNode])
+
+  return null
+}
+
+export default () => {
+  const { streamId, nodeId } = useParams()
   const { nodes } = useNodes()
 
-  if (!id || !nodes || nodes.length < 1) {
+  if (!streamId || !nodes || nodes.length < 1) {
     return null
   }
 
   return (
-    <TopologyProvider key={id}>
-      <LoadTopologyEffect id={id} />
-      <TopologyList id={id} />
+    <TopologyProvider key={streamId}>
+      <LoadTopologyEffect id={streamId} />
+      <SetActiveNodeEffect id={nodeId} />
+      <TopologyList id={streamId} />
     </TopologyProvider>
   )
-})
+}

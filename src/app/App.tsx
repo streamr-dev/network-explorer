@@ -39,8 +39,9 @@ const App = () => (
         <Layout>
           <SearchBox />
           <Switch>
-            <Route exact path="/streams/:id" component={Stream} />
-            <Route exact path="/nodes/:id" component={Node} />
+            <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
+            <Route exact path="/streams/:streamId" component={Stream} />
+            <Route exact path="/nodes/:nodeId" component={Node} />
           </Switch>
           <Debug />
         </Layout>
