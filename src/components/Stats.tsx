@@ -48,7 +48,12 @@ type Props = {
   disabled?: boolean,
 }
 
-const Stats = ({ values, onSelectedStatChanged, disabled, ...rest }: Props) => {
+const Stats = ({
+  values,
+  onSelectedStatChanged,
+  disabled,
+  ...rest
+}: Props) => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
 
   useEffect(() => {
