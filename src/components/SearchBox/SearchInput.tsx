@@ -46,13 +46,17 @@ const SearchIcon = () => (
   </svg>
 )
 
-const SearchInput = () => {
+type Props = {
+  onChange: (text: string) => void,
+}
+
+const SearchInput = ({ onChange }: Props) => {
   return (
     <Container>
       <Input
         id="input"
         placeholder="Search Streamr Network"
-        onChange={(e) => console.log(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
       />
       <InputLabel htmlFor="input">
         <SearchIcon />
