@@ -39,6 +39,26 @@ const InputLabel = styled.label`
   }
 `
 
+const ButtonWrapper = styled.div`
+    align-self: center;
+    justify-self: center;
+`
+
+const ClearButton = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  display: grid;
+  margin: 0;
+  padding: 6px;
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`
+
 const SearchIcon = () => (
   <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M10.6412 13.4832C13.371 12.3231 14.6435 9.1696 13.4833 6.43976C12.3232 3.70993 9.16972 2.43745 6.43988 3.5976C3.71004 4.75775 2.43756 7.91121 3.59771 10.6411C4.75787 13.3709 7.91133 14.6434 10.6412 13.4832Z" stroke="#B8B8B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -46,23 +66,53 @@ const SearchIcon = () => (
   </svg>
 )
 
+const ClearIcon = () => (
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 16A8 8 0 108 0a8 8 0 000 16z" fill="#CDCDCD" />
+    <path d="M5.455 5.454l5.09 5.091M10.545 5.454l-5 5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+
 type Props = {
+  value: string,
   onChange: (text: string) => void,
+  onClear: () => void,
+  disabled?: boolean,
 }
 
-const SearchInput = ({ onChange }: Props) => {
+const SearchInput = ({
+  value,
+  onChange,
+  onClear,
+  disabled,
+}: Props) => {
   return (
     <Container>
       <Input
         id="input"
         placeholder="Search Streamr Network"
+        value={value}
         onChange={(e) => onChange(e.target.value)}
+        disabled={!!disabled}
       />
-      <InputLabel htmlFor="input">
-        <SearchIcon />
-      </InputLabel>
+      {!value && (
+        <InputLabel htmlFor="input">
+          <SearchIcon />
+        </InputLabel>
+      )}
+      {!!value && (
+        <ButtonWrapper>
+          <ClearButton type="button" onClick={onClear}>
+            <ClearIcon />
+          </ClearButton>
+        </ButtonWrapper>
+      )}
     </Container>
   )
+}
+
+SearchInput.defaultProps = {
+  disabled: false,
 }
 
 export default SearchInput

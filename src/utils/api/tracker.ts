@@ -1,9 +1,10 @@
 import { Contract, providers, BigNumber } from 'ethers'
 import { entropyToMnemonic, wordlists } from 'bip39'
 
-import trackerRegistryConfig from './abis/trackerRegistryDev.json'
-import { get } from './request'
-import { MAPBOX_TOKEN } from './constants'
+import trackerRegistryConfig from '../abis/trackerRegistryDev.json'
+import { getReversedGeocodedLocation } from './mapbox'
+
+import { get } from '../request'
 
 const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
 const PROVIDER = 'http://localhost:8545'
@@ -43,53 +44,6 @@ export const getTrackers = async (): Promise<string[]> => {
     ...defaultTrackers,
     ...(result || []).map(({ url }) => mapApiUrl(url)),
   ]
-}
-
-type GeoCodeResultFeature = {
-  place_type: Array<string>,
-  place_name: string,
-  bbox: Array<number>,
-}
-
-type GeoCodeResult = {
-  features: Array<GeoCodeResultFeature>
-}
-
-type ReversedGeocodedLocation = {
-  region: string,
-  bbox: Array<number>,
-}
-
-type ReversedGeocodedLocationParams = {
-  longitude: number,
-  latitude: number,
-}
-
-export const getReversedGeocodedLocation = async ({
-  longitude,
-  latitude,
-}: ReversedGeocodedLocationParams) => {
-  let result: GeoCodeResult | undefined
-
-  try {
-    result = await get<GeoCodeResult>({
-      url: `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}`,
-    })
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn(`Failed to reverse geocode ${longitude},${latitude}`)
-  }
-
-  const {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    place_name,
-    bbox,
-  } = (result && result.features || []).find(({ place_type }) => place_type[0] === 'region') || {}
-
-  return {
-    region: place_name,
-    bbox,
-  }
 }
 
 export type Node = {

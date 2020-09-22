@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useRef,
-  useMemo,
 } from 'react'
 import ReactMapGL, {
   NavigationControl,
@@ -20,8 +19,8 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
-import { useNodes } from '../../contexts/Nodes'
-import { MAPBOX_TOKEN } from '../../utils/constants'
+import { useTopology } from '../../contexts/Topology'
+import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 
 const NavigationContainer = styled.div`
   position: absolute;
@@ -31,10 +30,7 @@ const NavigationContainer = styled.div`
 
 const Map = () => {
   const mapRef = useRef<InteractiveMap>(null)
-  const { visibleNodes, nodeConnections, selectedNode } = useNodes()
-  const selectedNodeObj = useMemo(() => (
-    visibleNodes.find(({ id }) => id === selectedNode)
-  ), [visibleNodes, selectedNode])
+  const { visibleNodes, nodeConnections, activeNode } = useTopology()
 
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
@@ -130,15 +126,15 @@ const Map = () => {
 
   // zoom selected network node into view
   useEffect(() => {
-    if (selectedNodeObj) {
+    if (activeNode) {
       setViewport((prev) => ({
         ...prev,
-        longitude: selectedNodeObj.longitude,
-        latitude: selectedNodeObj.latitude,
+        longitude: activeNode.longitude,
+        latitude: activeNode.latitude,
         zoom: 5,
       }))
     }
-  }, [selectedNodeObj])
+  }, [activeNode])
 
   return (
     <ReactMapGL

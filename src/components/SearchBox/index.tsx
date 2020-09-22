@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components/macro'
+import { Link } from 'react-router-dom'
 
 import ControlBox from '../ControlBox'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
 import { useNodes } from '../../contexts/Nodes'
+import { useStream } from '../../contexts/Stream'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
@@ -36,22 +38,23 @@ const GraphContainer = styled.div`
 
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
-  const [results, setResults] = useState<Array<SearchResult>>([])
+  const [searchText, setSearchText] = useState<string>('')
   const { nodes } = useNodes()
+  const { activeStreamId, stream } = useStream()
 
-  const search = useCallback((text: string) => {
-    if (text.length === 0) {
-      setResults([])
-      return
+  const results = useMemo<SearchResult[]>(() => {
+    if (searchText.length === 0) {
+      return []
     }
 
     const fakeResults = [...Array(10).keys()].map((k) => ({
-      name: `${text} ${k}`,
+      name: `${searchText} ${k}`,
       type: Math.floor(Math.random() * 3),
       nodeCount: k,
     }))
-    setResults(fakeResults.splice(0, 5))
-  }, [])
+
+    return fakeResults.splice(0, 5)
+  }, [searchText])
 
   const stats = {
     'Msgs/sec': 123,
@@ -59,15 +62,30 @@ const SearchBox = () => {
     'Latency ms': 25,
   }
 
+  const hasStream = !!activeStreamId
+  const isDisabled = hasStream && !stream
+  const streamTitle = stream && stream.name || ''
+
+  useEffect(() => {
+    if (!isDisabled) {
+      setSearchText(hasStream ? streamTitle : '')
+    }
+  }, [hasStream, isDisabled, streamTitle])
+
   return (
     <StyledControlBox>
       <Search>
         <LogoContainer>
-          <StreamrLogo />
+          <Link to="/">
+            <StreamrLogo />
+          </Link>
         </LogoContainer>
         <SearchInputContainer>
           <SearchInput
-            onChange={(text) => search(text)}
+            value={searchText}
+            onChange={setSearchText}
+            onClear={() => setSearchText('')}
+            disabled={!!isDisabled}
           />
         </SearchInputContainer>
       </Search>

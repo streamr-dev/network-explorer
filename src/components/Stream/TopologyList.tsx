@@ -2,7 +2,8 @@ import React, { useCallback } from 'react'
 import styled from 'styled-components/macro'
 import { useParams, useHistory } from 'react-router-dom'
 
-import { useNodes } from '../../contexts/Nodes'
+import { useTopology } from '../../contexts/Topology'
+import { useStream } from '../../contexts/Stream'
 import ControlBox from '../ControlBox'
 import { SANS, MEDIUM } from '../../utils/styled'
 
@@ -32,7 +33,8 @@ type Props = {
 }
 
 const TopologyList = ({ id }: Props) => {
-  const { visibleNodes } = useNodes()
+  const { visibleNodes } = useTopology()
+  const { stream } = useStream()
   const { nodeId: activeNodeId } = useParams()
   const history = useHistory()
 
@@ -46,6 +48,8 @@ const TopologyList = ({ id }: Props) => {
     history.replace(path)
   }, [id, history, activeNodeId])
 
+  const streamTitle = stream && stream.name || id
+
   return (
     <ControlBox>
       <Wrapper>
@@ -56,7 +60,7 @@ const TopologyList = ({ id }: Props) => {
           {' '}
           nodes carrying the stream
           {' '}
-          <strong title={id}>{id}</strong>
+          <strong title={id}>{streamTitle}</strong>
         </Header>
         {visibleNodes.map(({ id: nodeId, title, placeName }) => (
           <Node

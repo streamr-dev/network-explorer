@@ -2,16 +2,13 @@ import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
-import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
+import { useTopology } from '../../contexts/Topology'
+import { useStream } from '../../contexts/Stream'
 
 import TopologyList from './TopologyList'
 
 type StreamProps = {
   id: string,
-}
-
-interface Props  {
-  children: React.ReactNode
 }
 
 const LoadTopologyEffect = ({ id }: StreamProps) => {
@@ -28,18 +25,32 @@ const LoadTopologyEffect = ({ id }: StreamProps) => {
   return null
 }
 
+const LoadStreamEffect = ({ id }: StreamProps) => {
+  const { loadStream, resetStream } = useStream()
+
+  useEffect(() => {
+    loadStream(id)
+
+    return () => {
+      resetStream()
+    }
+  }, [loadStream, resetStream, id])
+
+  return null
+}
+
 type NodeProps = {
   id: string,
 }
 
 const SetActiveNodeEffect = ({ id }: NodeProps) => {
-  const { setSelectedNode } = useNodes()
+  const { setActiveNodeId } = useTopology()
 
   useEffect(() => {
-    setSelectedNode(id)
+    setActiveNodeId(id)
 
-    return () => setSelectedNode(undefined)
-  }, [id, setSelectedNode])
+    return () => setActiveNodeId(undefined)
+  }, [id, setActiveNodeId])
 
   return null
 }
@@ -53,10 +64,11 @@ export default () => {
   }
 
   return (
-    <TopologyProvider key={streamId}>
+    <div key={streamId}>
       <LoadTopologyEffect id={streamId} />
+      <LoadStreamEffect id={streamId} />
       <SetActiveNodeEffect id={nodeId} />
       <TopologyList id={streamId} />
-    </TopologyProvider>
+    </div>
   )
 }
