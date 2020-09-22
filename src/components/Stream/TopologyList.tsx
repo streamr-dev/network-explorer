@@ -58,11 +58,12 @@ const TopologyList = ({ id }: Props) => {
           {' '}
           <strong title={id}>{id}</strong>
         </Header>
-        {visibleNodes.map(({ id: nodeId, title }) => (
+        {visibleNodes.map(({ id: nodeId, title, placeName }) => (
           <Node
             key={nodeId}
             nodeId={nodeId}
             title={title}
+            placeName={placeName}
             active={activeNodeId === nodeId}
             onClick={() => toggleNode(nodeId)}
           />

@@ -44,15 +44,17 @@ const TitleRow = styled.div`
   }
 `
 
-const Address = styled.div`
-  font-family: ${MONO};
-  font-weight: ${MEDIUM};
+const PlaceName = styled.div`
   font-size: 10px;
   align-items: center;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: #ADADAD;
   margin-top: 2px;
+  font-weight: ${MEDIUM};
+`
+
+const Address = styled(PlaceName)`
+  font-family: ${MONO};
+  letter-spacing: 0.05em;
 `
 
 const StyledStats = styled(Stats)`
@@ -66,6 +68,7 @@ const GraphContainer = styled.div`
 type Props = {
   nodeId: string,
   title: string,
+  placeName: string,
   active: boolean,
   onClick: (event: MouseEvent<HTMLInputElement>) => void,
 }
@@ -79,6 +82,7 @@ const stats = {
 const Node = ({
   nodeId,
   title,
+  placeName,
   active,
   onClick,
 }: Props) => {
@@ -93,7 +97,12 @@ const Node = ({
         />
         <Name>
           <strong>{title}</strong>
-          <Address>{nodeId}</Address>
+          {!active && (
+            <PlaceName>{placeName}</PlaceName>
+          )}
+          {!!active && (
+            <Address>{nodeId}</Address>
+          )}
         </Name>
       </TitleRow>
       {!!active && (

@@ -21,8 +21,7 @@ import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
 import { useNodes } from '../../contexts/Nodes'
-
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig'
+import { MAPBOX_TOKEN } from '../../utils/constants'
 
 const NavigationContainer = styled.div`
   position: absolute;
@@ -136,6 +135,7 @@ const Map = () => {
         ...prev,
         longitude: selectedNodeObj.longitude,
         latitude: selectedNodeObj.latitude,
+        zoom: 5,
       }))
     }
   }, [selectedNodeObj])

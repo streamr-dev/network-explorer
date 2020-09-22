@@ -4,6 +4,7 @@ import styled from 'styled-components/macro'
 import ControlBox from '../ControlBox'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
+import { useNodes } from '../../contexts/Nodes'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
@@ -36,6 +37,7 @@ const GraphContainer = styled.div`
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
   const [results, setResults] = useState<Array<SearchResult>>([])
+  const { nodes } = useNodes()
 
   const search = useCallback((text: string) => {
     if (text.length === 0) {
@@ -53,7 +55,7 @@ const SearchBox = () => {
 
   const stats = {
     'Msgs/sec': 123,
-    'Nodes': 45,
+    'Nodes': nodes && nodes.length,
     'Latency ms': 25,
   }
 
