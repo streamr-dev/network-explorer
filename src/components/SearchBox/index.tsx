@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import styled from 'styled-components/macro'
 
 import ControlBox from '../ControlBox'
@@ -7,6 +7,7 @@ import Graphs from '../Graphs'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
+import SearchResults, { SearchResult } from './SearchResults'
 
 const StyledControlBox = styled(ControlBox)`
   background: #ffffff;
@@ -34,6 +35,21 @@ const GraphContainer = styled.div`
 
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
+  const [results, setResults] = useState<Array<SearchResult>>([])
+
+  const search = useCallback((text: string) => {
+    if (text.length === 0) {
+      setResults([])
+      return
+    }
+
+    const fakeResults = [...Array(10).keys()].map((k) => ({
+      name: `${text} ${k}`,
+      type: Math.floor(Math.random() * 3),
+      nodeCount: k,
+    }))
+    setResults(fakeResults.splice(0, 5))
+  }, [])
 
   const stats = {
     'Msgs/sec': 123,
@@ -48,7 +64,9 @@ const SearchBox = () => {
           <StreamrLogo />
         </LogoContainer>
         <SearchInputContainer>
-          <SearchInput />
+          <SearchInput
+            onChange={(text) => search(text)}
+          />
         </SearchInputContainer>
       </Search>
       <Stats
@@ -56,10 +74,18 @@ const SearchBox = () => {
         onSelectedStatChanged={(name) => {
           setSelectedStat(name)
         }}
+        disabled={results.length > 0}
       />
-      <GraphContainer hidden={selectedStat == null}>
-        <Graphs name={selectedStat} />
-      </GraphContainer>
+      {results.length > 0 && (
+        <GraphContainer>
+          <SearchResults results={results} />
+        </GraphContainer>
+      )}
+      {results.length === 0 && selectedStat != null && (
+        <GraphContainer>
+          <Graphs name={selectedStat} />
+        </GraphContainer>
+      )}
     </StyledControlBox>
   )
 }

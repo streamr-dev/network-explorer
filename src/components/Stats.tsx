@@ -44,9 +44,16 @@ const Underline = styled.div`
 type Props = {
   values: { [key: string]: number },
   onSelectedStatChanged: (name: string | null) => void,
+  // eslint-disable-next-line react/require-default-props
+  disabled?: boolean,
 }
 
-const Stats = ({ values, onSelectedStatChanged, ...rest }: Props) => {
+const Stats = ({
+  values,
+  onSelectedStatChanged,
+  disabled,
+  ...rest
+}: Props) => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
 
   useEffect(() => {
@@ -59,6 +66,10 @@ const Stats = ({ values, onSelectedStatChanged, ...rest }: Props) => {
         <Stat
           key={name}
           onClick={() => {
+            if (disabled) {
+              return
+            }
+
             if (selectedStat === name) {
               setSelectedStat(null)
             } else {
@@ -68,7 +79,7 @@ const Stats = ({ values, onSelectedStatChanged, ...rest }: Props) => {
         >
           <StatName>{name}</StatName>
           <StatValue>{values[name]}</StatValue>
-          {selectedStat === name && (
+          {selectedStat === name && disabled === false && (
             <UnderlineContainer>
               <Underline />
             </UnderlineContainer>
