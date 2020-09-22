@@ -1,9 +1,10 @@
-import React, { useEffect, useCallback } from 'react'
-import { withRouter } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
-import { usePending } from '../../contexts/Pending'
 import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
+
+import TopologyList from './TopologyList'
 
 type StreamProps = {
   id: string,
@@ -13,37 +14,49 @@ interface Props  {
   children: React.ReactNode
 }
 
-const StreamLoadEffect = ({ id }: StreamProps) => {
-  const { loadTopology } = useTopology()
-  const { setTopology } = useNodes()
-  const { wrap } = usePending('stream')
-
-  const loadStreamTopology = useCallback(async (streamId: string) => (
-    wrap(async () => {
-      const newTopology = await loadTopology({ id: streamId })
-
-      setTopology(newTopology)
-    })
-  ), [wrap, loadTopology, setTopology])
+const LoadTopologyEffect = ({ id }: StreamProps) => {
+  const { loadTopology, resetTopology } = useTopology()
 
   useEffect(() => {
-    loadStreamTopology(id)
-  }, [loadStreamTopology, id])
+    loadTopology(id)
+
+    return () => {
+      resetTopology()
+    }
+  }, [loadTopology, resetTopology, id])
 
   return null
 }
 
-export default withRouter(({ match }) => {
-  const { params: { id } } = match || {}
+type NodeProps = {
+  id: string,
+}
+
+const SetActiveNodeEffect = ({ id }: NodeProps) => {
+  const { setSelectedNode } = useNodes()
+
+  useEffect(() => {
+    setSelectedNode(id)
+
+    return () => setSelectedNode(undefined)
+  }, [id, setSelectedNode])
+
+  return null
+}
+
+export default () => {
+  const { streamId, nodeId } = useParams()
   const { nodes } = useNodes()
 
-  if (!id || !nodes || nodes.length < 1) {
+  if (!streamId || !nodes || nodes.length < 1) {
     return null
   }
 
   return (
-    <TopologyProvider key={id}>
-      <StreamLoadEffect id={id} />
+    <TopologyProvider key={streamId}>
+      <LoadTopologyEffect id={streamId} />
+      <SetActiveNodeEffect id={nodeId} />
+      <TopologyList id={streamId} />
     </TopologyProvider>
   )
-})
+}

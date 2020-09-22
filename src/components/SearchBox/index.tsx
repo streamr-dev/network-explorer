@@ -1,22 +1,16 @@
 import React, { useState } from 'react'
 import styled from 'styled-components/macro'
 
-import { SANS } from '../../utils/styled'
+import ControlBox from '../ControlBox'
+import Stats from '../Stats'
+import Graphs from '../Graphs'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
-import Stats from './Stats'
-import Graphs from './Graphs'
 
-const Container = styled.div`
-  position: absolute;
-  left: 32px;
-  top: 32px;
-  width: 375px;
+const StyledControlBox = styled(ControlBox)`
   background: #ffffff;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
-  font-family: ${SANS};
 `
 
 const Search = styled.div`
@@ -48,7 +42,7 @@ const SearchBox = () => {
   }
 
   return (
-    <Container>
+    <StyledControlBox>
       <Search>
         <LogoContainer>
           <StreamrLogo />
@@ -66,7 +60,7 @@ const SearchBox = () => {
       <GraphContainer hidden={selectedStat == null}>
         <Graphs name={selectedStat} />
       </GraphContainer>
-    </Container>
+    </StyledControlBox>
   )
 }
 

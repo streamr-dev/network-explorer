@@ -4,16 +4,22 @@ import React, {
   useContext,
 } from 'react'
 
+import { usePending } from './Pending'
+import { useNodes } from './Nodes'
 import * as api from '../utils/api'
 
 type ContextProps = {
   loadTopology: Function,
+  resetTopology: Function,
 }
 
 const TopologyContext = React.createContext<ContextProps | undefined>(undefined)
 
 function useTopologyContext() {
-  const loadTopology = useCallback(async ({ id }) => {
+  const { setTopology, setSelectedNode } = useNodes()
+  const { wrap } = usePending('topology')
+
+  const loadTopologyFromApi = useCallback(async ({ id }) => {
     try {
       const nextTopology = await api.getTopology({ id })
 
@@ -25,10 +31,25 @@ function useTopologyContext() {
     }
   }, [])
 
+  const loadTopology = useCallback(async (streamId: string) => (
+    wrap(async () => {
+      const newTopology = await loadTopologyFromApi({ id: streamId })
+
+      setTopology(newTopology)
+    })
+  ), [wrap, loadTopologyFromApi, setTopology])
+
+  const resetTopology = useCallback(() => {
+    setTopology([])
+    setSelectedNode(undefined)
+  }, [setTopology, setSelectedNode])
+
   return useMemo(() => ({
     loadTopology,
+    resetTopology,
   }), [
     loadTopology,
+    resetTopology,
   ])
 }
 

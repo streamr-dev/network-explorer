@@ -46,7 +46,7 @@ type Props = {
   onSelectedStatChanged: (name: string | null) => void,
 }
 
-const Stats = ({ values, onSelectedStatChanged }: Props) => {
+const Stats = ({ values, onSelectedStatChanged, ...rest }: Props) => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const Stats = ({ values, onSelectedStatChanged }: Props) => {
   }, [selectedStat, onSelectedStatChanged])
 
   return (
-    <Container>
+    <Container {...rest}>
       {Object.keys(values).map((name) => (
         <Stat
           key={name}
