@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
 import styled from 'styled-components/macro'
 
+import { SANS } from '../utils/styled'
+
 const Container = styled.div`
   display: grid;
   grid-template-rows: 200px 64px;
+  font-family: ${SANS};
 `
 
 const GraphContainer = styled.div`
@@ -32,9 +35,10 @@ const IntervalChoice = styled.div<ChoiceProps>`
   cursor: pointer;
   padding: 0 13.5px;
   border-radius: 4px;
+  user-select: none;
 `
 
-type Props = {
+export type Props = {
   name: string | null,
 }
 
