@@ -1,19 +1,21 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React from 'react'
+import React, { useCallback, useRef } from 'react'
 import styled from 'styled-components/macro'
 
 const Container = styled.div`
   display: grid;
-  grid-template-columns: 1fr 32px;
+  grid-template-columns: 1fr 56px;
   width: 100%;
   height: 100%;
-  padding: 0 16px 0 24px;
+  padding: 0;
   box-sizing: border-box;
 `
 
 const Input = styled.input`
   margin: 0;
   border: 0;
+  padding: 0;
+  padding-left: 24px;
   background: none;
   font-weight: 500;
   font-size: 16px;
@@ -77,6 +79,10 @@ type Props = {
   value: string,
   onChange: (text: string) => void,
   onClear: () => void,
+  // eslint-disable-next-line react/require-default-props
+  onFocus?: Function,
+  // eslint-disable-next-line react/require-default-props
+  onBlur?: Function,
   disabled?: boolean,
 }
 
@@ -84,8 +90,28 @@ const SearchInput = ({
   value,
   onChange,
   onClear,
+  onFocus: onFocusProp,
+  onBlur: onBlurProp,
   disabled = false,
 }: Props) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const onFocus = useCallback(() => {
+    if (inputRef.current) {
+      inputRef.current.select()
+    }
+
+    if (onFocusProp) {
+      onFocusProp()
+    }
+  }, [onFocusProp])
+
+  const onBlur = useCallback(() => {
+    if (onBlurProp) {
+      onBlurProp()
+    }
+  }, [onBlurProp])
+
   return (
     <Container>
       <Input
@@ -94,6 +120,10 @@ const SearchInput = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={!!disabled}
+        autoComplete="off"
+        ref={inputRef}
+        onFocus={onFocus}
+        onBlur={onBlur}
       />
       {!value && (
         <InputLabel htmlFor="input">

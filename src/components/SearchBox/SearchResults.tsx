@@ -1,7 +1,9 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
+import { SearchResult } from '../../utils/api/streamr'
 
 const Container = styled.div`
   display: grid;
@@ -29,37 +31,60 @@ const Description = styled.div`
   align-self: center;
 `
 
-export enum ResultType {
-  Stream,
-  Node,
-  Location
-}
-
-export type SearchResult = {
-  name: string,
-  type: ResultType,
-  nodeCount?: number,
-}
-
 type Props = {
   results: Array<SearchResult>,
 }
 
+const Stream = ({ id, type, name }: SearchResult) => (
+  <Row as={Link} to={`/streams/${id}`}>
+    <Icon>
+      <StreamIcon />
+    </Icon>
+    <Description>
+      {name}
+    </Description>
+  </Row>
+)
+
+const Node = ({ id, type, name }: SearchResult) => (
+  <Row>
+    <Icon>
+      <NodeIcon />
+    </Icon>
+    <Description>
+      {name}
+    </Description>
+  </Row>
+)
+
+const Location = ({ id, type, name }: SearchResult) => (
+  <Row>
+    <Icon>
+      <LocationIcon />
+    </Icon>
+    <Description>
+      {name}
+    </Description>
+  </Row>
+)
+
 const SearchResults = ({ results }: Props) => (
   <Container>
-    {results.map((result, index) => (
-      // eslint-disable-next-line react/no-array-index-key
-      <Row key={index}>
-        <Icon>
-          {result.type === ResultType.Stream && <StreamIcon />}
-          {result.type === ResultType.Node && <NodeIcon />}
-          {result.type === ResultType.Location && <LocationIcon />}
-        </Icon>
-        <Description>
-          {result.name}
-        </Description>
-      </Row>
-    ))}
+    {results.map((result) => {
+      switch (result.type) {
+        case 'streams':
+          return <Stream key={result.id} {...result} />
+
+        case 'locations':
+          return <Location key={result.id} {...result} />
+
+        case 'nodes':
+          return <Node key={result.id} {...result} />
+
+        default:
+          return null
+      }
+    })}
   </Container>
 )
 

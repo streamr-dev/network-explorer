@@ -1,27 +1,82 @@
-import { useState, useCallback, useMemo } from 'react'
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react'
+import orderBy from 'lodash/orderBy'
 
-import { useThrottled } from '../../hooks/wrapCallback'
-
-export type SearchResult = {
-  type: 'streams' | 'nodes' | 'locations',
-  id: string,
-  name: string,
-}
+import { useDebounced } from '../../hooks/wrapCallback'
+import { useIsMounted } from '../../hooks/useIsMounted'
+import { usePending } from '../../contexts/Pending'
+import * as streamrApi from '../../utils/api/streamr'
+import * as mapApi from '../../utils/api/mapbox'
 
 const useSearch = () => {
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [results, setResults] = useState<streamrApi.SearchResult[]>([])
+  const [incomingResults, setIncomingResults] = useState<streamrApi.SearchResult[] | undefined>([])
+  const isMounted = useIsMounted()
+  const { start, end } = usePending('search')
 
-  const updateResults = useThrottled(useCallback(({ search }: { search: string }) => {
-    if (!search) {
-      setResults([])
-    } else {
-      setResults([{
-        id: '1',
-        type: 'streams',
-        name: 'asd',
-      }])
+  useEffect(() => {
+    if (incomingResults) {
+      setResults(orderBy(incomingResults, 'name'))
     }
-  }, []), 250)
+  }, [incomingResults])
+
+  const debouncedUpdateResults = useDebounced(
+    useCallback(async ({ search }: { search: string }) => {
+      if (!search) {
+        setIncomingResults([])
+        end()
+      } else {
+        try {
+          setIncomingResults(undefined)
+
+          const streamPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
+            streamrApi.searchStreams({ search }).then(resolve, () => resolve([]))
+          ))
+            .then((nextResults) => {
+              if (!isMounted()) { return }
+
+              setIncomingResults((prevResults) => ([
+                ...(prevResults || []),
+                ...nextResults,
+              ]))
+            })
+
+          const mapPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
+            mapApi.getLocations({ search }).then(resolve, () => resolve([]))
+          ))
+            .then((nextResults) => {
+              if (!isMounted()) { return }
+
+              setIncomingResults((prevResults) => ([
+                ...(prevResults || []),
+                ...nextResults,
+              ]))
+            })
+
+          // wait for all searches to complete before ending progress status
+          await Promise.all([
+            streamPromise,
+            mapPromise,
+          ])
+          if (!isMounted()) { return }
+
+          end()
+        } catch (e) {
+          // todo
+        }
+      }
+    }, [isMounted, end]),
+    250,
+  )
+
+  const updateResults = useCallback(({ search }: { search: string }) => {
+    start()
+    debouncedUpdateResults({ search })
+  }, [start, debouncedUpdateResults])
 
   return useMemo(() => ({
     updateResults,

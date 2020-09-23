@@ -8,6 +8,7 @@ import ReactMapGL, {
   InteractiveMap,
   ViewportProps,
   WebMercatorViewport,
+  FlyToInterpolator,
 } from 'react-map-gl'
 import styled from 'styled-components/macro'
 import useSupercluster from 'use-supercluster'
@@ -120,6 +121,10 @@ const Map = () => {
         longitude,
         latitude,
         zoom,
+        transitionInterpolator: new FlyToInterpolator({
+          speed: 3,
+        }),
+        transitionDuration: 'auto',
       }
     })
   }, [visibleNodes])
@@ -132,6 +137,10 @@ const Map = () => {
         longitude: activeNode.longitude,
         latitude: activeNode.latitude,
         zoom: 5,
+        transitionInterpolator: new FlyToInterpolator({
+          speed: 3,
+        }),
+        transitionDuration: 'auto',
       }))
     }
   }, [activeNode])

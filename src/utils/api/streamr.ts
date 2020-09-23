@@ -6,10 +6,26 @@ type SearchStreams = {
   search?: string,
 }
 
-export const searchStreams = ({ search = '' }: SearchStreams) => {
-  const searchParams = {
+export type SearchResult = {
+  type: 'streams' | 'nodes' | 'locations',
+  id: string,
+  name: string,
+}
+
+const fakeResults: SearchResult[] = [{
+  id: '7wa7APtlTq6EC5iTCBy6dw',
+  type: 'streams',
+  name: 'Helsinki Trams',
+}, {
+  id: '7rn4Cav8R3uudiwEltwqdQ',
+  type: 'streams',
+  name: 'Twitter Firehose Sample',
+}]
+
+export const searchStreams = ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
+  /* const searchParams = {
     uiChannel: false,
-    operation: 'STREAM_SHARE',
+    operation: 'STREAM_GET',
     search,
   }
 
@@ -18,6 +34,12 @@ export const searchStreams = ({ search = '' }: SearchStreams) => {
     data: {
       ...searchParams,
     },
+  }) */
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(fakeResults)
+    }, 250)
   })
 }
 
