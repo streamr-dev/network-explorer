@@ -38,13 +38,12 @@ export const getReversedGeocodedLocation = async ({
   }
 
   const {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    place_name,
+    place_name: region,
     bbox,
   } = (result && result.features || []).find(({ place_type }) => place_type[0] === 'region') || {}
 
   return {
-    region: place_name,
+    region,
     bbox,
   }
 }

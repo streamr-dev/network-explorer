@@ -7,6 +7,7 @@ import React, {
 
 import { usePending } from './Pending'
 import { useNodes } from './Nodes'
+import { useIsMounted } from '../hooks/useIsMounted'
 import * as api from '../utils/api/tracker'
 
 type ContextProps = {
@@ -26,6 +27,7 @@ function useTopologyContext() {
   const [topology, setTopology] = useState<api.Topology>({})
   const { nodes } = useNodes()
   const { wrap: wrapTopology } = usePending('topology')
+  const isMounted = useIsMounted()
 
   const loadTopologyFromApi = useCallback(async ({ id }) => {
     try {
@@ -43,9 +45,11 @@ function useTopologyContext() {
     wrapTopology(async () => {
       const newTopology = await loadTopologyFromApi({ id: streamId })
 
+      if (!isMounted()) { return }
+
       setTopology(newTopology)
     })
-  ), [wrapTopology, loadTopologyFromApi, setTopology])
+  ), [wrapTopology, loadTopologyFromApi, setTopology, isMounted])
 
   const resetTopology = useCallback(() => {
     setTopology({})
@@ -66,7 +70,7 @@ function useTopologyContext() {
   ), [topology])
 
   const activeNode = useMemo(() => (
-    visibleNodes && visibleNodes.find(({ id }) => activeNodeId === id)
+    visibleNodes.find(({ id }) => activeNodeId === id)
   ), [visibleNodes, activeNodeId])
 
   return useMemo(() => ({

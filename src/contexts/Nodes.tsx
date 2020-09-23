@@ -8,6 +8,7 @@ import React, {
 
 import * as api from '../utils/api/tracker'
 import { usePending } from './Pending'
+import { useIsMounted } from '../hooks/useIsMounted'
 
 type ContextProps = {
   nodes: api.Node[],
@@ -20,22 +21,27 @@ function useNodesContext() {
   const [trackers, setTrackers] = useState<string[]>([])
   const [nodes, setNodes] = useState<api.Node[]>([])
   const { wrap } = usePending('nodes')
+  const isMounted = useIsMounted()
 
   const updateTrackers = useCallback(async () => {
     const nextTrackers = await api.getTrackers()
 
+    if (!isMounted()) { return }
+
     setNodes([])
     setTrackers(nextTrackers)
-  }, [])
+  }, [isMounted])
 
   const loadNodes = useCallback(async (url: string) => {
     const nextNodes = await api.getNodes(url)
+
+    if (!isMounted()) { return }
 
     setNodes((prevNodes) => ([
       ...prevNodes,
       ...nextNodes,
     ]))
-  }, [])
+  }, [isMounted])
 
   const doLoadTrackers = useCallback(async (urls: string[]) => (
     wrap(async () => {

@@ -26,7 +26,7 @@ function useLoadTrackersEffect() {
   }, [updateTrackers])
 }
 
-const LoadTrackersEffect = () => {
+const TrackerLoader = () => {
   useLoadTrackersEffect()
   return null
 }
@@ -37,7 +37,7 @@ const App = () => (
       <NodesProvider>
         <StreamProvider>
           <TopologyProvider>
-            <LoadTrackersEffect />
+            <TrackerLoader />
             <Map />
             <LoadingIndicator />
             <Layout>

@@ -6,6 +6,7 @@ import React, {
 } from 'react'
 
 import { usePending } from './Pending'
+import { useIsMounted } from '../hooks/useIsMounted'
 
 import * as api from '../utils/api/streamr'
 
@@ -23,6 +24,7 @@ function useStreamContext() {
   const [stream, setStream] = useState<api.Stream | undefined>(undefined)
   const [activeStreamId, setActiveStreamId] = useState<string | undefined>(undefined)
   const { wrap: wrapStreams } = usePending('streams')
+  const isMounted = useIsMounted()
 
   const loadStream = useCallback(async (streamId: string) => (
     wrapStreams(async () => {
@@ -31,6 +33,8 @@ function useStreamContext() {
       try {
         const nextStream = await api.getStream({ id: streamId })
 
+        if (!isMounted()) { return }
+
         setStream(nextStream)
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -38,7 +42,7 @@ function useStreamContext() {
         throw e
       }
     })
-  ), [wrapStreams])
+  ), [wrapStreams, isMounted])
 
   const resetStream = useCallback(() => {
     setActiveStreamId(undefined)
