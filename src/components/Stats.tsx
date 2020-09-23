@@ -79,7 +79,7 @@ const Stats = ({
         >
           <StatName>{name}</StatName>
           <StatValue>{values[name]}</StatValue>
-          {selectedStat === name && disabled === false && (
+          {selectedStat === name && !disabled && (
             <UnderlineContainer>
               <Underline />
             </UnderlineContainer>

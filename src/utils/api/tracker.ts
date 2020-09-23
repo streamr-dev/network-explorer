@@ -1,8 +1,10 @@
 import { Contract, providers, BigNumber } from 'ethers'
 import { entropyToMnemonic, wordlists } from 'bip39'
 
-import trackerRegistryConfig from './abis/trackerRegistryDev.json'
-import { get } from './request'
+import trackerRegistryConfig from '../abis/trackerRegistryDev.json'
+import { getReversedGeocodedLocation } from './mapbox'
+
+import { get } from '../request'
 
 const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
 const PROVIDER = 'http://localhost:8545'
@@ -49,6 +51,7 @@ export type Node = {
   title: string,
   latitude: number,
   longitude: number,
+  placeName: string
 }
 
 type NodeResult = {
@@ -79,16 +82,18 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     console.warn(`Failed to load nodes from ${url}/location/`)
   }
 
-  return Object.keys(result || []).map((id: string) => {
-    const { latitude, longitude } = result[id] || {}
+  return Promise.all(Object.keys(result || []).map(async (id: string) => {
+    const { latitude, longitude, country } = result[id] || {}
+    const { region } = await getReversedGeocodedLocation({ latitude, longitude })
 
     return {
       id,
       latitude,
       longitude,
       title: generateMnemonic(id),
+      placeName: region || country,
     }
-  })
+  }))
 }
 
 export type Topology = Record<string, string[]>

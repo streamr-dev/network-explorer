@@ -5,6 +5,8 @@ import React, {
   useCallback,
 } from 'react'
 
+import { useIsMounted } from '../hooks/useIsMounted'
+
 type Pending = Record<string, boolean>
 type ContextProps = {
   pending: Pending,
@@ -59,14 +61,19 @@ const useAllPending  = () => {
 
 const usePending = (name: string) => {
   const { isPending, setPending } = useAllPending()
+  const isMounted = useIsMounted()
 
   const start = useCallback(() => {
+    if (isMounted()) { return }
+
     setPending(name, true)
-  }, [name, setPending])
+  }, [name, setPending, isMounted])
 
   const end = useCallback(() => {
+    if (isMounted()) { return }
+
     setPending(name, false)
-  }, [name, setPending])
+  }, [name, setPending, isMounted])
 
   const wrap = useCallback(async (fn: Function) => {
     start()
