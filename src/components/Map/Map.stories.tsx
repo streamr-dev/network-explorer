@@ -3,6 +3,7 @@ import { Story, Meta } from '@storybook/react/types-6-0'
 
 import Map from '.'
 import { Provider as NodesProvider, useNodes } from '../../contexts/Nodes'
+import { Provider as TopologyProvider, useTopology } from '../../contexts/Topology'
 import { Provider as Pendingrovider } from '../../contexts/Pending'
 
 export default {
@@ -16,13 +17,16 @@ export default {
 export const Empty: Story = (args) => (
   <Pendingrovider>
     <NodesProvider>
-      <Map {...args} />
+      <TopologyProvider>
+        <Map {...args} />
+      </TopologyProvider>
     </NodesProvider>
   </Pendingrovider>
 )
 
 const Loader  = () => {
-  const { nodes, setNodes, setTopology } = useNodes()
+  const { nodes, setNodes } = useNodes()
+  const { setTopology } = useTopology()
   if (nodes.length === 0) {
     setNodes([
       {
@@ -30,11 +34,13 @@ const Loader  = () => {
         title: 'Node 1',
         latitude: 60.16952,
         longitude: 24.93545,
+        placeName: 'Helsinki',
       }, {
         id: '2',
         title: 'Node 2',
         latitude: 60.14952,
         longitude: 24.92545,
+        placeName: 'Helsinki',
       },
     ])
 
@@ -49,8 +55,10 @@ const Loader  = () => {
 export const Nodes: Story = (args) => (
   <Pendingrovider>
     <NodesProvider>
-      <Loader />
-      <Map {...args} />
+      <TopologyProvider>
+        <Loader />
+        <Map {...args} />
+      </TopologyProvider>
     </NodesProvider>
   </Pendingrovider>
 )
