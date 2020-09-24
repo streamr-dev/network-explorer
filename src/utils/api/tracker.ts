@@ -6,8 +6,8 @@ import { getReversedGeocodedLocation } from './mapbox'
 
 import { get } from '../request'
 
-const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
-const PROVIDER = 'http://localhost:8545'
+const ADDRESS = '0xD127C88C3F6a22fE8Ef6Ed8eB062658Ed7eD0125'
+const PROVIDER = 'https://staging.streamr.com:8540'
 
 type NodeInfo = {
   url: string,

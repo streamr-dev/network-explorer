@@ -64,13 +64,13 @@ const usePending = (name: string) => {
   const isMounted = useIsMounted()
 
   const start = useCallback(() => {
-    if (isMounted()) { return }
+    if (!isMounted()) { return }
 
     setPending(name, true)
   }, [name, setPending, isMounted])
 
   const end = useCallback(() => {
-    if (isMounted()) { return }
+    if (!isMounted()) { return }
 
     setPending(name, false)
   }, [name, setPending, isMounted])
