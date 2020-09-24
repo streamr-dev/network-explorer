@@ -12,7 +12,8 @@ import { useIsMounted } from '../hooks/useIsMounted'
 
 type ContextProps = {
   nodes: api.Node[],
-  updateTrackers: Function,
+  setNodes: (nodes: api.Node[]) => void,
+  updateTrackers: () => Promise<void>,
 }
 
 const NodesContext = React.createContext<ContextProps | undefined>(undefined)
@@ -57,9 +58,11 @@ function useNodesContext() {
 
   return useMemo(() => ({
     nodes,
+    setNodes,
     updateTrackers,
   }), [
     nodes,
+    setNodes,
     updateTrackers,
   ])
 }

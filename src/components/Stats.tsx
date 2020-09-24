@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components/macro'
 
+import { SANS } from '../utils/styled'
+
 const Container = styled.div`
   display: grid;
   grid-auto-flow: column;
   padding-top: 12px;
+  font-family: ${SANS};
 `
 
 const Stat = styled.div`
@@ -41,7 +44,7 @@ const Underline = styled.div`
   width: 32px;
 `
 
-type Props = {
+export type Props = {
   values: { [key: string]: number },
   onSelectedStatChanged: (name: string | null) => void,
   // eslint-disable-next-line react/require-default-props
