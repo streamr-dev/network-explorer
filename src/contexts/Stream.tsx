@@ -6,7 +6,7 @@ import React, {
 } from 'react'
 
 import { usePending } from './Pending'
-import { useIsMounted } from '../hooks/useIsMounted'
+import useIsMounted from '../hooks/useIsMounted'
 
 import * as api from '../utils/api/streamr'
 

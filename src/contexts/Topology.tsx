@@ -7,7 +7,7 @@ import React, {
 
 import { usePending } from './Pending'
 import { useNodes } from './Nodes'
-import { useIsMounted } from '../hooks/useIsMounted'
+import useIsMounted from '../hooks/useIsMounted'
 import * as api from '../utils/api/tracker'
 
 type ContextProps = {

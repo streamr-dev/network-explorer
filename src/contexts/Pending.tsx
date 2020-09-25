@@ -5,7 +5,7 @@ import React, {
   useCallback,
 } from 'react'
 
-import { useIsMounted } from '../hooks/useIsMounted'
+import useIsMounted from '../hooks/useIsMounted'
 
 type Pending = Record<string, boolean>
 type ContextProps = {
