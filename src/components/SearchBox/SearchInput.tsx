@@ -84,7 +84,7 @@ const SearchInput = ({
   value,
   onChange,
   onClear,
-  disabled,
+  disabled = false,
 }: Props) => {
   return (
     <Container>
@@ -109,10 +109,6 @@ const SearchInput = ({
       )}
     </Container>
   )
-}
-
-SearchInput.defaultProps = {
-  disabled: false,
 }
 
 export default SearchInput

@@ -95,6 +95,13 @@
     "react/jsx-indent": "warn",
     "no-unreachable": "warn",
     "object-curly-newline": "warn",
-    "no-trailing-spaces": "warn"
+    "no-trailing-spaces": "warn",
+    "react/require-default-props": [
+      "warn",
+      {
+        "forbidDefaultForRequired": true,
+        "ignoreFunctionalComponents": true
+      }
+    ]
   }
 }
