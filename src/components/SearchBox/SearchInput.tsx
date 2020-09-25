@@ -79,9 +79,7 @@ type Props = {
   value: string,
   onChange: (text: string) => void,
   onClear: () => void,
-  // eslint-disable-next-line react/require-default-props
   onFocus?: Function,
-  // eslint-disable-next-line react/require-default-props
   onBlur?: Function,
   disabled?: boolean,
 }

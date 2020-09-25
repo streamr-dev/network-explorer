@@ -7,7 +7,7 @@ import {
 import orderBy from 'lodash/orderBy'
 
 import { useDebounced } from '../../hooks/wrapCallback'
-import { useIsMounted } from '../../hooks/useIsMounted'
+import useIsMounted from '../../hooks/useIsMounted'
 import { usePending } from '../../contexts/Pending'
 import * as streamrApi from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
@@ -63,10 +63,10 @@ const useSearch = () => {
             mapPromise,
           ])
           if (!isMounted()) { return }
-
-          end()
         } catch (e) {
           // todo
+        } finally {
+          end()
         }
       }
     }, [isMounted, end]),

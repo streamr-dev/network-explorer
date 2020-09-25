@@ -49,7 +49,7 @@ export const getReversedGeocodedLocation = async ({
   const {
     place_name: region,
     bbox,
-  } = (result && result.features || []).find(({ place_type }) => place_type[0] === 'region') || {}
+  } = (result && result.features || []).find(({ place_type }) => place_type.includes('region')) || {}
 
   return {
     region,
@@ -76,7 +76,7 @@ export const getLocations = async ({ search }: LocationSearch): Promise<SearchRe
   }
 
   return (result && result.features || [])
-    .filter(({ place_type }) => place_type[0] === 'place')
+    .filter(({ place_type }) => place_type.includes('place'))
     .map(({ id, place_name }) => ({
       id,
       name: place_name,

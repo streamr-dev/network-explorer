@@ -7,6 +7,7 @@ import Stats from '../Stats'
 import Graphs from '../Graphs'
 import { useNodes } from '../../contexts/Nodes'
 import { useStream } from '../../contexts/Stream'
+import { usePending } from '../../contexts/Pending'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
@@ -44,6 +45,7 @@ const SearchBox = () => {
   const { activeStreamId, stream } = useStream()
   const { results, updateResults } = useSearch()
   const [searchActive, setSearchActive] = useState<boolean>(false)
+  const { isPending: isStreamLoading } = usePending('streams')
 
   useEffect(() => {
     if (searchActive) {
@@ -58,7 +60,7 @@ const SearchBox = () => {
   }
 
   const hasStream = !!activeStreamId
-  const isDisabled = hasStream && !stream
+  const isDisabled = hasStream && !!isStreamLoading
   const streamTitle = stream && stream.name || ''
 
   useEffect(() => {
