@@ -1,22 +1,20 @@
-import { Contract, providers, BigNumber } from 'ethers'
 import { entropyToMnemonic, wordlists } from 'bip39'
+import { Utils } from 'streamr-client-protocol'
 
-import trackerRegistryConfig from '../abis/trackerRegistryDev.json'
 import { getReversedGeocodedLocation } from './mapbox'
 
 import { get } from '../request'
 
-const ADDRESS = '0xD127C88C3F6a22fE8Ef6Ed8eB062658Ed7eD0125'
-const PROVIDER = 'https://staging.streamr.com:8540'
+// dev:
+const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
+const PROVIDER = 'http://localhost:8545'
 
-type NodeInfo = {
-  url: string,
-  nodeAddress: string,
-  lastSeen: BigNumber,
-}
+// staging:
+// const ADDRESS = '0xD127C88C3F6a22fE8Ef6Ed8eB062658Ed7eD0125'
+// const PROVIDER = 'https://staging.streamr.com:8540'
 
 export const mapApiUrl = (url: string) => {
-  const ip = url.slice(5)
+  const ip = url.slice(5).replace(':3030', ':1111')
 
   return `http://${ip}`
 }
@@ -26,23 +24,15 @@ const defaultTrackers = [
 ]
 
 export const getTrackers = async (): Promise<string[]> => {
-  const provider = new providers.JsonRpcProvider(PROVIDER)
-  // check that provider is connected and has some valid blockNumber
-  await provider.getBlockNumber()
-
-  const contract = new Contract(ADDRESS, trackerRegistryConfig.abi, provider)
-  // check that contract is connected
-  await contract.addressPromise
-
-  if (typeof contract.getNodes !== 'function') {
-    throw Error('getNodes is not defined in contract')
-  }
-
-  const result: NodeInfo[] = await contract.getNodes()
+  const trackerRegistry = await Utils.getTrackerRegistryFromContract({
+    contractAddress: ADDRESS,
+    jsonRpcProvider: PROVIDER,
+  })
+  const result: string[] = trackerRegistry.getAllTrackers()
 
   return [
     ...defaultTrackers,
-    ...(result || []).map(({ url }) => mapApiUrl(url)),
+    ...(result || []).map((url) => mapApiUrl(url)),
   ]
 }
 
