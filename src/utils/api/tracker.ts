@@ -36,6 +36,15 @@ export const getTrackers = async (): Promise<string[]> => {
   ]
 }
 
+export const getTrackerForStream = async ({ id }: { id: string }) => {
+  const trackerRegistry = await Utils.getTrackerRegistryFromContract({
+    contractAddress: ADDRESS,
+    jsonRpcProvider: PROVIDER,
+  })
+
+  return mapApiUrl(trackerRegistry.getTracker(id))
+}
+
 export type Node = {
   id: string,
   title: string,
@@ -91,7 +100,7 @@ export type Topology = Record<string, string[]>
 export type Topologyresult = Record<string, Topology>
 
 export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
-  const [url] = defaultTrackers // todo: need to go through all trackers?
+  const url = await getTrackerForStream({ id })
   let result: Topologyresult = {}
 
   try {
@@ -103,7 +112,7 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
     console.warn(`Failed to load topology from ${url}/topology/${id}`)
   }
 
-  const [topology] = Object.values(result || [])
+  const [topology] = Object.values(result || {})
 
-  return topology
+  return topology || {}
 }
