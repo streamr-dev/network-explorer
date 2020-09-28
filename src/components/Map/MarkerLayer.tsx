@@ -8,6 +8,8 @@ type Props = {
   clusters: Array<ClusterPointFeature>,
   viewport: ViewportProps,
   setViewport: (v: ViewportProps) => void,
+  activeNode?: string,
+  onNodeClick?: (v: string) => void,
 }
 
 const MarkerLayer = ({
@@ -15,6 +17,8 @@ const MarkerLayer = ({
   clusters,
   viewport,
   setViewport,
+  activeNode,
+  onNodeClick,
 }: Props) => (
   <>
     {clusters.map((cluster) => {
@@ -58,7 +62,11 @@ const MarkerLayer = ({
 
       return (
         <Marker key={`node-${nodeId}`} latitude={latitude} longitude={longitude}>
-          <NodeMarker />
+          <NodeMarker
+            id={nodeId}
+            isActive={activeNode === nodeId}
+            onClick={() => onNodeClick && onNodeClick(nodeId)}
+          />
         </Marker>
       )
     })}

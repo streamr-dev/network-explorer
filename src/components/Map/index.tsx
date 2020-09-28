@@ -2,6 +2,7 @@ import React, {
   useState,
   useEffect,
   useRef,
+  useMemo,
 } from 'react'
 import ReactMapGL, {
   NavigationControl,
@@ -22,6 +23,7 @@ import MarkerLayer from './MarkerLayer'
 import useWindowSize from '../../hooks/useWindowSize'
 import { useTopology } from '../../contexts/Topology'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
+import { Node, Topology } from '../../utils/api/tracker'
 
 const NavigationContainer = styled.div`
   position: absolute;
@@ -29,26 +31,51 @@ const NavigationContainer = styled.div`
   bottom: 32px;
 `
 
-const Map = () => {
+type ViewPort = Record<string, number>
+
+type Props = {
+  nodes: Node[],
+  topology: Topology,
+  activeNode?: Node,
+  viewport: ViewportProps,
+  setViewport: (viewport: ViewportProps) => void,
+  onNodeClick?: (v: string) => void,
+}
+
+const defaultViewport = {
+  width: 400,
+  height: 400,
+  latitude: 60.16952,
+  longitude: 24.93545,
+  zoom: 10,
+  bearing: 0,
+  pitch: 0,
+  altitude: 0,
+  maxZoom: 20,
+  minZoom: 0,
+  maxPitch: 60,
+  minPitch: 0,
+}
+
+export const Map = ({
+  nodes,
+  topology,
+  activeNode,
+  viewport = defaultViewport,
+  setViewport,
+  onNodeClick,
+}: Props) => {
   const mapRef = useRef<InteractiveMap>(null)
-  const { visibleNodes, nodeConnections, activeNode } = useTopology()
 
-  const [viewport, setViewport] = useState<ViewportProps>({
-    width: 400,
-    height: 400,
-    latitude: 60.16952,
-    longitude: 24.93545,
-    zoom: 10,
-    bearing: 0,
-    pitch: 0,
-    altitude: 0,
-    maxZoom: 20,
-    minZoom: 0,
-    maxPitch: 60,
-    minPitch: 0,
-  })
+  // Convert topology to a list of node connection pairs
+  const connections = useMemo(() => (
+    Object.keys(topology || {}).flatMap((key) => {
+      const nodeList = topology[key]
+      return nodeList.map((n) => [key, n])
+    })
+  ), [topology])
 
-  const points: Array<PointFeature<NodeProperties>> = visibleNodes.map((node) => ({
+  const points: Array<PointFeature<NodeProperties>> = (nodes || []).map((node) => ({
     type: 'Feature',
     properties: {
       nodeId: node.id,
@@ -88,14 +115,73 @@ const Map = () => {
     },
   })
 
-  const windowSize = useWindowSize()
+  return (
+    <ReactMapGL
+      {...viewport}
+      mapboxApiAccessToken={MAPBOX_TOKEN}
+      mapStyle='mapbox://styles/mattinnes/ckdtszq5m0iht19qk0zuz52oy'
+      onViewportChange={setViewport}
+      ref={mapRef}
+    >
+      {supercluster != null && (
+        <>
+          <ConnectionLayer
+            supercluster={supercluster}
+            clusters={clusters}
+            nodeConnections={connections}
+          />
+          <MarkerLayer
+            supercluster={supercluster}
+            clusters={clusters}
+            viewport={viewport}
+            setViewport={(...args) => setViewport(...args)}
+            activeNode={activeNode && activeNode.id}
+            onNodeClick={onNodeClick}
+          />
+        </>
+      )}
+      <NavigationContainer>
+        <NavigationControl
+          showCompass={false}
+          onViewportChange={setViewport}
+        />
+      </NavigationContainer>
+    </ReactMapGL>
+  )
+}
+
+export default () => {
+  const { visibleNodes, topology, activeNode } = useTopology()
+  const [viewport, setViewport] = useState<ViewportProps>({
+    width: 400,
+    height: 400,
+    latitude: 60.16952,
+    longitude: 24.93545,
+    zoom: 10,
+    bearing: 0,
+    pitch: 0,
+    altitude: 0,
+    maxZoom: 20,
+    minZoom: 0,
+    maxPitch: 60,
+    minPitch: 0,
+  })
+
+  // zoom selected network node into view
   useEffect(() => {
-    setViewport((prev) => ({
-      ...prev,
-      width: windowSize.width ?? prev.width,
-      height: windowSize.height ?? prev.height,
-    }))
-  }, [setViewport, windowSize.width, windowSize.height])
+    if (activeNode) {
+      setViewport((prev) => ({
+        ...prev,
+        longitude: activeNode.longitude,
+        latitude: activeNode.latitude,
+        zoom: 5,
+        transitionInterpolator: new FlyToInterpolator({
+          speed: 3,
+        }),
+        transitionDuration: 'auto',
+      }))
+    }
+  }, [activeNode])
 
   // zoom topology into view
   useEffect(() => {
@@ -129,53 +215,23 @@ const Map = () => {
     })
   }, [visibleNodes])
 
-  // zoom selected network node into view
+  const windowSize = useWindowSize()
+
   useEffect(() => {
-    if (activeNode) {
-      setViewport((prev) => ({
-        ...prev,
-        longitude: activeNode.longitude,
-        latitude: activeNode.latitude,
-        zoom: 5,
-        transitionInterpolator: new FlyToInterpolator({
-          speed: 3,
-        }),
-        transitionDuration: 'auto',
-      }))
-    }
-  }, [activeNode])
+    setViewport((prev) => ({
+      ...prev,
+      width: windowSize.width ?? prev.width,
+      height: windowSize.height ?? prev.height,
+    }))
+  }, [setViewport, windowSize.width, windowSize.height])
 
   return (
-    <ReactMapGL
-      {...viewport}
-      mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle='mapbox://styles/mattinnes/ckdtszq5m0iht19qk0zuz52oy'
-      onViewportChange={setViewport}
-      ref={mapRef}
-    >
-      {supercluster != null && (
-        <>
-          <ConnectionLayer
-            supercluster={supercluster}
-            clusters={clusters}
-            nodeConnections={nodeConnections}
-          />
-          <MarkerLayer
-            supercluster={supercluster}
-            clusters={clusters}
-            viewport={viewport}
-            setViewport={setViewport}
-          />
-        </>
-      )}
-      <NavigationContainer>
-        <NavigationControl
-          showCompass={false}
-          onViewportChange={setViewport}
-        />
-      </NavigationContainer>
-    </ReactMapGL>
+    <Map
+      nodes={visibleNodes}
+      viewport={viewport}
+      topology={topology}
+      setViewport={setViewport}
+      activeNode={activeNode}
+    />
   )
 }
-
-export default Map
