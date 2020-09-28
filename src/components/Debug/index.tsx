@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
 import { useAllPending } from '../../contexts/Pending'
@@ -31,10 +30,6 @@ const Debug = () => {
   return (
     <ControlBox>
       <Wrapper>
-        <Link to="/streams/7wa7APtlTq6EC5iTCBy6dw">Helsinki trams</Link>
-        <br />
-        <Link to="/streams/7rn4Cav8R3uudiwEltwqdQ">Twitter Firehose Sample</Link>
-        <br />
         <Variables>
           {JSON.stringify({
             pending,

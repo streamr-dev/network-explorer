@@ -21,7 +21,10 @@ const Header = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 16px;
+
+  & + * {
+    margin-bottom: 16px;
+  }
 
   strong {
     font-weight: ${MEDIUM};
