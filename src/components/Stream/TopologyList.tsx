@@ -4,15 +4,8 @@ import { useParams, useHistory } from 'react-router-dom'
 
 import { useTopology } from '../../contexts/Topology'
 import { useStream } from '../../contexts/Stream'
-import ControlBox from '../ControlBox'
 import { SANS, MEDIUM } from '../../utils/styled'
-
-import Node from './Node'
-
-const Wrapper = styled.div`
-  padding: 16px;
-  font-size: 12px;
-`
+import NodeList from '../NodeList'
 
 const Header = styled.div`
   font-family: ${SANS};
@@ -23,7 +16,7 @@ const Header = styled.div`
   white-space: nowrap;
 
   & + * {
-    margin-bottom: 16px;
+    margin-top: 16px;
   }
 
   strong {
@@ -54,29 +47,21 @@ const TopologyList = ({ id }: Props) => {
   const streamTitle = stream && stream.name || id
 
   return (
-    <ControlBox>
-      <Wrapper>
-        <Header>
-          Showing
-          {' '}
-          <strong>{visibleNodes.length}</strong>
-          {' '}
-          nodes carrying the stream
-          {' '}
-          <strong title={id}>{streamTitle}</strong>
-        </Header>
-        {visibleNodes.map(({ id: nodeId, title, placeName }) => (
-          <Node
-            key={nodeId}
-            nodeId={nodeId}
-            title={title}
-            placeName={placeName}
-            active={activeNodeId === nodeId}
-            onClick={() => toggleNode(nodeId)}
-          />
-        ))}
-      </Wrapper>
-    </ControlBox>
+    <NodeList
+      nodes={visibleNodes}
+      activeNodeId={activeNodeId}
+      onNodeClick={toggleNode}
+    >
+      <Header>
+        Showing
+        {' '}
+        <strong>{visibleNodes.length}</strong>
+        {' '}
+        nodes carrying the stream
+        {' '}
+        <strong title={id}>{streamTitle}</strong>
+      </Header>
+    </NodeList>
   )
 }
 

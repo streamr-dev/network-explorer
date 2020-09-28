@@ -5,7 +5,7 @@ import {
   Switch,
 } from 'react-router-dom'
 
-import Map from '../components/Map'
+import { ConnectedMap } from '../components/Map'
 import SearchBox from '../components/SearchBox'
 import Stream from '../components/Stream'
 import Node from '../components/Node'
@@ -38,7 +38,7 @@ const App = () => (
         <StreamProvider>
           <TopologyProvider>
             <TrackerLoader />
-            <Map />
+            <ConnectedMap />
             <LoadingIndicator />
             <Layout>
               <SearchBox />

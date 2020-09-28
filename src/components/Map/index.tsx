@@ -150,7 +150,7 @@ export const Map = ({
   )
 }
 
-export default () => {
+export const ConnectedMap = () => {
   const { visibleNodes, topology, activeNode } = useTopology()
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
@@ -235,3 +235,5 @@ export default () => {
     />
   )
 }
+
+export default ConnectedMap

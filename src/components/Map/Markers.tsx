@@ -49,13 +49,13 @@ const NodeMarkerContainer = styled.div`
   width: 32px;
   height: 32px;
   transform: translate(-50%, -50%);
+  cursor: pointer;
 
   & span {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -40%);
-      cursor: pointer;
   }
 `
 

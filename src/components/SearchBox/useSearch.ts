@@ -28,8 +28,8 @@ const useSearch = () => {
 
   const searchNodes = useCallback((search: string): streamrApi.SearchResult[] => nodes
     .filter(({ id, title }) => (
-      id.indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0),
-    )
+      id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0
+    ))
     .map(({ id, title }) => ({
       id,
       type: 'nodes',

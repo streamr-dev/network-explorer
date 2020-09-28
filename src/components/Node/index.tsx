@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 
 import { useNodes } from '../../contexts/Nodes'
 import { useTopology } from '../../contexts/Topology'
+import TopologyList from './TopologyList'
 
 type NodeProps = {
   id: string,
@@ -37,6 +38,7 @@ export default () => {
   return (
     <div>
       <ActiveNode id={nodeId} />
+      <TopologyList id={nodeId} />
     </div>
   )
 }
