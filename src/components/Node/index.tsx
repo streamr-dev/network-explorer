@@ -1,20 +1,42 @@
-import React from 'react'
-import { withRouter } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+
+import { useNodes } from '../../contexts/Nodes'
+import { useTopology } from '../../contexts/Topology'
 
 type NodeProps = {
   id: string,
 }
 
-const Node = ({ id }: NodeProps) => {
+const ActiveNode = ({ id }: NodeProps) => {
+  const { setActiveNodeId, setTopology, resetTopology } = useTopology()
+
+  useEffect(() => {
+    setActiveNodeId(id)
+    setTopology({
+      [id]: [],
+    })
+
+    return () => {
+      setActiveNodeId(undefined)
+      resetTopology()
+    }
+  }, [id, setActiveNodeId, setTopology, resetTopology])
+
   return null
 }
 
-export default withRouter(({ match }) => {
-  const { params: { id } } = match || {}
+export default () => {
+  const { nodeId } = useParams()
+  const { nodes } = useNodes()
 
-  if (!id) {
+  if (!nodeId || !nodes || nodes.length < 1) {
     return null
   }
 
-  return <Node id={id} key={id} />
-})
+  return (
+    <div>
+      <ActiveNode id={nodeId} />
+    </div>
+  )
+}

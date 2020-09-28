@@ -9,6 +9,7 @@ import orderBy from 'lodash/orderBy'
 import { useDebounced } from '../../hooks/wrapCallback'
 import useIsMounted from '../../hooks/useIsMounted'
 import { usePending } from '../../contexts/Pending'
+import { useNodes } from '../../contexts/Nodes'
 import * as streamrApi from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
 
@@ -17,6 +18,7 @@ const useSearch = () => {
   const [incomingResults, setIncomingResults] = useState<streamrApi.SearchResult[] | undefined>([])
   const isMounted = useIsMounted()
   const { start, end } = usePending('search')
+  const { nodes } = useNodes()
 
   useEffect(() => {
     if (incomingResults) {
@@ -24,14 +26,31 @@ const useSearch = () => {
     }
   }, [incomingResults])
 
+  const searchNodes = useCallback((search: string): streamrApi.SearchResult[] => nodes
+    .filter(({ id, title }) => (
+      id.indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0),
+    )
+    .map(({ id, title }) => ({
+      id,
+      type: 'nodes',
+      name: title,
+    })), [nodes])
+
   const debouncedUpdateResults = useDebounced(
-    useCallback(async ({ search }: { search: string }) => {
+    useCallback(async ({ search: rawSearchString }: { search: string }) => {
+      const search = rawSearchString.toLowerCase()
+
       if (!search) {
         setIncomingResults([])
         end()
       } else {
         try {
           setIncomingResults(undefined)
+
+          setIncomingResults((prevResults) => ([
+            ...(prevResults || []),
+            ...searchNodes(search),
+          ]))
 
           const streamPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
             streamrApi.searchStreams({ search }).then(resolve, () => resolve([]))
@@ -69,7 +88,7 @@ const useSearch = () => {
           end()
         }
       }
-    }, [isMounted, end]),
+    }, [isMounted, end, searchNodes]),
     250,
   )
 
