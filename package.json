@@ -11,6 +11,7 @@
     "@types/react-router-dom": "^5.1.5",
     "axios": "^0.20.0",
     "bip39": "^3.0.2",
+    "env-cmd": "^10.1.0",
     "history": "^5.0.0",
     "lodash": "^4.17.20",
     "mapbox-gl": "^1.12.0",
@@ -27,7 +28,8 @@
     "use-supercluster": "^0.2.8"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "BUILD_ENV=development npm run start-env",
+    "start-env": "env-cmd -f .env.${BUILD_ENV} react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

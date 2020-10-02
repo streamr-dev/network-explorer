@@ -5,13 +5,8 @@ import { getReversedGeocodedLocation } from './mapbox'
 
 import { get } from '../request'
 
-// dev:
-const ADDRESS = '0xBFCF120a8fD17670536f1B27D9737B775b2FD4CF'
-const PROVIDER = 'http://localhost:8545'
-
-// staging:
-// const ADDRESS = '0xD127C88C3F6a22fE8Ef6Ed8eB062658Ed7eD0125'
-// const PROVIDER = 'https://staging.streamr.com:8540'
+const ADDRESS = process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS
+const PROVIDER = process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER
 
 export const mapApiUrl = (url: string) => {
   const ip = url.slice(5).replace(':3030', ':1111')

@@ -2,7 +2,7 @@ import { get } from '../request'
 
 import { SearchResult } from './streamr'
 
-export const MAPBOX_TOKEN = 'pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig'
+export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN
 
 const getPlacesUrl = ({ place }: { place: string}) => (
   `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${MAPBOX_TOKEN}`
