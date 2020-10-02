@@ -67,7 +67,7 @@
     ],
     "react/jsx-key": "error",
     "import/no-extraneous-dependencies": [
-      "error",
+      "warn",
       {
         "devDependencies": [
           "**/*.test.js",

@@ -79,7 +79,7 @@ const stats = {
   'Latency ms': 27.5,
 }
 
-const Node = ({
+const NodeListItem = ({
   nodeId,
   title,
   placeName,
@@ -122,4 +122,4 @@ const Node = ({
   )
 }
 
-export default Node
+export default NodeListItem

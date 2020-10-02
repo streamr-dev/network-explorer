@@ -24,7 +24,7 @@ const Variables = styled.pre`
 const Debug = () => {
   const { pending } = useAllPending()
   const { nodes } = useNodes()
-  const { visibleNodes, nodeConnections } = useTopology()
+  const { visibleNodes, topology } = useTopology()
   const { stream } = useStream()
 
   return (
@@ -34,7 +34,7 @@ const Debug = () => {
           {JSON.stringify({
             pending,
             visibleNodes,
-            nodeConnections,
+            topology,
             stream,
             nodes,
           }, null, 2)}

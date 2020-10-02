@@ -14,7 +14,7 @@ type ContextProps = {
   loadTopology: Function,
   resetTopology: Function,
   visibleNodes: api.Node[],
-  nodeConnections: Array<string[]>,
+  topology: api.Topology,
   setTopology: Function,
   activeNode: api.Node | undefined,
   setActiveNodeId: Function,
@@ -61,14 +61,6 @@ function useTopologyContext() {
     nodes.filter(({ id }) => nodeSet.has(id))
   ), [nodes, nodeSet])
 
-  // Convert topology to a list of node connection pairs
-  const nodeConnections = useMemo(() => (
-    Object.keys(topology).flatMap((key) => {
-      const nodeList = topology[key]
-      return nodeList.map((n) => [key, n])
-    })
-  ), [topology])
-
   const activeNode = useMemo(() => (
     visibleNodes.find(({ id }) => activeNodeId === id)
   ), [visibleNodes, activeNodeId])
@@ -77,7 +69,7 @@ function useTopologyContext() {
     loadTopology,
     resetTopology,
     visibleNodes,
-    nodeConnections,
+    topology,
     setTopology,
     activeNode,
     setActiveNodeId,
@@ -85,7 +77,7 @@ function useTopologyContext() {
     loadTopology,
     resetTopology,
     visibleNodes,
-    nodeConnections,
+    topology,
     setTopology,
     activeNode,
     setActiveNodeId,

@@ -47,7 +47,7 @@ const Stream = ({ id, type, name }: SearchResult) => (
 )
 
 const Node = ({ id, type, name }: SearchResult) => (
-  <Row>
+  <Row as={Link} to={`/nodes/${id}`}>
     <Icon>
       <NodeIcon />
     </Icon>
