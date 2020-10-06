@@ -1,10 +1,6 @@
 import { get } from '../request'
 
-// dev:
-const API_URL = 'http://localhost/api/v1'
-
-// staging:
-// const API_URL = 'https://staging.streamr.com/api/v1'
+const API_URL = process.env.REACT_APP_STREAMR_API_URL
 
 type SearchStreams = {
   search?: string,
