@@ -23,7 +23,9 @@ export const getTrackers = async (): Promise<string[]> => {
     contractAddress: ADDRESS,
     jsonRpcProvider: PROVIDER,
   })
-  const result: string[] = trackerRegistry.getAllTrackers()
+  const result: string[] = (trackerRegistry.getAllTrackers() || [])
+    .map(({ http }: { http: string }) => http)
+    .filter(Boolean)
 
   return [
     ...defaultTrackers,
