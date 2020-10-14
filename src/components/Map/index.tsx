@@ -21,7 +21,7 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
-import { useTopology } from '../../contexts/Topology'
+import { useStore } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node, Topology } from '../../utils/api/tracker'
 
@@ -151,7 +151,7 @@ export const Map = ({
 }
 
 export const ConnectedMap = () => {
-  const { visibleNodes, topology, activeNode } = useTopology()
+  const { visibleNodes, topology, activeNode } = useStore()
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
     height: 400,

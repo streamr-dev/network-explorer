@@ -9,14 +9,10 @@ const ADDRESS = process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS
 const PROVIDER = process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER
 
 export const mapApiUrl = (url: string) => {
-  const ip = url.slice(5).replace(':3030', ':1111')
+  const ip = `${url}`.slice(5).replace(':1111', ':3030')
 
   return `http://${ip}`
 }
-
-const defaultTrackers = [
-  'http://corea1.streamr.network:11111',
-]
 
 export const getTrackers = async (): Promise<string[]> => {
   const trackerRegistry = await Utils.getTrackerRegistryFromContract({
@@ -28,7 +24,6 @@ export const getTrackers = async (): Promise<string[]> => {
     .filter(Boolean)
 
   return [
-    ...defaultTrackers,
     ...(result || []).map((url) => mapApiUrl(url)),
   ]
 }
@@ -39,7 +34,8 @@ export const getTrackerForStream = async ({ id }: { id: string }) => {
     jsonRpcProvider: PROVIDER,
   })
 
-  return mapApiUrl(trackerRegistry.getTracker(id))
+  const { http } = trackerRegistry.getTracker(id)
+  return mapApiUrl(http)
 }
 
 export type Node = {
@@ -102,11 +98,11 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
 
   try {
     result = await get<Topologyresult>({
-      url: `${url}/topology/${id}`,
+      url: `${url}/topology/${id}/`, // trailing slash needed
     })
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load topology from ${url}/topology/${id}`)
+    console.warn(`Failed to load topology from ${url}/topology/${id}/`)
   }
 
   const [topology] = Object.values(result || {})

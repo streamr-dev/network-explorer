@@ -1,5 +1,4 @@
 import React, {
-  useState,
   useMemo,
   useContext,
   useCallback,
@@ -8,41 +7,35 @@ import React, {
 
 import * as api from '../utils/api/tracker'
 import { usePending } from './Pending'
+import { useStore } from './Store'
 import useIsMounted from '../hooks/useIsMounted'
 
 type ContextProps = {
-  nodes: api.Node[],
-  setNodes: (nodes: api.Node[]) => void,
-  updateTrackers: () => Promise<void>,
+  loadTrackers: () => Promise<void>,
 }
 
 const NodesContext = React.createContext<ContextProps | undefined>(undefined)
 
 function useNodesContext() {
-  const [trackers, setTrackers] = useState<string[]>([])
-  const [nodes, setNodes] = useState<api.Node[]>([])
+  const { trackers, setTrackers, addNodes } = useStore()
   const { wrap } = usePending('nodes')
   const isMounted = useIsMounted()
 
-  const updateTrackers = useCallback(async () => {
+  const loadTrackers = useCallback(async () => {
     const nextTrackers = await api.getTrackers()
 
     if (!isMounted()) { return }
 
-    setNodes([])
     setTrackers(nextTrackers)
-  }, [isMounted])
+  }, [isMounted, setTrackers])
 
   const loadNodes = useCallback(async (url: string) => {
     const nextNodes = await api.getNodes(url)
 
     if (!isMounted()) { return }
 
-    setNodes((prevNodes) => ([
-      ...prevNodes,
-      ...nextNodes,
-    ]))
-  }, [isMounted])
+    addNodes(nextNodes)
+  }, [isMounted, addNodes])
 
   const doLoadTrackers = useCallback(async (urls: string[]) => (
     wrap(async () => {
@@ -57,13 +50,9 @@ function useNodesContext() {
   }, [trackers, loadNodes, doLoadTrackers])
 
   return useMemo(() => ({
-    nodes,
-    setNodes,
-    updateTrackers,
+    loadTrackers,
   }), [
-    nodes,
-    setNodes,
-    updateTrackers,
+    loadTrackers,
   ])
 }
 

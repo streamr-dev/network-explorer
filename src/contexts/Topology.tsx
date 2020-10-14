@@ -2,30 +2,22 @@ import React, {
   useCallback,
   useMemo,
   useContext,
-  useState,
 } from 'react'
 
 import { usePending } from './Pending'
-import { useNodes } from './Nodes'
+import { useStore } from './Store'
 import useIsMounted from '../hooks/useIsMounted'
 import * as api from '../utils/api/tracker'
 
 type ContextProps = {
   loadTopology: Function,
   resetTopology: Function,
-  visibleNodes: api.Node[],
-  topology: api.Topology,
-  setTopology: Function,
-  activeNode: api.Node | undefined,
-  setActiveNodeId: Function,
 }
 
 const TopologyContext = React.createContext<ContextProps | undefined>(undefined)
 
 function useTopologyContext() {
-  const [activeNodeId, setActiveNodeId] = useState<string | undefined>(undefined)
-  const [topology, setTopology] = useState<api.Topology>({})
-  const { nodes } = useNodes()
+  const { setTopology } = useStore()
   const { wrap: wrapTopology } = usePending('topology')
   const isMounted = useIsMounted()
 
@@ -53,34 +45,14 @@ function useTopologyContext() {
 
   const resetTopology = useCallback(() => {
     setTopology({})
-    setActiveNodeId(undefined)
-  }, [setTopology, setActiveNodeId])
-
-  const nodeSet = useMemo(() => new Set<string>(Object.keys(topology)), [topology])
-  const visibleNodes: api.Node[] = useMemo(() => (
-    nodes.filter(({ id }) => nodeSet.has(id))
-  ), [nodes, nodeSet])
-
-  const activeNode = useMemo(() => (
-    visibleNodes.find(({ id }) => activeNodeId === id)
-  ), [visibleNodes, activeNodeId])
+  }, [setTopology])
 
   return useMemo(() => ({
     loadTopology,
     resetTopology,
-    visibleNodes,
-    topology,
-    setTopology,
-    activeNode,
-    setActiveNodeId,
   }), [
     loadTopology,
     resetTopology,
-    visibleNodes,
-    topology,
-    setTopology,
-    activeNode,
-    setActiveNodeId,
   ])
 }
 

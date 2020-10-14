@@ -9,7 +9,7 @@ import orderBy from 'lodash/orderBy'
 import { useDebounced } from '../../hooks/wrapCallback'
 import useIsMounted from '../../hooks/useIsMounted'
 import { usePending } from '../../contexts/Pending'
-import { useNodes } from '../../contexts/Nodes'
+import { useStore } from '../../contexts/Store'
 import * as streamrApi from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
 
@@ -18,7 +18,7 @@ const useSearch = () => {
   const [incomingResults, setIncomingResults] = useState<streamrApi.SearchResult[] | undefined>([])
   const isMounted = useIsMounted()
   const { start, end } = usePending('search')
-  const { nodes } = useNodes()
+  const { nodes } = useStore()
 
   useEffect(() => {
     if (incomingResults) {

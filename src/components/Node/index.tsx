@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { useNodes } from '../../contexts/Nodes'
-import { useTopology } from '../../contexts/Topology'
+import { useStore } from '../../contexts/Store'
 import TopologyList from './TopologyList'
 
 type NodeProps = {
@@ -10,26 +9,24 @@ type NodeProps = {
 }
 
 const ActiveNode = ({ id }: NodeProps) => {
-  const { setActiveNodeId, setTopology, resetTopology } = useTopology()
+  const { setTopology } = useStore()
 
   useEffect(() => {
-    setActiveNodeId(id)
     setTopology({
       [id]: [],
-    })
+    }, id)
 
     return () => {
-      setActiveNodeId(undefined)
-      resetTopology()
+      setTopology({})
     }
-  }, [id, setActiveNodeId, setTopology, resetTopology])
+  }, [id, setTopology])
 
   return null
 }
 
 export default () => {
   const { nodeId } = useParams()
-  const { nodes } = useNodes()
+  const { nodes } = useStore()
 
   if (!nodeId || !nodes || nodes.length < 1) {
     return null

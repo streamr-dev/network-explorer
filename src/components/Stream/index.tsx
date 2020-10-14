@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { useNodes } from '../../contexts/Nodes'
+import { useStore } from '../../contexts/Store'
 import { useTopology } from '../../contexts/Topology'
 import { useStream } from '../../contexts/Stream'
 
@@ -44,7 +44,7 @@ type NodeProps = {
 }
 
 const ActiveNode = ({ id }: NodeProps) => {
-  const { setActiveNodeId } = useTopology()
+  const { setActiveNodeId } = useStore()
 
   useEffect(() => {
     setActiveNodeId(id)
@@ -57,7 +57,7 @@ const ActiveNode = ({ id }: NodeProps) => {
 
 export default () => {
   const { streamId, nodeId } = useParams()
-  const { nodes } = useNodes()
+  const { nodes } = useStore()
 
   if (!streamId || !nodes || nodes.length < 1) {
     return null
