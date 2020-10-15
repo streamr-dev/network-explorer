@@ -2,8 +2,7 @@ import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
-import { useTopology } from '../../contexts/Topology'
-import { useStream } from '../../contexts/Stream'
+import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
 
@@ -12,7 +11,7 @@ type StreamProps = {
 }
 
 const TopologyLoader = ({ id }: StreamProps) => {
-  const { loadTopology, resetTopology } = useTopology()
+  const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
     loadTopology(id)
@@ -26,7 +25,7 @@ const TopologyLoader = ({ id }: StreamProps) => {
 }
 
 const StreamLoader = ({ id }: StreamProps) => {
-  const { loadStream, resetStream } = useStream()
+  const { loadStream, resetStream } = useController()
 
   useEffect(() => {
     loadStream(id)

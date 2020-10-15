@@ -3,9 +3,8 @@ import { Meta } from '@storybook/react/types-6-0'
 import { MemoryRouter } from 'react-router-dom'
 
 import SearchBox from '.'
-import { Provider as NodesProvider } from '../../contexts/Nodes'
+import { Provider as StoreProvider } from '../../contexts/Store'
 import { Provider as PendingProvider } from '../../contexts/Pending'
-import { Provider as StreamProvider } from '../../contexts/Stream'
 
 export default {
   title: 'SearchBox',
@@ -15,11 +14,9 @@ export default {
 export const Basic = () => (
   <MemoryRouter>
     <PendingProvider>
-      <NodesProvider>
-        <StreamProvider>
-          <SearchBox />
-        </StreamProvider>
-      </NodesProvider>
+      <StoreProvider>
+        <SearchBox />
+      </StoreProvider>
     </PendingProvider>
   </MemoryRouter>
 )
