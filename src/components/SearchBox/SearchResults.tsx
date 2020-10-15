@@ -29,6 +29,9 @@ const Icon = styled.div`
 
 const Description = styled.div`
   align-self: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 12px;
 `
 
 type Props = {
