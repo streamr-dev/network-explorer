@@ -6,9 +6,9 @@ import {
   Crosshair,
   CustomSVGSeries,
 } from 'react-vis'
+import 'react-vis/dist/style.css'
 import Rect from './Rect'
-import { SANS } from '../utils/styled'
-import '../../node_modules/react-vis/dist/style.css'
+import { SANS, MEDIUM } from '../utils/styled'
 
 const PlotContainer = styled.div`
   height: 100%;
@@ -24,7 +24,7 @@ const Container = styled.div`
 
 const CrosshairValue = styled.span`
   font-family: ${SANS};
-  font-weight: 500;
+  font-weight: ${MEDIUM};
   font-size: 10px;
   line-height: 16px;
   text-transform: uppercase;
@@ -98,34 +98,26 @@ const UnstyledTimeSeriesGraph = ({
     return [min, max]
   }, [graphData])
 
+  const margin = useMemo(() => showCrosshair ? {
+    top: 32,
+    left: 40,
+    right: 40,
+    bottom: 8,
+  } : {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  }, [showCrosshair])
+
   return (
     <Container {...props}>
-      {/*
-      {isLoading && (
-        <Spinner
-          size="large"
-          color="white"
-          // eslint-disable-next-line react/jsx-curly-brace-presence
-          css={`
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-          `}
-        />
-      )}
-      */}
       {!isLoading && (
         <PlotContainer>
           <FlexibleXYPlot
             xType="time"
             /* Margin is needed for crosshair value to be fitted on screen */
-            margin={{
-              top: showCrosshair ? 32 : 0,
-              left: showCrosshair ? 40 : 0,
-              right: showCrosshair ? 40 : 0,
-              bottom: showCrosshair ? 8 : 0,
-            }}
+            margin={margin}
             yDomain={dataDomain}
             yBaseValue={dataDomain[0]}
             onMouseLeave={() => !!showCrosshair && setHoveredValue(null)}
