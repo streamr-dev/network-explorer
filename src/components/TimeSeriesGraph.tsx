@@ -57,7 +57,6 @@ export type Props = {
   graphData: Array<XY>,
   onHoveredValueChanged: (value: XY | null) => void,
   className?: string,
-  isLoading?: boolean,
   showCrosshair?: boolean,
   height?: string,
   ratio?: string,
@@ -72,7 +71,6 @@ const formatDate = (milliseconds: number) => {
 const UnstyledTimeSeriesGraph = ({
   graphData,
   onHoveredValueChanged,
-  isLoading,
   showCrosshair,
   height,
   ratio,
@@ -86,8 +84,20 @@ const UnstyledTimeSeriesGraph = ({
 
   const dataDomain = useMemo(() => {
     const dataValues = (graphData || []).map((d) => d.y)
-    let max = Math.max(...dataValues)
-    let min = Math.min(...dataValues)
+    let { min, max } = dataValues.reduce(
+      (res, value) => ({
+        max: Math.max(res.max, value),
+        min: Math.min(res.min, value),
+      }),
+      { max: -Infinity, min: Infinity },
+    )
+
+    if (!Number.isFinite(min)) {
+      min = 0
+    }
+    if (!Number.isFinite(max)) {
+      max = 1
+    }
 
     // If we provide a domain with same min and max, react-vis
     // shows seemingly random scale for y-axis
@@ -112,62 +122,60 @@ const UnstyledTimeSeriesGraph = ({
 
   return (
     <Container {...props}>
-      {!isLoading && (
-        <PlotContainer>
-          <FlexibleXYPlot
-            xType="time"
-            /* Margin is needed for crosshair value to be fitted on screen */
-            margin={margin}
-            yDomain={dataDomain}
-            yBaseValue={dataDomain[0]}
-            onMouseLeave={() => !!showCrosshair && setHoveredValue(null)}
-          >
-            <LineSeries
-              curve={undefined}
-              color="#FF5C00"
-              opacity={1}
-              strokeStyle="solid"
+      <PlotContainer>
+        <FlexibleXYPlot
+          xType="time"
+          /* Margin is needed for crosshair value to be fitted on screen */
+          margin={margin}
+          yDomain={dataDomain}
+          yBaseValue={dataDomain[0]}
+          onMouseLeave={() => !!showCrosshair && setHoveredValue(null)}
+        >
+          <LineSeries
+            curve={undefined}
+            color="#FF5C00"
+            opacity={1}
+            strokeStyle="solid"
+            style={{
+              strokeWidth: '2px',
+            }}
+            data={graphData}
+            onNearestX={(datapoint, meta) => !!showCrosshair && setHoveredValue(datapoint)}
+          />
+          {!!showCrosshair && hoveredValue != null && (
+            <StyledCrosshair
+              values={[hoveredValue]}
+              orientation='left'
               style={{
-                strokeWidth: '2px',
+                line: {
+                  background: '#CDCDCD',
+                },
               }}
-              data={graphData}
-              onNearestX={(datapoint, meta) => !!showCrosshair && setHoveredValue(datapoint)}
+            >
+              <CrosshairValue>
+                {formatDate(hoveredValue.x)}
+              </CrosshairValue>
+            </StyledCrosshair>
+          )}
+          {!!showCrosshair && hoveredValue != null && (
+            <CustomSVGSeries
+              data={[
+                {
+                  ...hoveredValue,
+                  customComponent: () => {
+                    return (
+                      <g>
+                        <circle cx="0" cy="0" r="8" fill="#B4BFF8" fillOpacity="0.8" />
+                        <circle cx="0" cy="0" r="4" fill="#0324FF" />
+                      </g>
+                    )
+                  },
+                },
+              ]}
             />
-            {!!showCrosshair && hoveredValue != null && (
-              <StyledCrosshair
-                values={[hoveredValue]}
-                orientation='left'
-                style={{
-                  line: {
-                    background: '#CDCDCD',
-                  },
-                }}
-              >
-                <CrosshairValue>
-                  {formatDate(hoveredValue.x)}
-                </CrosshairValue>
-              </StyledCrosshair>
-            )}
-            {!!showCrosshair && hoveredValue != null && (
-              <CustomSVGSeries
-                data={[
-                  {
-                    ...hoveredValue,
-                    customComponent: () => {
-                      return (
-                        <g>
-                          <circle cx="0" cy="0" r="8" fill="#B4BFF8" fillOpacity="0.8" />
-                          <circle cx="0" cy="0" r="4" fill="#0324FF" />
-                        </g>
-                      )
-                    },
-                  },
-                ]}
-              />
-            )}
-          </FlexibleXYPlot>
-        </PlotContainer>
-      )}
+          )}
+        </FlexibleXYPlot>
+      </PlotContainer>
       {/* This here is how we dictate the size of the container. */}
       <Rect ratio={ratio} height={height} />
     </Container>
