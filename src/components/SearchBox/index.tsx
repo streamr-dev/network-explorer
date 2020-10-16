@@ -5,8 +5,7 @@ import { Link } from 'react-router-dom'
 import ControlBox from '../ControlBox'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
-import { useNodes } from '../../contexts/Nodes'
-import { useStream } from '../../contexts/Stream'
+import { useStore } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
 
 import StreamrLogo from './StreamrLogo'
@@ -16,7 +15,6 @@ import useSearch from './useSearch'
 
 const StyledControlBox = styled(ControlBox)`
   background: #ffffff;
-  border-radius: 4px;
 `
 
 const Search = styled.div`
@@ -41,8 +39,7 @@ const GraphContainer = styled.div`
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
   const [searchText, setSearchText] = useState<string>('')
-  const { nodes } = useNodes()
-  const { activeStreamId, stream } = useStream()
+  const { nodes, streamId, stream } = useStore()
   const { results, updateResults } = useSearch()
   const [searchActive, setSearchActive] = useState<boolean>(false)
   const { isPending: isStreamLoading } = usePending('streams')
@@ -59,7 +56,7 @@ const SearchBox = () => {
     'Latency ms': 25,
   }
 
-  const hasStream = !!activeStreamId
+  const hasStream = !!streamId
   const isDisabled = hasStream && !!isStreamLoading
   const streamTitle = stream && stream.name || ''
 

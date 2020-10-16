@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useTopology } from '../../contexts/Topology'
+import { useStore } from '../../contexts/Store'
 import NodeList from '../NodeList'
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 }
 
 const TopologyList = ({ id }: Props) => {
-  const { visibleNodes } = useTopology()
+  const { visibleNodes } = useStore()
 
   return (
     <NodeList

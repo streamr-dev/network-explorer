@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { useNodes } from '../../contexts/Nodes'
-import { useTopology } from '../../contexts/Topology'
-import { useStream } from '../../contexts/Stream'
+import { useStore } from '../../contexts/Store'
+import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
 
@@ -12,7 +11,7 @@ type StreamProps = {
 }
 
 const TopologyLoader = ({ id }: StreamProps) => {
-  const { loadTopology, resetTopology } = useTopology()
+  const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
     loadTopology(id)
@@ -26,7 +25,7 @@ const TopologyLoader = ({ id }: StreamProps) => {
 }
 
 const StreamLoader = ({ id }: StreamProps) => {
-  const { loadStream, resetStream } = useStream()
+  const { loadStream, resetStream } = useController()
 
   useEffect(() => {
     loadStream(id)
@@ -44,7 +43,7 @@ type NodeProps = {
 }
 
 const ActiveNode = ({ id }: NodeProps) => {
-  const { setActiveNodeId } = useTopology()
+  const { setActiveNodeId } = useStore()
 
   useEffect(() => {
     setActiveNodeId(id)
@@ -57,7 +56,7 @@ const ActiveNode = ({ id }: NodeProps) => {
 
 export default () => {
   const { streamId, nodeId } = useParams()
-  const { nodes } = useNodes()
+  const { nodes } = useStore()
 
   if (!streamId || !nodes || nodes.length < 1) {
     return null

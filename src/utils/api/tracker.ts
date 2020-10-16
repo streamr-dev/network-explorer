@@ -2,6 +2,7 @@ import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
 
 import { getReversedGeocodedLocation } from './mapbox'
+import { SearchResult } from './streamr'
 
 import { get } from '../request'
 
@@ -9,14 +10,10 @@ const ADDRESS = process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS
 const PROVIDER = process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER
 
 export const mapApiUrl = (url: string) => {
-  const ip = url.slice(5).replace(':3030', ':1111')
+  const ip = `${url}`.slice(5).replace(':1111', ':3030')
 
   return `http://${ip}`
 }
-
-const defaultTrackers = [
-  'http://corea1.streamr.network:11111',
-]
 
 export const getTrackers = async (): Promise<string[]> => {
   const trackerRegistry = await Utils.getTrackerRegistryFromContract({
@@ -28,7 +25,6 @@ export const getTrackers = async (): Promise<string[]> => {
     .filter(Boolean)
 
   return [
-    ...defaultTrackers,
     ...(result || []).map((url) => mapApiUrl(url)),
   ]
 }
@@ -39,7 +35,8 @@ export const getTrackerForStream = async ({ id }: { id: string }) => {
     jsonRpcProvider: PROVIDER,
   })
 
-  return mapApiUrl(trackerRegistry.getTracker(id))
+  const { http } = trackerRegistry.getTracker(id)
+  return mapApiUrl(http)
 }
 
 export type Node = {
@@ -102,14 +99,41 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
 
   try {
     result = await get<Topologyresult>({
-      url: `${url}/topology/${id}`,
+      url: `${url}/topology/${id}/`, // trailing slash needed
     })
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load topology from ${url}/topology/${id}`)
+    console.warn(`Failed to load topology from ${url}/topology/${id}/`)
   }
 
   const [topology] = Object.values(result || {})
 
   return topology || {}
+}
+
+// TODO: temporary stream search, remove once public /streams endpoint is available
+type SearchStreams = {
+  search?: string,
+}
+
+export const searchStreams = async ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
+  const trackers = await getTrackers()
+
+  // get all topologies from all trackers
+  const allTopologies = await Promise.all(trackers.map((url) => get<Topologyresult>({
+    url: `${url}/topology/`,
+  })))
+
+  // construct a stream list from stream ids
+  const streamIds = allTopologies
+    .flatMap((topologies: Topologyresult) => Object.keys(topologies))
+    .map((id) => id.slice(0, -3))
+
+  return [...(new Set(streamIds))]
+    .filter((id) => id.toLowerCase().indexOf(search.toLowerCase()) >= 0)
+    .map((id) => ({
+      type: 'streams',
+      id,
+      name: id,
+    }))
 }

@@ -2,9 +2,7 @@ import React from 'react'
 import styled from 'styled-components/macro'
 
 import { useAllPending } from '../../contexts/Pending'
-import { useNodes } from '../../contexts/Nodes'
-import { useTopology } from '../../contexts/Topology'
-import { useStream } from '../../contexts/Stream'
+import { useStore } from '../../contexts/Store'
 
 import ControlBox from '../ControlBox'
 
@@ -23,9 +21,7 @@ const Variables = styled.pre`
 
 const Debug = () => {
   const { pending } = useAllPending()
-  const { nodes } = useNodes()
-  const { visibleNodes, topology } = useTopology()
-  const { stream } = useStream()
+  const { store } = useStore()
 
   return (
     <ControlBox>
@@ -33,10 +29,7 @@ const Debug = () => {
         <Variables>
           {JSON.stringify({
             pending,
-            visibleNodes,
-            topology,
-            stream,
-            nodes,
+            store,
           }, null, 2)}
         </Variables>
       </Wrapper>

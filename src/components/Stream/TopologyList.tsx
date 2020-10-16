@@ -2,8 +2,7 @@ import React, { useCallback } from 'react'
 import styled from 'styled-components/macro'
 import { useParams, useHistory } from 'react-router-dom'
 
-import { useTopology } from '../../contexts/Topology'
-import { useStream } from '../../contexts/Stream'
+import { useStore } from '../../contexts/Store'
 import { SANS, MEDIUM } from '../../utils/styled'
 import NodeList from '../NodeList'
 
@@ -29,8 +28,7 @@ type Props = {
 }
 
 const TopologyList = ({ id }: Props) => {
-  const { visibleNodes } = useTopology()
-  const { stream } = useStream()
+  const { visibleNodes, stream } = useStore()
   const { nodeId: activeNodeId } = useParams()
   const history = useHistory()
 
