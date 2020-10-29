@@ -2,20 +2,22 @@
 
 Endpoints defined are found here: https://github.com/streamr-dev/network/blob/master/bin/tracker.js#L77-L120
 
-And you can test out with, e.g.: curl http://corea1.streamr.network:11111/topology
-
-The endpoint is only available via office network / VPN
-
 # Running
 
-With `streamr-docker-dev`:
+Before starting locally, make sure the `streamr-docker-dev` stack is running.
+
+To use the app using the local dev environment, run:
 
 ```
+npm ci
 npm start
 ```
 
-Staging:
+Note that the explorer will only show streams that have some data running.
+
+To use the staging config:
 
 ```
+npm ci
 BUILD_ENV=staging npm run start-env
 ```
