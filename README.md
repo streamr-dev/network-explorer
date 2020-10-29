@@ -1,6 +1,6 @@
 # Streamr Network Explorer
 
-Endpoints defined are found here: https://github.com/streamr-dev/network/blob/master/bin/tracker.js#L77-L120
+Endpoints for tracker: https://github.com/streamr-dev/network/blob/master/bin/tracker.js#L77-L120
 
 # Running
 
