@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
@@ -55,8 +55,10 @@ const ActiveNode = ({ id }: NodeProps) => {
 }
 
 export default () => {
-  const { streamId, nodeId } = useParams()
+  const { streamId: encodedStreamId, nodeId } = useParams()
   const { nodes } = useStore()
+
+  const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])
 
   if (!streamId || !nodes || nodes.length < 1) {
     return null

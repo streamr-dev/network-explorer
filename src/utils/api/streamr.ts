@@ -1,3 +1,5 @@
+import uniqBy from 'lodash/uniqBy'
+
 import { get } from '../request'
 
 const API_URL = process.env.REACT_APP_STREAMR_API_URL
@@ -12,35 +14,35 @@ export type SearchResult = {
   name: string,
 }
 
-const fakeResults: SearchResult[] = [{
-  id: '7wa7APtlTq6EC5iTCBy6dw',
-  type: 'streams',
-  name: 'Helsinki Trams',
-}, {
-  id: '7rn4Cav8R3uudiwEltwqdQ',
-  type: 'streams',
-  name: 'Twitter Firehose Sample',
-}]
-
-export const searchStreams = ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
-  /* const searchParams = {
-    uiChannel: false,
-    operation: 'STREAM_GET',
-    search,
+export const searchStreams = async ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
+  const params = {
+    public: true,
+    search: (search || '').trim().toLowerCase(),
   }
 
-  return get({
-    url: `${API_URL}/streams`,
-    data: {
-      ...searchParams,
-    },
-  }) */
+  const [exactMatch, matchingStreams] = await Promise.all([
+    // getStream with empty id responds with all streams :O
+    search ? getStream({ id: search }).catch((err) => {
+      if (err.response && err.response.status === 404) {
+        // ignore 404, expected.
+        return
+      }
+      throw err
+    }) : Promise.resolve(undefined),
+    getStreams({ params }),
+  ])
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(fakeResults)
-    }, 250)
-  })
+  const results = uniqBy([
+    ...(exactMatch ? [exactMatch] : []),
+    ...(matchingStreams || []),
+  ], 'id')
+
+  return results
+    .map(({ id }: Stream) => ({
+      type: 'streams',
+      id,
+      name: id,
+    }))
 }
 
 type GetStream = {
@@ -52,6 +54,17 @@ export type Stream = {
   name: string,
 }
 
-export const getStream = ({ id }: GetStream) => get<Stream>({
-  url: `${API_URL}/streams/${id}`,
+type GetStreams = {
+  params?: Object,
+}
+
+export const getStreams = async ({ params }: GetStreams = {}) => get<Stream[]>({
+  url: `${API_URL}/streams`,
+  options: {
+    params,
+  },
+})
+
+export const getStream = async ({ id }: GetStream) => get<Stream>({
+  url: `${API_URL}/streams/${encodeURIComponent(id)}/validation`,
 })

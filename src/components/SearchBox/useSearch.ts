@@ -11,7 +11,6 @@ import useIsMounted from '../../hooks/useIsMounted'
 import { usePending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
 import * as streamrApi from '../../utils/api/streamr'
-import * as trackerApi from '../../utils/api/tracker'
 import * as mapApi from '../../utils/api/mapbox'
 
 const useSearch = () => {
@@ -54,7 +53,7 @@ const useSearch = () => {
           ]))
 
           const streamPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
-            trackerApi.searchStreams({ search }).then(resolve, () => resolve([]))
+            streamrApi.searchStreams({ search }).then(resolve, () => resolve([]))
           ))
             .then((nextResults) => {
               if (!isMounted()) { return }

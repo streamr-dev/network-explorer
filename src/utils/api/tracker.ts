@@ -2,7 +2,6 @@ import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
 
 import { getReversedGeocodedLocation } from './mapbox'
-import { SearchResult } from './streamr'
 
 import { get } from '../request'
 
@@ -97,43 +96,17 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
   const url = await getTrackerForStream({ id })
   let result: Topologyresult = {}
 
+  const encodedId = encodeURIComponent(id)
   try {
     result = await get<Topologyresult>({
-      url: `${url}/topology/${id}/`, // trailing slash needed
+      url: `${url}/topology/${encodedId}/`, // trailing slash needed
     })
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load topology from ${url}/topology/${id}/`)
+    console.warn(`Failed to load topology from ${url}/topology/${encodedId}/`)
   }
 
   const [topology] = Object.values(result || {})
 
   return topology || {}
-}
-
-// TODO: temporary stream search, remove once public /streams endpoint is available
-type SearchStreams = {
-  search?: string,
-}
-
-export const searchStreams = async ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
-  const trackers = await getTrackers()
-
-  // get all topologies from all trackers
-  const allTopologies = await Promise.all(trackers.map((url) => get<Topologyresult>({
-    url: `${url}/topology/`,
-  })))
-
-  // construct a stream list from stream ids
-  const streamIds = allTopologies
-    .flatMap((topologies: Topologyresult) => Object.keys(topologies))
-    .map((id) => id.slice(0, -3))
-
-  return [...(new Set(streamIds))]
-    .filter((id) => id.toLowerCase().indexOf(search.toLowerCase()) >= 0)
-    .map((id) => ({
-      type: 'streams',
-      id,
-      name: id,
-    }))
 }

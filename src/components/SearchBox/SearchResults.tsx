@@ -39,7 +39,7 @@ type Props = {
 }
 
 const Stream = ({ id, type, name }: SearchResult) => (
-  <Row as={Link} to={`/streams/${id}`}>
+  <Row as={Link} to={`/streams/${encodeURIComponent(id)}`}>
     <Icon>
       <StreamIcon />
     </Icon>

@@ -33,7 +33,7 @@ const TopologyList = ({ id }: Props) => {
   const history = useHistory()
 
   const toggleNode = useCallback((nodeId) => {
-    let path = `/streams/${id}`
+    let path = `/streams/${encodeURIComponent(id)}`
 
     if (activeNodeId !== nodeId) {
       path += `/nodes/${nodeId}`
