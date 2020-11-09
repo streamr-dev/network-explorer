@@ -50,11 +50,12 @@ const LoadingBar = styled.div`
 `
 
 const LoadingIndicator = () => {
+  const { isPending: isLoadingTrackers } = usePending('trackers')
   const { isPending: isLoadingNodes } = usePending('nodes')
   const { isPending: isLoadingTopology } = usePending('topology')
   const { isPending: isSearching } = usePending('search')
 
-  const isLoading = !!(isLoadingNodes || isLoadingTopology || isSearching)
+  const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
 
   return (
     <LoadingBar

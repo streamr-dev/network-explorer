@@ -74,9 +74,9 @@ type Props = {
 }
 
 const stats = {
-  'Msgs/sec': 456,
-  'MB/S': 757.25,
-  'Latency ms': 27.5,
+  'Msgs/sec': undefined,
+  'MB/S': undefined,
+  'Latency ms': undefined,
 }
 
 const NodeListItem = ({

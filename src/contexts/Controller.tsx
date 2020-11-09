@@ -3,6 +3,7 @@ import React, {
   useContext,
   useCallback,
   useEffect,
+  useState,
 } from 'react'
 
 import * as trackerApi from '../utils/api/tracker'
@@ -17,6 +18,7 @@ type ContextProps = {
   resetStream: Function,
   loadTopology: Function,
   resetTopology: Function,
+  hasLoaded: boolean,
 }
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
@@ -29,18 +31,22 @@ function useControllerContext() {
     setTopology,
     setStream,
   } = useStore()
-  const { wrap } = usePending('nodes')
+  const { wrap: wrapTrackers } = usePending('trackers')
+  const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
+  const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
 
-  const loadTrackers = useCallback(async () => {
-    const nextTrackers = await trackerApi.getTrackers()
+  const loadTrackers = useCallback(() => (
+    wrapTrackers(async () => {
+      const nextTrackers = await trackerApi.getTrackers()
 
-    if (!isMounted()) { return }
+      if (!isMounted()) { return }
 
-    setTrackers(nextTrackers)
-  }, [isMounted, setTrackers])
+      setTrackers(nextTrackers)
+    })
+  ), [wrapTrackers, isMounted, setTrackers])
 
   const loadNodes = useCallback(async (url: string) => {
     const nextNodes = await trackerApi.getNodes(url)
@@ -50,17 +56,22 @@ function useControllerContext() {
     addNodes(nextNodes)
   }, [isMounted, addNodes])
 
-  const doLoadTrackers = useCallback(async (urls: string[]) => (
-    wrap(async () => {
+  const doLoadNodes = useCallback(async (urls: string[]) => (
+    wrapNodes(async () => {
       await Promise.all(urls.map((url) => loadNodes(url)))
     })
-  ), [wrap, loadNodes])
+  ), [wrapNodes, loadNodes])
 
   useEffect(() => {
     if (trackers && trackers.length > 0) {
-      doLoadTrackers(trackers)
+      doLoadNodes(trackers)
+        .then(() => {
+          if (isMounted()) {
+            setHasLoaded(true)
+          }
+        })
     }
-  }, [trackers, loadNodes, doLoadTrackers])
+  }, [isMounted, trackers, doLoadNodes])
 
   const loadStream = useCallback(async (streamId: string) => (
     wrapStreams(async () => {
@@ -114,12 +125,14 @@ function useControllerContext() {
     resetStream,
     loadTopology,
     resetTopology,
+    hasLoaded,
   }), [
     loadTrackers,
     loadStream,
     resetStream,
     loadTopology,
     resetTopology,
+    hasLoaded,
   ])
 }
 
