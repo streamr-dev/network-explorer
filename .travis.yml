@@ -6,7 +6,6 @@ branches:
   only:
   - master
 before_install:
-- sudo apt-get -y install expect
 - npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
 - npm i -g npm@^6.14.4
 install:
@@ -35,10 +34,13 @@ jobs:
     install: true
     script:
       - docker build -t $OWNER/$IMAGE_NAME:local --build-arg NPM_TOKEN=${NPM_TOKEN} .
+      - sudo sysctl fs.inotify.max_user_watches=524288
+      - sudo sysctl fs.inotify.max_queued_events=524288
+      - sudo sysctl -p
       - travis_scripts/smoke-test.sh
     after_failure:
       - docker ps
-      - docker logs streamr-dev-network-explorer
+      - docker logs network-explorer
     deploy:
       - provider: script
         skip_cleanup: true
