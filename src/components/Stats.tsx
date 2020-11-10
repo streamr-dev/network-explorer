@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react'
-import styled from 'styled-components/macro'
+import React, { useCallback } from 'react'
+import styled, { css } from 'styled-components/macro'
 
 import { SANS } from '../utils/styled'
 
-const Container = styled.div`
-  display: grid;
-  grid-auto-flow: column;
-  padding-top: 12px;
-  font-family: ${SANS};
-`
+type StatContainerProps = {
+  clickable?: boolean,
+  disabled?: boolean,
+}
 
-const Stat = styled.div`
+const StatContainer = styled.div<StatContainerProps>`
   text-align: center;
-  cursor: pointer;
   user-select: none;
+  position: relative;
+
+  ${({ clickable, disabled }) => !!clickable && !disabled && css`
+    cursor: pointer;
+  `}
+
+  ${({ disabled }) => !!disabled && css`
+    cursor: not-allowed;
+    opacity: 0.5;
+  `}
 `
 
 const StatName = styled.div`
@@ -42,8 +49,8 @@ const UnderlineContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  position: relative;
-  top: 1px;
+  position: absolute;
+  bottom: -1px;
 `
 
 const Underline = styled.div`
@@ -60,58 +67,52 @@ const InfinityIcon = () => (
   </svg>
 )
 
-export type Props = {
-  values: { [key: string]: number | undefined },
-  onSelectedStatChanged: (name: string | null) => void,
-  // eslint-disable-next-line react/require-default-props
+type StatProps = {
+  label: string,
+  value: number | string | undefined,
+  onClick?: () => void,
+  active?: boolean,
   disabled?: boolean,
 }
 
-const Stats = ({
-  values,
-  onSelectedStatChanged,
+export const Stat = ({
+  label,
+  value,
+  onClick: onClickProp,
+  active,
   disabled,
-  ...rest
-}: Props) => {
-  const [selectedStat, setSelectedStat] = useState<string | null>(null)
-
-  useEffect(() => {
-    onSelectedStatChanged(selectedStat)
-  }, [selectedStat, onSelectedStatChanged])
+}: StatProps) => {
+  const onClick = useCallback(() => {
+    if (typeof onClickProp === 'function') {
+      onClickProp()
+    }
+  }, [onClickProp])
 
   return (
-    <Container {...rest}>
-      {Object.keys(values).map((name) => (
-        <Stat
-          key={name}
-          onClick={() => {
-            if (disabled) {
-              return
-            }
-
-            if (selectedStat === name) {
-              setSelectedStat(null)
-            } else {
-              setSelectedStat(name)
-            }
-          }}
-        >
-          <StatName>{name}</StatName>
-          <StatValue>
-            {values[name] !== undefined && values[name]}
-            {values[name] === undefined && (
-              <InfinityIcon />
-            )}
-          </StatValue>
-          {selectedStat === name && !disabled && (
-            <UnderlineContainer>
-              <Underline />
-            </UnderlineContainer>
-          )}
-        </Stat>
-      ))}
-    </Container>
+    <StatContainer
+      onClick={onClick}
+      clickable={typeof onClickProp === 'function'}
+      disabled={disabled}
+    >
+      <StatName>{label}</StatName>
+      <StatValue>
+        {value !== undefined && value}
+        {value === undefined && (
+          <InfinityIcon />
+        )}
+      </StatValue>
+      {!!active && (
+        <UnderlineContainer>
+          <Underline />
+        </UnderlineContainer>
+      )}
+    </StatContainer>
   )
 }
 
-export default Stats
+export const Stats = styled.div`
+  display: grid;
+  grid-auto-flow: column;
+  padding-top: 12px;
+  font-family: ${SANS};
+`

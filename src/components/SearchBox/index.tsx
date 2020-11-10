@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import { useSubscription } from 'streamr-client-react'
 
 import ControlBox from '../ControlBox'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
+import { Stats, Stat } from '../Stats'
+import EventsPerSecond from '../Graphs/EventsPerSecond'
 import { useStore } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
 import { useController } from '../../contexts/Controller'
@@ -95,7 +95,7 @@ const SearchBox = () => {
   }, [])
 
   const onSelectedStatChanged = useCallback((name) => {
-    setSelectedStat(name)
+    setSelectedStat((prev) => prev !== name && name)
   }, [])
 
   useEffect(() => {
@@ -120,23 +120,30 @@ const SearchBox = () => {
           />
         </SearchInputContainer>
       </Search>
-      <Stats
-        values={{
-          'Msgs/sec': messagesPerSecond,
-          'Nodes': hasLoaded ? nodes.length : undefined,
-          'Latency ms': undefined,
-        }}
-        onSelectedStatChanged={onSelectedStatChanged}
-        disabled={results.length > 0}
-      />
+      <Stats>
+        <Stat
+          label="Msgs/sec"
+          value={messagesPerSecond}
+          onClick={() => onSelectedStatChanged('eventsPerSecond')}
+          active={selectedStat === 'eventsPerSecond'}
+        />
+        <Stat
+          label="Nodes"
+          value={hasLoaded ? nodes.length : undefined}
+        />
+        <Stat
+          label="Latency ms"
+          value={undefined}
+        />
+      </Stats>
       {results.length > 0 && (
         <GraphContainer>
           <SearchResults results={results} />
         </GraphContainer>
       )}
-      {results.length === 0 && selectedStat != null && (
+      {results.length === 0 && selectedStat === 'eventsPerSecond' && (
         <GraphContainer>
-          <Graphs name={selectedStat} />
+          <EventsPerSecond />
         </GraphContainer>
       )}
     </StyledControlBox>
