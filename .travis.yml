@@ -34,6 +34,7 @@ jobs:
     install: true
     script:
       - docker build -t $OWNER/$IMAGE_NAME:local --build-arg NPM_TOKEN=${NPM_TOKEN} .
+      # We need to increase maximum file watcher count to make npm start work
       - sudo sysctl fs.inotify.max_user_watches=524288
       - sudo sysctl fs.inotify.max_queued_events=524288
       - sudo sysctl -p
