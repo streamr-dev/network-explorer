@@ -40,7 +40,7 @@ jobs:
       - sudo sysctl -p
       - travis_scripts/smoke-test.sh
     after_failure:
-      - docker ps
+      - docker ps -a
       - docker logs network-explorer
     deploy:
       - provider: script
