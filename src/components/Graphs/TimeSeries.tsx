@@ -56,20 +56,33 @@ type XY = {
 }
 
 type GraphData = Record<string, Array<XY>>
+type DateDisplay = 'day' | 'hour'
 
 export type Props = {
   graphData: GraphData,
   onHoveredValueChanged?: (value: XY | null) => void,
   className?: string,
   showCrosshair?: boolean,
+  dateDisplay?: DateDisplay,
   height?: string,
   ratio?: string,
 }
 
 const curveColors = ['#FF5C00', '#B4BFF8']
 
-const formatDate = (milliseconds: number) => {
+const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
   const date = new Date(milliseconds)
+
+  if (dateDisplay === 'hour') {
+    return date.toLocaleTimeString('en-EN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC',
+      timeZoneName: 'short',
+    })
+  }
+
   const monthName = date.toLocaleString('en-EN', { month: 'long' })
   return `${monthName} ${date.getDate()}`
 }
@@ -78,6 +91,7 @@ const UnstyledTimeSeriesGraph = ({
   graphData,
   onHoveredValueChanged,
   showCrosshair,
+  dateDisplay,
   height,
   ratio,
   ...props
@@ -167,7 +181,7 @@ const UnstyledTimeSeriesGraph = ({
               }}
             >
               <CrosshairValue>
-                {hoveredValue.y} ({formatDate(hoveredValue.x)})
+                {hoveredValue.y} ({formatDate(hoveredValue.x, dateDisplay)})
               </CrosshairValue>
             </StyledCrosshair>
           )}
