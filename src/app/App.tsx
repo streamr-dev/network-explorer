@@ -32,7 +32,7 @@ const TrackerLoader = () => {
 }
 
 const App = () => (
-  <BrowserRouter>
+  <BrowserRouter basename={process.env.PUBLIC_URL}>
     <Pendingrovider>
       <StoreProvider>
         <ControllerProvider>
