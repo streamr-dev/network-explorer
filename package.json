@@ -31,7 +31,7 @@
   },
   "scripts": {
     "start": "BUILD_ENV=development npm run start-env",
-    "start-env": "env-cmd -f .env.${BUILD_ENV} react-scripts start",
+    "start-env": "env-cmd -f .env.${BUILD_ENV} --no-override react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
