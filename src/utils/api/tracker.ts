@@ -8,12 +8,6 @@ import { get } from '../request'
 const ADDRESS = process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS
 const PROVIDER = process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER
 
-export const mapApiUrl = (url: string) => {
-  const ip = `${url}`.slice(5).replace(':1111', ':3030')
-
-  return `http://${ip}`
-}
-
 export const getTrackers = async (): Promise<string[]> => {
   const trackerRegistry = await Utils.getTrackerRegistryFromContract({
     contractAddress: ADDRESS,
@@ -23,9 +17,7 @@ export const getTrackers = async (): Promise<string[]> => {
     .map(({ http }: { http: string }) => http)
     .filter(Boolean)
 
-  return [
-    ...(result || []).map((url) => mapApiUrl(url)),
-  ]
+  return result || []
 }
 
 export const getTrackerForStream = async ({ id }: { id: string }) => {
@@ -35,7 +27,8 @@ export const getTrackerForStream = async ({ id }: { id: string }) => {
   })
 
   const { http } = trackerRegistry.getTracker(id)
-  return mapApiUrl(http)
+
+  return http
 }
 
 export type Node = {
