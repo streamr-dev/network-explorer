@@ -7,15 +7,15 @@ import {
   CustomSVGSeries,
 } from 'react-vis'
 import 'react-vis/dist/style.css'
-import Rect from './Rect'
-import { SANS, MEDIUM } from '../utils/styled'
+import Rect from '../Rect'
+import { SANS, MEDIUM } from '../../utils/styled'
 
 const PlotContainer = styled.div`
-  height: 100%;
   left: 0;
   position: absolute;
   top: 0;
-  width: 100%;
+  right: 0;
+  bottom: 0;
 `
 
 const Container = styled.div`
@@ -35,8 +35,6 @@ const CrosshairValue = styled.span`
 `
 
 const StyledCrosshair = styled(Crosshair)`
-  z-index: -1;
-
   .rv-crosshair__inner {
     transform: translate(-50%, 0);
     top: -8px;
@@ -48,22 +46,43 @@ const StyledCrosshair = styled(Crosshair)`
   }
 `
 
+const StyledCustomSVGSeries = styled(CustomSVGSeries)`
+  border: 1px solid red;
+`
+
 type XY = {
   x: number,
   y: number,
 }
 
+type GraphData = Record<string, Array<XY>>
+type DateDisplay = 'day' | 'hour'
+
 export type Props = {
-  graphData: Array<XY>,
-  onHoveredValueChanged: (value: XY | null) => void,
+  graphData: GraphData,
+  onHoveredValueChanged?: (value: XY | null) => void,
   className?: string,
   showCrosshair?: boolean,
+  dateDisplay?: DateDisplay,
   height?: string,
   ratio?: string,
 }
 
-const formatDate = (milliseconds: number) => {
+const curveColors = ['#FF5C00', '#B4BFF8']
+
+const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
   const date = new Date(milliseconds)
+
+  if (dateDisplay === 'hour') {
+    return date.toLocaleTimeString('en-EN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'UTC',
+      timeZoneName: 'short',
+    })
+  }
+
   const monthName = date.toLocaleString('en-EN', { month: 'long' })
   return `${monthName} ${date.getDate()}`
 }
@@ -72,6 +91,7 @@ const UnstyledTimeSeriesGraph = ({
   graphData,
   onHoveredValueChanged,
   showCrosshair,
+  dateDisplay,
   height,
   ratio,
   ...props
@@ -79,11 +99,17 @@ const UnstyledTimeSeriesGraph = ({
   const [hoveredValue, setHoveredValue] = useState<XY | null>(null)
 
   useEffect(() => {
-    onHoveredValueChanged(hoveredValue)
+    if (typeof onHoveredValueChanged === 'function') {
+      onHoveredValueChanged(hoveredValue)
+    }
   }, [hoveredValue, onHoveredValueChanged])
 
   const dataDomain = useMemo(() => {
-    const dataValues = (graphData || []).map((d) => d.y)
+    const dataValues = Object.keys(graphData || {}).flatMap((key) => {
+      const graph = graphData[key]
+      return graph.map((d) => d.y)
+    })
+
     let { min, max } = dataValues.reduce(
       (res, value) => ({
         max: Math.max(res.max, value),
@@ -129,19 +155,21 @@ const UnstyledTimeSeriesGraph = ({
           margin={margin}
           yDomain={dataDomain}
           yBaseValue={dataDomain[0]}
-          onMouseLeave={() => !!showCrosshair && setHoveredValue(null)}
         >
-          <LineSeries
-            curve={undefined}
-            color="#FF5C00"
-            opacity={1}
-            strokeStyle="solid"
-            style={{
-              strokeWidth: '2px',
-            }}
-            data={graphData}
-            onNearestX={(datapoint, meta) => !!showCrosshair && setHoveredValue(datapoint)}
-          />
+          {Object.keys(graphData || {}).map((graphKey, index) => (
+            <LineSeries
+              key={graphKey}
+              curve="curveMonotoneX"
+              color={curveColors[(index + 1) % curveColors.length]}
+              opacity={1}
+              strokeStyle="solid"
+              style={{
+                strokeWidth: '2px',
+              }}
+              data={graphData[graphKey]}
+              onNearestX={(datapoint, meta) => !!showCrosshair && setHoveredValue(datapoint)}
+            />
+          ))}
           {!!showCrosshair && hoveredValue != null && (
             <StyledCrosshair
               values={[hoveredValue]}
@@ -153,12 +181,12 @@ const UnstyledTimeSeriesGraph = ({
               }}
             >
               <CrosshairValue>
-                {formatDate(hoveredValue.x)}
+                {hoveredValue.y} ({formatDate(hoveredValue.x, dateDisplay)})
               </CrosshairValue>
             </StyledCrosshair>
           )}
           {!!showCrosshair && hoveredValue != null && (
-            <CustomSVGSeries
+            <StyledCustomSVGSeries
               data={[
                 {
                   ...hoveredValue,
@@ -182,6 +210,6 @@ const UnstyledTimeSeriesGraph = ({
   )
 }
 
-const TimeSeriesGraph = styled(UnstyledTimeSeriesGraph)``
+const TimeSeries = styled(UnstyledTimeSeriesGraph)``
 
-export default TimeSeriesGraph
+export default TimeSeries

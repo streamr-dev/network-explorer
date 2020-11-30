@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components/macro'
 import { Link } from 'react-router-dom'
+import { useSubscription } from 'streamr-client-react'
 
 import ControlBox from '../ControlBox'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
+import { Stats, Stat } from '../Stats'
+import EventsPerSecond from '../Graphs/EventsPerSecond'
 import { useStore } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
+import { useController } from '../../contexts/Controller'
+import useIsMounted from '../../hooks/useIsMounted'
+import StreamrClientProvider from '../StreamrClientProvider'
 
 import StreamrLogo from './StreamrLogo'
 import SearchInput from './SearchInput'
@@ -38,11 +42,29 @@ const GraphContainer = styled.div`
 
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
+  const [messagesPerSecond, setMessagesPersecond] = useState<number | undefined>(undefined)
   const [searchText, setSearchText] = useState<string>('')
   const { nodes, streamId, stream } = useStore()
   const { results, updateResults } = useSearch()
+  const { hasLoaded } = useController()
   const [searchActive, setSearchActive] = useState<boolean>(false)
   const { isPending: isStreamLoading } = usePending('streams')
+  const isMounted = useIsMounted()
+
+  const onMessagesPerSecond = useCallback(({
+    eventsPerSecond,
+  }) => {
+    if (isMounted()) {
+      setMessagesPersecond(eventsPerSecond)
+    }
+  }, [isMounted])
+
+  useSubscription({
+    stream: 'Y1gWr4X9S8mQdg5mzBq1dA',
+    resend: {
+      last: 1,
+    },
+  }, onMessagesPerSecond)
 
   useEffect(() => {
     if (searchActive) {
@@ -50,15 +72,9 @@ const SearchBox = () => {
     }
   }, [updateResults, searchText, searchActive])
 
-  const stats = {
-    'Msgs/sec': 123,
-    'Nodes': nodes && nodes.length,
-    'Latency ms': 25,
-  }
-
   const hasStream = !!streamId
   const isDisabled = hasStream && !!isStreamLoading
-  const streamTitle = stream && stream.name || ''
+  const streamTitle = stream && stream.id || ''
 
   useEffect(() => {
     if (!isDisabled) {
@@ -78,6 +94,14 @@ const SearchBox = () => {
     setSearchActive(true)
   }, [])
 
+  const onSelectedStatChanged = useCallback((name) => {
+    setSelectedStat((prev) => prev !== name && name)
+  }, [])
+
+  useEffect(() => {
+    updateResults({ search: '' })
+  }, [streamId, updateResults])
+
   return (
     <StyledControlBox>
       <Search>
@@ -96,25 +120,38 @@ const SearchBox = () => {
           />
         </SearchInputContainer>
       </Search>
-      <Stats
-        values={stats}
-        onSelectedStatChanged={(name) => {
-          setSelectedStat(name)
-        }}
-        disabled={results.length > 0}
-      />
+      <Stats>
+        <Stat
+          label="Msgs/sec"
+          value={messagesPerSecond}
+          onClick={() => onSelectedStatChanged('eventsPerSecond')}
+          active={selectedStat === 'eventsPerSecond'}
+        />
+        <Stat
+          label="Nodes"
+          value={hasLoaded ? nodes.length : undefined}
+        />
+        <Stat
+          label="Latency ms"
+          value={undefined}
+        />
+      </Stats>
       {results.length > 0 && (
         <GraphContainer>
           <SearchResults results={results} />
         </GraphContainer>
       )}
-      {results.length === 0 && selectedStat != null && (
+      {results.length === 0 && selectedStat === 'eventsPerSecond' && (
         <GraphContainer>
-          <Graphs name={selectedStat} />
+          <EventsPerSecond />
         </GraphContainer>
       )}
     </StyledControlBox>
   )
 }
 
-export default SearchBox
+export default () => (
+  <StreamrClientProvider>
+    <SearchBox />
+  </StreamrClientProvider>
+)

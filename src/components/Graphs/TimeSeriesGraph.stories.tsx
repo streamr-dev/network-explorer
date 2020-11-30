@@ -1,17 +1,17 @@
 import React from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 
-import TimeSeriesGraph, { Props } from './TimeSeriesGraph'
+import TimeSeries, { Props } from './TimeSeries'
 
 export default {
-  title: 'TimeSeriesGraph',
-  component: TimeSeriesGraph,
+  title: 'TimeSeries',
+  component: TimeSeries,
 } as Meta
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 const startDate = new Date(2020, 1, 1, 10).getTime()
 
-const data = [
+const data1 = [
   {
     x: startDate,
     y: 1,
@@ -30,24 +30,48 @@ const data = [
   },
 ]
 
+const data2 = [
+  {
+    x: startDate,
+    y: 4,
+  },
+  {
+    x: startDate + 1 * ONE_DAY,
+    y: 16,
+  },
+  {
+    x: startDate + 2 * ONE_DAY,
+    y: 7,
+  },
+  {
+    x: startDate + 3 * ONE_DAY,
+    y: 9,
+  },
+]
 const Template: Story<Props> = (args) => (
-  <TimeSeriesGraph {...args} />
+  <TimeSeries {...args} />
 )
 
 export const WithHeightDefined = Template.bind({})
 WithHeightDefined.args = {
-  graphData: data,
+  graphData: { data1 },
   height: '100px',
 }
 
 export const WithRatioDefined = Template.bind({})
 WithRatioDefined.args = {
-  graphData: data,
+  graphData: { data1 },
+  ratio: '5:2',
+}
+
+export const WithTwoGraphs = Template.bind({})
+WithTwoGraphs.args = {
+  graphData: { data1, data2 },
   ratio: '5:2',
 }
 
 export const WithCrosshair = Template.bind({})
 WithCrosshair.args = {
-  graphData: data,
+  graphData: { data1 },
   showCrosshair: true,
 }

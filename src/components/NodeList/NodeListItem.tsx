@@ -1,10 +1,9 @@
-import React, { MouseEvent, useState } from 'react'
+import React, { MouseEvent } from 'react'
 import styled from 'styled-components/macro'
 import Identicon from 'react-identicons'
 
 import { MONO, MEDIUM } from '../../utils/styled'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
+import { Stats, Stat } from '../Stats'
 
 const Name = styled.div`
   color: #323232;
@@ -61,10 +60,6 @@ const StyledStats = styled(Stats)`
   border-top: 1px solid #F5F5F5;
 `
 
-const GraphContainer = styled.div`
-  border-top: 1px solid #EFEFEF;
-`
-
 type Props = {
   nodeId: string,
   title: string,
@@ -73,53 +68,46 @@ type Props = {
   onClick: (event: MouseEvent<HTMLInputElement>) => void,
 }
 
-const stats = {
-  'Msgs/sec': 456,
-  'MB/S': 757.25,
-  'Latency ms': 27.5,
-}
-
 const NodeListItem = ({
   nodeId,
   title,
   placeName,
   active,
   onClick,
-}: Props) => {
-  const [selectedStat, setSelectedStat] = useState<string | null>(null)
-
-  return (
-    <NodeElement>
-      <TitleRow onClick={onClick}>
-        <Identicon
-          string={nodeId}
-          size={20}
+}: Props) => (
+  <NodeElement>
+    <TitleRow onClick={onClick}>
+      <Identicon
+        string={nodeId}
+        size={20}
+      />
+      <Name>
+        <strong>{title}</strong>
+        {!active && (
+          <PlaceName>{placeName}</PlaceName>
+        )}
+        {!!active && (
+          <Address>{nodeId}</Address>
+        )}
+      </Name>
+    </TitleRow>
+    {!!active && (
+      <StyledStats>
+        <Stat
+          label="Msgs/sec"
+          value={undefined}
         />
-        <Name>
-          <strong>{title}</strong>
-          {!active && (
-            <PlaceName>{placeName}</PlaceName>
-          )}
-          {!!active && (
-            <Address>{nodeId}</Address>
-          )}
-        </Name>
-      </TitleRow>
-      {!!active && (
-        <>
-          <StyledStats
-            values={stats}
-            onSelectedStatChanged={(name) => {
-              setSelectedStat(name)
-            }}
-          />
-          <GraphContainer hidden={selectedStat == null}>
-            <Graphs name={selectedStat} />
-          </GraphContainer>
-        </>
-      )}
-    </NodeElement>
-  )
-}
+        <Stat
+          label="MB/S"
+          value={undefined}
+        />
+        <Stat
+          label="Latency ms"
+          value={undefined}
+        />
+      </StyledStats>
+    )}
+  </NodeElement>
+)
 
 export default NodeListItem
