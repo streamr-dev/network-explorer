@@ -1,8 +1,7 @@
 import uniqBy from 'lodash/uniqBy'
 
 import { get } from '../request'
-
-const API_URL = process.env.REACT_APP_STREAMR_API_URL
+import getConfig from '../config'
 
 type SearchStreams = {
   search?: string,
@@ -58,13 +57,21 @@ type GetStreams = {
   params?: Object,
 }
 
-export const getStreams = async ({ params }: GetStreams = {}) => get<Stream[]>({
-  url: `${API_URL}/streams`,
-  options: {
-    params,
-  },
-})
+export const getStreams = async ({ params }: GetStreams = {}) => {
+  const { http } = getConfig().streamr
 
-export const getStream = async ({ id }: GetStream) => get<Stream>({
-  url: `${API_URL}/streams/${encodeURIComponent(id)}/validation`,
-})
+  return get<Stream[]>({
+    url: `${http}/streams`,
+    options: {
+      params,
+    },
+  })
+}
+
+export const getStream = async ({ id }: GetStream) => {
+  const { http } = getConfig().streamr
+
+  return get<Stream>({
+    url: `${http}/streams/${encodeURIComponent(id)}/validation`,
+  })
+}

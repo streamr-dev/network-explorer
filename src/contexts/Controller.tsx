@@ -11,8 +11,10 @@ import * as streamrApi from '../utils/api/streamr'
 import { usePending } from './Pending'
 import { useStore } from './Store'
 import useIsMounted from '../hooks/useIsMounted'
+import { setEnvironment } from '../utils/config'
 
 type ContextProps = {
+  changeEnv: Function,
   loadTrackers: () => Promise<void>,
   loadStream: Function,
   resetStream: Function,
@@ -30,6 +32,7 @@ function useControllerContext() {
     addNodes,
     setTopology,
     setStream,
+    resetStore,
   } = useStore()
   const { wrap: wrapTrackers } = usePending('trackers')
   const { wrap: wrapNodes } = usePending('nodes')
@@ -119,7 +122,15 @@ function useControllerContext() {
     setTopology({})
   }, [setTopology])
 
+  const changeEnv = useCallback((env: string) => {
+    setEnvironment(env)
+    resetStore()
+    setHasLoaded(false)
+    loadTrackers()
+  }, [resetStore, loadTrackers])
+
   return useMemo(() => ({
+    changeEnv,
     loadTrackers,
     loadStream,
     resetStream,
@@ -127,6 +138,7 @@ function useControllerContext() {
     resetTopology,
     hasLoaded,
   }), [
+    changeEnv,
     loadTrackers,
     loadStream,
     resetStream,

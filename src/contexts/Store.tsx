@@ -8,12 +8,14 @@ import { schema, normalize, denormalize } from 'normalizr'
 import mergeWith from 'lodash/mergeWith'
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
+import { getEnvironment } from '../utils/config'
 
 const nodeSchema = new schema.Entity('nodes')
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
 
 type Store = {
+  env: string | undefined,
   nodes: string[],
   trackers: string[],
   topology: trackerApi.Topology,
@@ -23,6 +25,7 @@ type Store = {
 }
 
 type ContextProps = {
+  env: string | undefined,
   nodes: trackerApi.Node[],
   addNodes: (nodes: trackerApi.Node[]) => void,
   trackers: string[],
@@ -36,11 +39,13 @@ type ContextProps = {
   stream: streamrApi.Stream | undefined,
   setStream: (stream: streamrApi.Stream | undefined) => void,
   store: Store,
+  resetStore: Function,
 }
 
 const StoreContext = React.createContext<ContextProps | undefined>(undefined)
 
-const initialState: Store = {
+const getInitialState = (): Store => ({
+  env: getEnvironment(),
   nodes: [],
   trackers: [],
   topology: {},
@@ -50,7 +55,7 @@ const initialState: Store = {
     nodes: {},
     streams: {},
   },
-}
+})
 
 type Action =
  | { type: 'setTrackers', trackers: string[] }
@@ -59,6 +64,7 @@ type Action =
  | { type: 'setTopology', topology: trackerApi.Topology, activeNodeId?: string }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
+ | { type: 'reset' }
 
 const reducer = (state: Store, action: Action) => {
   switch (action.type) {
@@ -110,13 +116,19 @@ const reducer = (state: Store, action: Action) => {
         streamId: action.streamId,
       }
     }
+
+    case 'reset': {
+      return {
+        ...getInitialState(),
+      }
+    }
   }
 
   return state
 }
 
 function useStoreContext() {
-  const [store, dispatch] = useReducer(reducer, initialState)
+  const [store, dispatch] = useReducer(reducer, getInitialState())
 
   const addNodes = useCallback((nodes: trackerApi.Node[]) => {
     const { result: nextNodes, entities } = normalize(nodes, nodesSchema)
@@ -169,7 +181,14 @@ function useStoreContext() {
     })
   }, [dispatch])
 
+  const resetStore = useCallback(() => {
+    dispatch({
+      type: 'reset',
+    })
+  }, [dispatch])
+
   const {
+    env,
     activeNodeId,
     streamId,
     nodes: nodeIds,
@@ -195,6 +214,7 @@ function useStoreContext() {
   ), [streamId, entities])
 
   return useMemo(() => ({
+    env,
     nodes,
     addNodes,
     trackers,
@@ -208,7 +228,9 @@ function useStoreContext() {
     stream,
     setStream,
     store,
+    resetStore,
   }), [
+    env,
     nodes,
     addNodes,
     trackers,
@@ -222,6 +244,7 @@ function useStoreContext() {
     stream,
     setStream,
     store,
+    resetStore,
   ])
 }
 
