@@ -88,7 +88,7 @@ export const Map = ({
       coordinates: [node.longitude, node.latitude],
     },
   }))
-  let bounds = mapRef.current?.getMap().getBounds().toArray().flat() as [
+  let bounds = mapRef.current?.getMap()?.getBounds().toArray().flat() as [
     number,
     number,
     number,
