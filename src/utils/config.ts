@@ -1,7 +1,7 @@
 import { isLocalStorageAvailable } from './storage'
 import envs from './envs'
 
-const APP_ENV_KEY = 'network-eplorer.env'
+export const APP_ENV_KEY = 'network-eplorer.env'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getEnvironment() {
@@ -15,10 +15,10 @@ export function setEnvironment(value: string) {
 
 function getConfig(options = {}) {
   const { env } = {
-    ...(options || {}),
     ...({
       env: getEnvironment() || 'local',
     }),
+    ...(options || {}),
   }
 
   if (!envs[env]) {

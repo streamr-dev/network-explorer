@@ -40,7 +40,7 @@ type NodeResult = {
 }
 type NodeResultList = Record<string, NodeResult>
 
-const generateMnemonic = (id: string) => (
+export const generateMnemonic = (id: string) => (
   entropyToMnemonic(id.slice(2), wordlists.english)
     .split(' ')
     .slice(0, 3)
