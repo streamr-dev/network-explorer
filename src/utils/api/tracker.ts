@@ -4,15 +4,11 @@ import { Utils } from 'streamr-client-protocol'
 import { getReversedGeocodedLocation } from './mapbox'
 
 import { get } from '../request'
-
-const ADDRESS = process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS
-const PROVIDER = process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER
+import getConfig from '../config'
 
 export const getTrackers = async (): Promise<string[]> => {
-  const trackerRegistry = await Utils.getTrackerRegistryFromContract({
-    contractAddress: ADDRESS,
-    jsonRpcProvider: PROVIDER,
-  })
+  const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
+
   const result: string[] = (trackerRegistry.getAllTrackers() || [])
     .map(({ http }: { http: string }) => http)
     .filter(Boolean)
@@ -21,10 +17,7 @@ export const getTrackers = async (): Promise<string[]> => {
 }
 
 export const getTrackerForStream = async ({ id }: { id: string }) => {
-  const trackerRegistry = await Utils.getTrackerRegistryFromContract({
-    contractAddress: ADDRESS,
-    jsonRpcProvider: PROVIDER,
-  })
+  const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
 
   const { http } = trackerRegistry.getTracker(id)
 
@@ -47,7 +40,7 @@ type NodeResult = {
 }
 type NodeResultList = Record<string, NodeResult>
 
-const generateMnemonic = (id: string) => (
+export const generateMnemonic = (id: string) => (
   entropyToMnemonic(id.slice(2), wordlists.english)
     .split(' ')
     .slice(0, 3)
