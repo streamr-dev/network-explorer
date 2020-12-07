@@ -24,6 +24,14 @@ BUILD_ENV=staging npm run start-env
 
 # Tests
 
+Run all tests:
+
 ```
-npx react-scripts test [path/to/file.test.ts]
+npm run test
+```
+
+Single files:
+
+```
+npx react-scripts test path/to/file.test.ts
 ```
