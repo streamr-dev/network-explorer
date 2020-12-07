@@ -16,10 +16,14 @@ export const getTrackers = async (): Promise<string[]> => {
   return result || []
 }
 
-export const getTrackerForStream = async ({ id }: { id: string }) => {
+export const getTrackerForStream = async (options: { id: string, partition }) => {
+  const { id, partition } = {
+    ...({ partition: 0 }),
+    ...options,
+  }
   const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
 
-  const { http } = trackerRegistry.getTracker(id)
+  const { http } = trackerRegistry.getTracker(id, partition)
 
   return http
 }

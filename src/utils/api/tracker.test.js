@@ -81,8 +81,23 @@ describe('tracker API', () => {
 
       expect(result1).toStrictEqual('http://streamr.network/:30301')
       expect(result2).toStrictEqual('http://streamr.network/:30302')
-      expect(getTrackerMock).toBeCalledWith('mystream')
-      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream')
+      expect(getTrackerMock).toBeCalledWith('mystream', 0)
+      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream', 0)
+    })
+
+    it('gets tracker with id and partition', async () => {
+      const getTrackerMock = jest.fn((id) => ({
+        http: 'http://streamr.network/:30301',
+      }))
+
+      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+        getTracker: getTrackerMock,
+      })
+
+      const result1 = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
+
+      expect(result1).toStrictEqual('http://streamr.network/:30301')
+      expect(getTrackerMock).toBeCalledWith('mystream', 3)
     })
   })
 
@@ -104,7 +119,7 @@ describe('tracker API', () => {
 
       const result = await all.getTopology({ id: '0x1234/path/tostream' })
 
-      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream')
+      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream', 0)
       expect(getMock).toBeCalledWith({
         url: `${http}/topology/0x1234%2Fpath%2Ftostream/`,
       })
