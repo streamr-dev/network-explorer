@@ -21,3 +21,9 @@ To use the staging config:
 npm ci
 BUILD_ENV=staging npm run start-env
 ```
+
+# Tests
+
+```
+npx react-scripts test [path/to/file.test.ts]
+```
