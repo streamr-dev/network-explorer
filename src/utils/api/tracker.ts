@@ -16,9 +16,9 @@ export const getTrackers = async (): Promise<string[]> => {
   return result || []
 }
 
-export const getTrackerForStream = async (options: { id: string, partition }) => {
+export const getTrackerForStream = async (options: { id: string, partition?: number }) => {
   const { id, partition } = {
-    ...({ partition: 0 }),
+    ...({ id: undefined, partition: 0 }),
     ...options,
   }
   const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
