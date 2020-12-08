@@ -10,6 +10,7 @@ const getPlacesUrl = ({ place }: { place: string}) => (
 
 type GeoCodeResultFeature = {
   id: string,
+  text: string,
   place_type: Array<string>,
   place_name: string,
   bbox: Array<number>,
@@ -77,9 +78,10 @@ export const getLocations = async ({ search }: LocationSearch): Promise<SearchRe
 
   return (result && result.features || [])
     .filter(({ place_type }) => place_type.includes('place'))
-    .map(({ id, place_name }) => ({
+    .map(({ id, text, place_name }) => ({
       id,
-      name: place_name,
+      name: text,
+      description: place_name,
       type: 'locations',
     }))
 }
