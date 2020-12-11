@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useRef,
   useMemo,
+  useCallback,
 } from 'react'
 import ReactMapGL, {
   NavigationControl,
@@ -24,6 +25,7 @@ import useWindowSize from '../../hooks/useWindowSize'
 import { useStore } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node, Topology } from '../../utils/api/tracker'
+import { useDebounced } from '../../hooks/wrapCallback'
 
 const NavigationContainer = styled.div`
   position: absolute;
@@ -165,29 +167,35 @@ export const ConnectedMap = () => {
     minZoom: 0,
     maxPitch: 60,
     minPitch: 0,
+    transitionInterpolator: new FlyToInterpolator({
+      speed: 3,
+    }),
+    transitionDuration: 'auto',
   })
+
+  const debouncedSetViewport = useDebounced(
+    useCallback(async (viewPort: ViewportProps) => (
+      setViewport(viewPort)
+    ), []),
+    250,
+  )
 
   // zoom selected network node into view
   useEffect(() => {
     if (activeNode) {
-      setViewport((prev) => ({
+      debouncedSetViewport((prev: ViewportProps) => ({
         ...prev,
         longitude: activeNode.longitude,
         latitude: activeNode.latitude,
-        zoom: 5,
-        transitionInterpolator: new FlyToInterpolator({
-          speed: 3,
-        }),
-        transitionDuration: 'auto',
       }))
     }
-  }, [activeNode])
+  }, [debouncedSetViewport, activeNode])
 
   // zoom topology into view
   useEffect(() => {
     if (visibleNodes.length <= 0) { return }
 
-    setViewport((prev) => {
+    debouncedSetViewport((prev: ViewportProps) => {
       const pointsLong = visibleNodes.map(point => point.longitude)
       const pointsLat = visibleNodes.map(point => point.latitude)
       const cornersLongLat: [[number, number], [number, number]] = [
@@ -207,23 +215,19 @@ export const ConnectedMap = () => {
         longitude,
         latitude,
         zoom,
-        transitionInterpolator: new FlyToInterpolator({
-          speed: 3,
-        }),
-        transitionDuration: 'auto',
       }
     })
-  }, [visibleNodes])
+  }, [debouncedSetViewport, visibleNodes])
 
   const windowSize = useWindowSize()
 
   useEffect(() => {
-    setViewport((prev) => ({
+    debouncedSetViewport((prev: ViewportProps) => ({
       ...prev,
       width: windowSize.width ?? prev.width,
       height: windowSize.height ?? prev.height,
     }))
-  }, [setViewport, windowSize.width, windowSize.height])
+  }, [debouncedSetViewport, windowSize.width, windowSize.height])
 
   return (
     <Map
