@@ -11,6 +11,7 @@ export type SearchResult = {
   type: 'streams' | 'nodes' | 'locations',
   id: string,
   name: string,
+  description?: string,
 }
 
 export const searchStreams = async ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
@@ -37,10 +38,11 @@ export const searchStreams = async ({ search = '' }: SearchStreams): Promise<Sea
   ], 'id')
 
   return results
-    .map(({ id }: Stream) => ({
+    .map(({ id, description }: Stream) => ({
       type: 'streams',
       id,
       name: id,
+      description,
     }))
 }
 
@@ -51,6 +53,7 @@ type GetStream = {
 export type Stream = {
   id: string,
   name: string,
+  description: string,
 }
 
 type GetStreams = {

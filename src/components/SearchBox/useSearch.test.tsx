@@ -86,6 +86,7 @@ describe('useSearch', () => {
 
     expect(search.results).toStrictEqual([{
       id: '3',
+      description: '3',
       type: 'nodes',
       name: 'New York',
     }])
@@ -107,8 +108,9 @@ describe('useSearch', () => {
     })
     const streamSearchMock = jest.fn(() => Promise.resolve([{
       id: '2',
-      title: 'Stream',
+      name: 'Stream',
       type: 'streams',
+      description: 'My Stream',
     }]))
     streamrApi.searchStreams.mockImplementation(streamSearchMock)
     mapApi.getLocations.mockResolvedValue([])
@@ -125,12 +127,14 @@ describe('useSearch', () => {
     })
     expect(search.results).toStrictEqual([{
       id: '1',
+      description: '1',
       type: 'nodes',
       name: 'Berlin',
     }, {
       id: '2',
-      title: 'Stream',
+      name: 'Stream',
       type: 'streams',
+      description: 'My Stream',
     }])
   })
 
@@ -150,7 +154,8 @@ describe('useSearch', () => {
     })
     const getLocationsMock = jest.fn(() => Promise.resolve([{
       id: 'places.abc123',
-      title: 'Berlin, Germany',
+      name: 'Berlin',
+      description: 'Berlin, Germany',
       type: 'locations',
     }]))
     mapApi.getLocations.mockImplementation(getLocationsMock)
@@ -168,11 +173,13 @@ describe('useSearch', () => {
     })
     expect(search.results).toStrictEqual([{
       id: '1',
+      description: '1',
       type: 'nodes',
       name: 'Berlin',
     }, {
       id: 'places.abc123',
-      title: 'Berlin, Germany',
+      name: 'Berlin',
+      description: 'Berlin, Germany',
       type: 'locations',
     }])
   })

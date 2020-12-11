@@ -34,6 +34,7 @@ const useSearch = () => {
       id,
       type: 'nodes',
       name: title,
+      description: id,
     })), [nodes])
 
   const debouncedUpdateResults = useDebounced(
