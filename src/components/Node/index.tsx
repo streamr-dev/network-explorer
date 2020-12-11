@@ -5,21 +5,25 @@ import { useStore } from '../../contexts/Store'
 import TopologyList from './TopologyList'
 
 type NodeProps = {
-  id: string,
+  activeNodeId: string,
 }
 
-const ActiveNode = ({ id }: NodeProps) => {
+const AllNodes = ({ activeNodeId }: NodeProps) => {
   const { setTopology } = useStore()
+  const { nodes } = useStore()
 
   useEffect(() => {
-    setTopology({
+    const topology = nodes.reduce((result, { id }) => ({
+      ...result,
       [id]: [],
-    }, id)
+    }), {})
+
+    setTopology(topology, activeNodeId)
 
     return () => {
       setTopology({})
     }
-  }, [id, setTopology])
+  }, [nodes, setTopology, activeNodeId])
 
   return null
 }
@@ -28,13 +32,13 @@ export default () => {
   const { nodeId } = useParams()
   const { nodes } = useStore()
 
-  if (!nodeId || !nodes || nodes.length < 1) {
+  if (!nodes || nodes.length < 1) {
     return null
   }
 
   return (
     <div>
-      <ActiveNode id={nodeId} />
+      <AllNodes activeNodeId={nodeId} />
       <TopologyList id={nodeId} />
     </div>
   )

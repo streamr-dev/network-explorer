@@ -5,6 +5,7 @@ import ControlBox from '../ControlBox'
 
 import NodeListItem from './NodeListItem'
 import * as api from '../../utils/api/tracker'
+import { SANS, MEDIUM } from '../../utils/styled'
 
 const Wrapper = styled.div`
   padding: 16px;
@@ -17,6 +18,23 @@ type Props = {
   onNodeClick?: (v: string) => void,
   children?: React.ReactNode,
 }
+
+const Header = styled.div`
+  font-family: ${SANS};
+  color: #A3A3A3;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  & + * {
+    margin-top: 16px;
+  }
+
+  strong {
+    font-weight: ${MEDIUM};
+  }
+`
 
 const NodeList = ({
   nodes,
@@ -48,5 +66,7 @@ const NodeList = ({
     </ControlBox>
   )
 }
+
+NodeList.Header = Header
 
 export default NodeList

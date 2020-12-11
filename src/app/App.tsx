@@ -47,6 +47,7 @@ const App = () => (
                 <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
                 <Route exact path="/streams/:streamId" component={Stream} />
                 <Route exact path="/nodes/:nodeId" component={Node} />
+                <Route exact path="/" component={Node} />
               </Switch>
             </ErrorBoundary>
           </Layout>
