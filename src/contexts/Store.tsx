@@ -14,8 +14,14 @@ const nodeSchema = new schema.Entity('nodes')
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
 
+export enum ActiveView {
+  Map,
+  List
+}
+
 type Store = {
   env: string | undefined,
+  activeView: ActiveView,
   nodes: string[],
   trackers: string[],
   topology: trackerApi.Topology,
@@ -26,6 +32,8 @@ type Store = {
 
 type ContextProps = {
   env: string | undefined,
+  activeView: ActiveView,
+  toggleActiveView: () => void,
   nodes: trackerApi.Node[],
   addNodes: (nodes: trackerApi.Node[]) => void,
   trackers: string[],
@@ -46,6 +54,7 @@ const StoreContext = React.createContext<ContextProps | undefined>(undefined)
 
 const getInitialState = (): Store => ({
   env: getEnvironment(),
+  activeView: ActiveView.Map,
   nodes: [],
   trackers: [],
   topology: {},
@@ -64,6 +73,7 @@ type Action =
  | { type: 'setTopology', topology: trackerApi.Topology, activeNodeId?: string }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
+ | { type: 'toggleActiveView' }
  | { type: 'reset' }
 
 const reducer = (state: Store, action: Action) => {
@@ -114,6 +124,13 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         streamId: action.streamId,
+      }
+    }
+
+    case 'toggleActiveView': {
+      return {
+        ...state,
+        activeView: state.activeView === ActiveView.Map ? ActiveView.List : ActiveView.Map,
       }
     }
 
@@ -181,6 +198,12 @@ function useStoreContext() {
     })
   }, [dispatch])
 
+  const toggleActiveView = useCallback(() => {
+    dispatch({
+      type: 'toggleActiveView',
+    })
+  }, [])
+
   const resetStore = useCallback(() => {
     dispatch({
       type: 'reset',
@@ -189,6 +212,7 @@ function useStoreContext() {
 
   const {
     env,
+    activeView,
     activeNodeId,
     streamId,
     nodes: nodeIds,
@@ -215,6 +239,8 @@ function useStoreContext() {
 
   return useMemo(() => ({
     env,
+    activeView,
+    toggleActiveView,
     nodes,
     addNodes,
     trackers,
@@ -231,6 +257,8 @@ function useStoreContext() {
     resetStore,
   }), [
     env,
+    activeView,
+    toggleActiveView,
     nodes,
     addNodes,
     trackers,

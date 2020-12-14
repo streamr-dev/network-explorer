@@ -6,7 +6,12 @@ import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import envs from '../../utils/envs'
-import { MONO, SANS, MEDIUM } from '../../utils/styled'
+import {
+  MONO,
+  SANS,
+  MEDIUM,
+  MD,
+} from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 
 export const APP_DEBUG_MODE_KEY = 'network-eplorer.debug'
@@ -56,6 +61,11 @@ const DebugContainer = styled.div`
     :hover {
       background-color: rgba(0, 0, 0, 0.8);
     }
+  }
+
+  @media (max-width: ${MD}px) {
+    display: none;
+  }
 `
 
 const Wrapper = styled.div`
