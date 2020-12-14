@@ -16,6 +16,7 @@ import styled from 'styled-components/macro'
 import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { useHistory } from 'react-router-dom'
 
 import { NodeProperties } from './types'
 import ConnectionLayer from './ConnectionLayer'
@@ -153,7 +154,13 @@ export const Map = ({
 }
 
 export const ConnectedMap = () => {
-  const { visibleNodes, topology, activeNode } = useStore()
+  const {
+    visibleNodes,
+    topology,
+    activeNode,
+    streamId,
+  } = useStore()
+  const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 400,
     height: 400,
@@ -187,13 +194,14 @@ export const ConnectedMap = () => {
         ...prev,
         longitude: activeNode.longitude,
         latitude: activeNode.latitude,
+        zoom: 10,
       }))
     }
   }, [debouncedSetViewport, activeNode])
 
   // zoom topology into view
   useEffect(() => {
-    if (visibleNodes.length <= 0) { return }
+    if (visibleNodes.length <= 0 || !!activeNode) { return }
 
     debouncedSetViewport((prev: ViewportProps) => {
       const pointsLong = visibleNodes.map(point => point.longitude)
@@ -217,7 +225,7 @@ export const ConnectedMap = () => {
         zoom,
       }
     })
-  }, [debouncedSetViewport, visibleNodes])
+  }, [debouncedSetViewport, visibleNodes, activeNode])
 
   const windowSize = useWindowSize()
 
@@ -229,6 +237,22 @@ export const ConnectedMap = () => {
     }))
   }, [debouncedSetViewport, windowSize.width, windowSize.height])
 
+  const { id: activeNodeId } = activeNode || {}
+
+  const onNodeClick = useCallback((nodeId: string) => {
+    let path = '/'
+
+    if (streamId) {
+      path += `streams/${encodeURIComponent(streamId)}/`
+    }
+
+    if (nodeId !== activeNodeId) {
+      path += `nodes/${nodeId}`
+    }
+
+    history.replace(path)
+  }, [streamId, activeNodeId, history])
+
   return (
     <Map
       nodes={visibleNodes}
@@ -236,6 +260,7 @@ export const ConnectedMap = () => {
       topology={topology}
       setViewport={setViewport}
       activeNode={activeNode}
+      onNodeClick={onNodeClick}
     />
   )
 }

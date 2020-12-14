@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react'
+import { useHistory } from 'react-router-dom'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
@@ -40,6 +41,7 @@ function useControllerContext() {
   const { wrap: wrapStreams } = usePending('streams')
   const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
+  const history = useHistory()
 
   const loadTrackers = useCallback(() => (
     wrapTrackers(async () => {
@@ -126,8 +128,9 @@ function useControllerContext() {
     setEnvironment(env)
     resetStore()
     setHasLoaded(false)
+    history.push('/')
     loadTrackers()
-  }, [resetStore, loadTrackers])
+  }, [resetStore, loadTrackers, history])
 
   return useMemo(() => ({
     changeEnv,

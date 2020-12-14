@@ -1,27 +1,8 @@
 import React, { useCallback } from 'react'
-import styled from 'styled-components/macro'
 import { useParams, useHistory } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
-import { SANS, MEDIUM } from '../../utils/styled'
 import NodeList from '../NodeList'
-
-const Header = styled.div`
-  font-family: ${SANS};
-  color: #A3A3A3;
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  & + * {
-    margin-top: 16px;
-  }
-
-  strong {
-    font-weight: ${MEDIUM};
-  }
-`
 
 type Props = {
   id: string,
@@ -50,7 +31,7 @@ const TopologyList = ({ id }: Props) => {
       activeNodeId={activeNodeId}
       onNodeClick={toggleNode}
     >
-      <Header>
+      <NodeList.Header>
         Showing
         {' '}
         <strong>{visibleNodes.length}</strong>
@@ -58,7 +39,7 @@ const TopologyList = ({ id }: Props) => {
         nodes carrying the stream
         {' '}
         <strong title={id}>{streamTitle}</strong>
-      </Header>
+      </NodeList.Header>
     </NodeList>
   )
 }
