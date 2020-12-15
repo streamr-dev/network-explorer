@@ -1,40 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components/macro'
-import { Link } from 'react-router-dom'
 import { useSubscription } from 'streamr-client-react'
 
-import ControlBox from '../ControlBox'
 import { Stats, Stat } from '../Stats'
 import EventsPerSecond from '../Graphs/EventsPerSecond'
-import { useStore } from '../../contexts/Store'
+import { useStore, ActiveView } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
 import { useController } from '../../contexts/Controller'
 import useIsMounted from '../../hooks/useIsMounted'
 import StreamrClientProvider from '../StreamrClientProvider'
 
-import StreamrLogo from './StreamrLogo'
-import SearchInput from './SearchInput'
-import SearchResults from './SearchResults'
+import Search from './Search'
 import useSearch from './useSearch'
-
-const StyledControlBox = styled(ControlBox)`
-  background: #ffffff;
-`
-
-const Search = styled.div`
-  height: 64px;
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  border-bottom: 1px solid #EFEFEF;
-`
-
-const LogoContainer = styled.div`
-  border-right: 1px solid #EFEFEF;
-`
-
-const SearchInputContainer = styled.div`
-  width: 100%;
-`
 
 const GraphContainer = styled.div`
   border-top: 1px solid #EFEFEF;
@@ -44,7 +21,12 @@ const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
   const [messagesPerSecond, setMessagesPersecond] = useState<number | undefined>(undefined)
   const [searchText, setSearchText] = useState<string>('')
-  const { nodes, streamId, stream } = useStore()
+  const {
+    nodes,
+    streamId,
+    stream,
+    activeView,
+  } = useStore()
   const { results, updateResults } = useSearch()
   const { hasLoaded } = useController()
   const [searchActive, setSearchActive] = useState<boolean>(false)
@@ -103,23 +85,17 @@ const SearchBox = () => {
   }, [streamId, updateResults])
 
   return (
-    <StyledControlBox>
-      <Search>
-        <LogoContainer>
-          <Link to="/">
-            <StreamrLogo />
-          </Link>
-        </LogoContainer>
-        <SearchInputContainer>
-          <SearchInput
-            value={searchText}
-            onChange={onSearch}
-            onClear={onClear}
-            disabled={!!isDisabled}
-            onBlur={() => setSearchActive(false)}
-          />
-        </SearchInputContainer>
-      </Search>
+    <Search>
+      <Search.Input
+        value={searchText}
+        onChange={onSearch}
+        onClear={onClear}
+        disabled={!!isDisabled}
+        onBlur={() => setSearchActive(false)}
+        theme={{
+          searchActive: activeView === ActiveView.List,
+        }}
+      />
       <Stats>
         <Stat
           label="Msgs/sec"
@@ -137,16 +113,14 @@ const SearchBox = () => {
         />
       </Stats>
       {results.length > 0 && (
-        <GraphContainer>
-          <SearchResults results={results} />
-        </GraphContainer>
+        <Search.Results results={results} />
       )}
       {results.length === 0 && selectedStat === 'eventsPerSecond' && (
         <GraphContainer>
           <EventsPerSecond />
         </GraphContainer>
       )}
-    </StyledControlBox>
+    </Search>
   )
 }
 

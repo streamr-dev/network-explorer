@@ -4,17 +4,25 @@ import styled from 'styled-components/macro'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import { SearchResult } from '../../utils/api/streamr'
+import { SM, MD, SANS } from '../../utils/styled'
 
-const Container = styled.div`
-  display: grid;
-  max-height: 280px;
-  overflow: scroll;
+const IconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
 
-  a,
-  a:hover,
-  a:active,
-  a:visited {
-    text-decoration: none;
+const Icon = styled.div`
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 `
 
@@ -26,15 +34,25 @@ const Row = styled.div`
   line-height: 16px;
   cursor: pointer;
   color: #CDCDCD;
+  background-color: #FFFFFF;
+  font-family: ${SANS};
+  font-size: 12px;
 
   &:hover {
-    background: #F5F5F5;
-  }
-`
+    background-color: #F8F8F8;
 
-const Icon = styled.div`
-  align-self: center;
-  justify-self: center;
+    ${Icon} {
+      background-color: transparent;
+    }
+  }
+
+  &:active {
+    background-color: #F5F5F5;
+  }
+
+  @media (min-width: ${MD}px) {
+    font-size: 14px;
+  }
 `
 
 const Item = styled.div`
@@ -45,12 +63,37 @@ const Item = styled.div`
   white-space: nowrap;
 
   span:first-child {
-      color: #323232;
-      font-weight: 500;
+    color: #323232;
+    font-weight: 500;
   }
 
-  span + span {
-    margin-left: 8px;
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: ${SM}px) {
+    span {
+      display: block;
+    }
+  }
+
+  @media (min-width: ${SM}px) {
+    span + span {
+      margin-left: 8px;
+    }
+  }
+`
+
+const List = styled.div`
+  display: grid;
+
+  a,
+  a:hover,
+  a:active,
+  a:visited {
+    text-decoration: none;
   }
 `
 
@@ -74,9 +117,11 @@ const Stream = ({
 
   return (
     <Row as={Link} to={`/streams/${encodeURIComponent(id)}`}>
-      <Icon>
-        <StreamIcon />
-      </Icon>
+      <IconWrapper>
+        <Icon>
+          <StreamIcon />
+        </Icon>
+      </IconWrapper>
       <Item>
         <span>{name}</span>
         <span>{description}</span>
@@ -92,9 +137,11 @@ const Node = ({
   description,
 }: SearchResult) => (
   <Row as={Link} to={`/nodes/${id}`}>
-    <Icon>
-      <NodeIcon />
-    </Icon>
+    <IconWrapper>
+      <Icon>
+        <NodeIcon />
+      </Icon>
+    </IconWrapper>
     <Item>
       <span>{name}</span>
       <span>{description}</span>
@@ -109,9 +156,11 @@ const Location = ({
   description,
 }: SearchResult) => (
   <Row>
-    <Icon>
-      <LocationIcon />
-    </Icon>
+    <IconWrapper>
+      <Icon>
+        <LocationIcon />
+      </Icon>
+    </IconWrapper>
     <Item>
       <span>{name}</span>
       <span>{description}</span>
@@ -119,24 +168,47 @@ const Location = ({
   </Row>
 )
 
-const SearchResults = ({ results }: Props) => (
-  <Container>
-    {results.map((result) => {
-      switch (result.type) {
-        case 'streams':
-          return <Stream key={result.id} {...result} />
+const UnstyledSearchResults = ({ results, ...props }: Props) => (
+  <div {...props}>
+    <List>
+      {results.map((result) => {
+        switch (result.type) {
+          case 'streams':
+            return <Stream key={result.id} {...result} />
 
-        case 'locations':
-          return <Location key={result.id} {...result} />
+          case 'locations':
+            return <Location key={result.id} {...result} />
 
-        case 'nodes':
-          return <Node key={result.id} {...result} />
+          case 'nodes':
+            return <Node key={result.id} {...result} />
 
-        default:
-          return null
-      }
-    })}
-  </Container>
+          default:
+            return null
+        }
+      })}
+    </List>
+  </div>
 )
+
+const SearchResults = styled(UnstyledSearchResults)`
+  @media (max-width: ${SM}px) {
+    ${List} {
+      grid-row-gap: 8px;
+    }
+
+    ${Row} {
+      border: 1px solid #EFEFEF;
+      border-radius: 4px;
+    }
+
+    ${Icon} {
+      background-color: #F5F5F5;
+    }
+  }
+
+  @media (min-width: ${SM}px) {
+    background-color: #FFFFFF;
+  }
+`
 
 export default SearchResults
