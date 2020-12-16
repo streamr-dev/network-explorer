@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import styled from 'styled-components/macro'
+import React, { useState, useCallback } from 'react'
 import { useSubscription } from 'streamr-client-react'
 
 import { Stats, Stat } from '../Stats'
@@ -11,25 +10,21 @@ import useIsMounted from '../../hooks/useIsMounted'
 import StreamrClientProvider from '../StreamrClientProvider'
 
 import Search from './Search'
-import useSearch from './useSearch'
-
-const GraphContainer = styled.div`
-  border-top: 1px solid #EFEFEF;
-`
 
 const SearchBox = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null)
   const [messagesPerSecond, setMessagesPersecond] = useState<number | undefined>(undefined)
-  const [searchText, setSearchText] = useState<string>('')
   const {
     nodes,
     streamId,
-    stream,
     activeView,
+    setActiveView,
+    search,
+    updateSearch: updateSearchText,
+    searchResults,
+    resetSearchResults,
   } = useStore()
-  const { results, updateResults } = useSearch()
-  const { hasLoaded } = useController()
-  const [searchActive, setSearchActive] = useState<boolean>(false)
+  const { hasLoaded, updateSearch } = useController()
   const { isPending: isStreamLoading } = usePending('streams')
   const isMounted = useIsMounted()
 
@@ -48,52 +43,42 @@ const SearchBox = () => {
     },
   }, onMessagesPerSecond)
 
-  useEffect(() => {
-    if (searchActive) {
-      updateResults({ search: searchText })
-    }
-  }, [updateResults, searchText, searchActive])
-
   const hasStream = !!streamId
   const isDisabled = hasStream && !!isStreamLoading
-  const streamTitle = stream && stream.id || ''
-
-  useEffect(() => {
-    if (!isDisabled) {
-      setSearchActive(false)
-      setSearchText(hasStream ? streamTitle : '')
-    }
-  }, [hasStream, isDisabled, streamTitle])
 
   const onClear = useCallback(() => {
-    setSearchActive(false)
-    setSearchText('')
-    updateResults({ search: '' })
-  }, [updateResults])
+    updateSearchText('')
+    resetSearchResults()
+  }, [updateSearchText, resetSearchResults])
 
   const onSearch = useCallback((value: string) => {
-    setSearchText(value)
-    setSearchActive(true)
-  }, [])
+    updateSearch({ search: value })
+  }, [updateSearch])
 
   const onSelectedStatChanged = useCallback((name) => {
     setSelectedStat((prev) => prev !== name && name)
   }, [])
 
-  useEffect(() => {
-    updateResults({ search: '' })
-  }, [streamId, updateResults])
+  const onBack = useCallback(() => {
+    setActiveView(ActiveView.Map)
+  }, [setActiveView])
 
   return (
-    <Search>
+    <Search
+      theme={{
+        activeView,
+      }}
+    >
       <Search.Input
-        value={searchText}
+        value={search}
         onChange={onSearch}
         onClear={onClear}
         disabled={!!isDisabled}
-        onBlur={() => setSearchActive(false)}
+        onFocus={() => setActiveView(ActiveView.List)}
+        onBack={onBack}
         theme={{
           searchActive: activeView === ActiveView.List,
+          showMobileBackButton: activeView === ActiveView.List,
         }}
       />
       <Stats>
@@ -112,13 +97,11 @@ const SearchBox = () => {
           value={undefined}
         />
       </Stats>
-      {results.length > 0 && (
-        <Search.Results results={results} />
+      {searchResults.length === 0 && selectedStat === 'eventsPerSecond' && (
+        <EventsPerSecond />
       )}
-      {results.length === 0 && selectedStat === 'eventsPerSecond' && (
-        <GraphContainer>
-          <EventsPerSecond />
-        </GraphContainer>
+      {searchResults.length > 0 && (
+        <Search.Results results={searchResults} />
       )}
     </Search>
   )

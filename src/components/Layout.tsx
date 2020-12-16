@@ -26,8 +26,8 @@ const LayoutComponent = styled.div`
       left: 16px;
       width: calc(100% - 32px);
 
-      ${ControlBox}:last-child {
-        display: none;
+      ${ControlBox} + ${ControlBox} {
+        opacity: 0;
       }
     `}
 
@@ -42,6 +42,10 @@ const LayoutComponent = styled.div`
       ${ControlBox} {
         border-radius: 0;
         box-shadow: none;
+      }
+
+      ${ControlBox} + ${ControlBox} {
+        border-top: 1px solid #EFEFEF;
       }
     `}
   }

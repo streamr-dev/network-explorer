@@ -15,11 +15,18 @@ const IconButton = styled.button`
   appearance: none;
   border: none;
   background: none;
+  outline: none;
   margin: 0;
   padding: 6px;
   cursor: pointer;
   width: 32px;
   height: 32px;
+  border-radius: 4px;
+
+  :focus {
+    outline: none;
+    background-color: #F5F5F5;
+  }
 
   svg {
     width: 16px;

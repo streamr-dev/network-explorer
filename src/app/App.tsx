@@ -3,6 +3,7 @@ import {
   BrowserRouter,
   Route,
   Switch,
+  useLocation,
 } from 'react-router-dom'
 
 import { ConnectedMap } from '../components/Map'
@@ -14,7 +15,7 @@ import LoadingIndicator from '../components/LoadingIndicator'
 import Layout from '../components/Layout'
 import ErrorBoundary from '../components/ErrorBoundary'
 
-import { Provider as StoreProvider } from '../contexts/Store'
+import { Provider as StoreProvider, useStore } from '../contexts/Store'
 import { Provider as ControllerProvider, useController } from '../contexts/Controller'
 import { Provider as Pendingrovider } from '../contexts/Pending'
 
@@ -26,8 +27,40 @@ function useLoadTrackersEffect() {
   }, [loadTrackers])
 }
 
+function useUpdateSearchResultsEffect() {
+  const {
+    updateSearch: updateSearchText,
+    resetSearchResults,
+    streamId,
+    activeNode,
+  } = useStore()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    updateSearchText('')
+    resetSearchResults()
+  }, [updateSearchText, resetSearchResults, pathname])
+
+  const activeNodeTitle = activeNode && activeNode.title
+
+  useEffect(() => {
+    if (streamId) {
+      updateSearchText(streamId)
+    } else if (activeNodeTitle) {
+      updateSearchText(activeNodeTitle)
+    } else {
+      updateSearchText('')
+    }
+  }, [updateSearchText, streamId, activeNodeTitle])
+}
+
 const TrackerLoader = () => {
   useLoadTrackersEffect()
+  return null
+}
+
+const SearchResultsUpdater = () => {
+  useUpdateSearchResultsEffect()
   return null
 }
 
@@ -41,6 +74,7 @@ const App = () => (
           <Layout>
             <ErrorBoundary>
               <TrackerLoader />
+              <SearchResultsUpdater />
               <Debug />
               <SearchBox />
               <Switch>

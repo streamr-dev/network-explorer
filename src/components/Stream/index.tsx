@@ -67,11 +67,11 @@ export default () => {
   }
 
   return (
-    <div>
+    <>
       <TopologyLoader id={streamId} />
       <StreamLoader id={streamId} />
       <ActiveNodeSetter id={nodeId} />
       <TopologyList id={streamId} />
-    </div>
+    </>
   )
 }

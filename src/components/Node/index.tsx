@@ -44,10 +44,10 @@ export default () => {
   }
 
   return (
-    <div>
+    <>
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
       <TopologyList id={nodeId} />
-    </div>
+    </>
   )
 }

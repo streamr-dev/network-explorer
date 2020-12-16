@@ -23,7 +23,7 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 
 import useWindowSize from '../../hooks/useWindowSize'
-import { useStore } from '../../contexts/Store'
+import { useStore, ActiveView } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node, Topology } from '../../utils/api/tracker'
 import { useDebounced } from '../../hooks/wrapCallback'
@@ -43,6 +43,7 @@ type Props = {
   viewport: ViewportProps,
   setViewport: (viewport: ViewportProps) => void,
   onNodeClick?: (v: string) => void,
+  onMapClick?: () => void,
 }
 
 const defaultViewport = {
@@ -67,6 +68,7 @@ export const Map = ({
   viewport = defaultViewport,
   setViewport,
   onNodeClick,
+  onMapClick,
 }: Props) => {
   const mapRef = useRef<InteractiveMap>(null)
 
@@ -125,6 +127,7 @@ export const Map = ({
       mapStyle='mapbox://styles/mattinnes/ckdtszq5m0iht19qk0zuz52oy'
       onViewportChange={setViewport}
       ref={mapRef}
+      onClick={onMapClick}
     >
       {supercluster != null && (
         <>
@@ -159,6 +162,7 @@ export const ConnectedMap = () => {
     topology,
     activeNode,
     streamId,
+    setActiveView,
   } = useStore()
   const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
@@ -253,6 +257,11 @@ export const ConnectedMap = () => {
     history.replace(path)
   }, [streamId, activeNodeId, history])
 
+  // reset search view when clicking on map
+  const onMapClick = useCallback(() => {
+    setActiveView(ActiveView.Map)
+  }, [setActiveView])
+
   return (
     <Map
       nodes={visibleNodes}
@@ -261,6 +270,7 @@ export const ConnectedMap = () => {
       setViewport={setViewport}
       activeNode={activeNode}
       onNodeClick={onNodeClick}
+      onMapClick={onMapClick}
     />
   )
 }

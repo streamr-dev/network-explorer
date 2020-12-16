@@ -9,9 +9,11 @@ import { useHistory } from 'react-router-dom'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
+import * as mapApi from '../utils/api/mapbox'
 import { usePending } from './Pending'
 import { useStore } from './Store'
 import useIsMounted from '../hooks/useIsMounted'
+import { useDebounced } from '../hooks/wrapCallback'
 import { setEnvironment } from '../utils/config'
 
 type ContextProps = {
@@ -21,6 +23,7 @@ type ContextProps = {
   resetStream: Function,
   loadTopology: Function,
   resetTopology: Function,
+  updateSearch: Function,
   hasLoaded: boolean,
 }
 
@@ -28,8 +31,12 @@ const ControllerContext = React.createContext<ContextProps | undefined>(undefine
 
 function useControllerContext() {
   const {
+    nodes,
     trackers,
     setTrackers,
+    updateSearch: updateSearchText,
+    resetSearchResults,
+    addSearchResults,
     addNodes,
     setTopology,
     setStream,
@@ -39,6 +46,7 @@ function useControllerContext() {
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
+  const { start: startSearch, end: endSearch } = usePending('search')
   const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
   const history = useHistory()
@@ -152,6 +160,69 @@ function useControllerContext() {
     loadTrackers()
   }, [resetStore, loadTrackers, history])
 
+  const searchNodes = useCallback((search: string): streamrApi.SearchResult[] => nodes
+    .filter(({ id, title }) => (
+      id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0
+    ))
+    .map(({ id, title }) => ({
+      id,
+      type: 'nodes',
+      name: title,
+      description: id,
+    })), [nodes])
+
+  const debouncedUpdateSearch = useDebounced(
+    useCallback(async ({ search: rawSearchString }: { search: string }) => {
+      const search = rawSearchString.toLowerCase()
+
+      resetSearchResults()
+
+      if (!search) {
+        endSearch()
+      } else {
+        try {
+          addSearchResults(searchNodes(search))
+
+          const streamPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
+            streamrApi.searchStreams({ search }).then(resolve, () => resolve([]))
+          ))
+            .then((nextResults) => {
+              if (!isMounted()) { return }
+
+              addSearchResults(nextResults)
+            })
+
+          const mapPromise = new Promise<streamrApi.SearchResult[]>((resolve) => (
+            mapApi.getLocations({ search }).then(resolve, () => resolve([]))
+          ))
+            .then((nextResults) => {
+              if (!isMounted()) { return }
+
+              addSearchResults(nextResults)
+            })
+
+          // wait for all searches to complete before ending progress status
+          await Promise.all([
+            streamPromise,
+            mapPromise,
+          ])
+          if (!isMounted()) { return }
+        } catch (e) {
+          // todo
+        } finally {
+          endSearch()
+        }
+      }
+    }, [isMounted, endSearch, searchNodes, resetSearchResults, addSearchResults]),
+    250,
+  )
+
+  const updateSearch = useCallback(({ search }: { search: string }) => {
+    startSearch()
+    updateSearchText(search)
+    debouncedUpdateSearch({ search })
+  }, [startSearch, updateSearchText, debouncedUpdateSearch])
+
   return useMemo(() => ({
     changeEnv,
     loadTrackers,
@@ -159,6 +230,7 @@ function useControllerContext() {
     resetStream,
     loadTopology,
     resetTopology,
+    updateSearch,
     hasLoaded,
   }), [
     changeEnv,
@@ -167,6 +239,7 @@ function useControllerContext() {
     resetStream,
     loadTopology,
     resetTopology,
+    updateSearch,
     hasLoaded,
   ])
 }

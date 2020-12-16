@@ -1,10 +1,12 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 import { SM } from '../../utils/styled'
 import ControlBox from '../ControlBox'
 
 import SearchInput from './SearchInput'
 import SearchResults from './SearchResults'
+import { Stats } from '../Stats'
+import Graphs from '../Graphs'
 
 const Search = styled(ControlBox)`
   > *:first-child {
@@ -27,6 +29,19 @@ const Search = styled(ControlBox)`
     ${SearchResults} {
       padding: 8px 16px;
     }
+
+    ${({ theme }) => theme.activeView === 'map' && css`
+      ${SearchResults} {
+        display: none;
+      }
+    `}
+
+    ${({ theme }) => theme.activeView === 'list' && css`
+      ${Stats},
+      ${Graphs} {
+        display: none;
+      }
+    `}
   }
 
   @media (min-width: ${SM}px) {
