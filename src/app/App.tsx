@@ -27,7 +27,7 @@ function useLoadTrackersEffect() {
   }, [loadTrackers])
 }
 
-function useUpdateSearchResultsEffect() {
+function useUpdateSearchTextEffect() {
   const {
     updateSearch: updateSearchText,
     resetSearchResults,
@@ -59,8 +59,8 @@ const TrackerLoader = () => {
   return null
 }
 
-const SearchResultsUpdater = () => {
-  useUpdateSearchResultsEffect()
+const SearchTextUpdater = () => {
+  useUpdateSearchTextEffect()
   return null
 }
 
@@ -74,7 +74,7 @@ const App = () => (
           <Layout>
             <ErrorBoundary>
               <TrackerLoader />
-              <SearchResultsUpdater />
+              <SearchTextUpdater />
               <Debug />
               <SearchBox />
               <Switch>

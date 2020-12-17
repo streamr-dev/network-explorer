@@ -44,6 +44,11 @@ const Search = styled(ControlBox)`
     `}
   }
 
+  ${SearchResults} {
+    max-height: calc(100vh - 120px);
+    overflow: scroll;
+  }
+
   @media (min-width: ${SM}px) {
     ${SearchResults} {
       max-height: 280px;

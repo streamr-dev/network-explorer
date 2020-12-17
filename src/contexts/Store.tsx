@@ -89,7 +89,7 @@ type Action =
  | { type: 'setStream', streamId: string | undefined }
  | { type: 'setActiveView', activeView: ActiveView }
  | { type: 'toggleActiveView' }
- | { type: 'setNewSearch', search: string }
+ | { type: 'updateSearch', search: string }
  | { type: 'addSearchResults', ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
  | { type: 'resetSearchResults' }
  | { type: 'reset' }
@@ -159,7 +159,7 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
-    case 'setNewSearch': {
+    case 'updateSearch': {
       return {
         ...state,
         search: action.search,
@@ -270,7 +270,7 @@ function useStoreContext() {
 
   const updateSearch = useCallback((search: string) => {
     dispatch({
-      type: 'setNewSearch',
+      type: 'updateSearch',
       search,
     })
   }, [dispatch])

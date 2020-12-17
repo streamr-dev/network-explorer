@@ -2,7 +2,7 @@ import React from 'react'
 import styled, { css } from 'styled-components/macro'
 
 import { SM } from '../utils/styled'
-import { useStore, ActiveView } from '../contexts/Store'
+import { useStore } from '../contexts/Store'
 
 import ControlBox from './ControlBox'
 import MobileViewChanger from './MobileViewChanger'
@@ -21,7 +21,7 @@ const LayoutComponent = styled.div`
   }
 
   @media (max-width: ${SM}px) {
-    ${({ theme }) => theme === 'map' && css`
+    ${({ theme }) => theme.activeView === 'map' && css`
       top: 16px;
       left: 16px;
       width: calc(100% - 32px);
@@ -31,7 +31,7 @@ const LayoutComponent = styled.div`
       }
     `}
 
-    ${({ theme }) => theme === 'list' && css`
+    ${({ theme }) => theme.activeView === 'list' && css`
       top: 0;
       left: 0;
       right: 0;
@@ -47,6 +47,12 @@ const LayoutComponent = styled.div`
       ${ControlBox} + ${ControlBox} {
         border-top: 1px solid #EFEFEF;
       }
+
+      ${theme.hasResults && css`
+        ${ControlBox} + ${ControlBox} {
+          display: none;
+        }
+      `}
     `}
   }
 `
@@ -56,11 +62,14 @@ type Props = {
 }
 
 const Layout = ({ children, ...props }: Props) => {
-  const { activeView } = useStore()
+  const { activeView, searchResults } = useStore()
 
   return (
     <LayoutComponent
-      theme={activeView === ActiveView.Map ? 'map' : 'list'}
+      theme={{
+        activeView,
+        hasResults: !!(searchResults && searchResults.length),
+      }}
       {...props}
     >
       {children}

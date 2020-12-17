@@ -2,7 +2,7 @@ import React from 'react'
 import styled, { css } from 'styled-components'
 
 import { SM } from '../utils/styled'
-import { useStore, ActiveView } from '../contexts/Store'
+import { useStore } from '../contexts/Store'
 
 type Props = {}
 
@@ -61,7 +61,7 @@ const Circle = styled.div`
     opacity: 0;
   }
 
-  ${({ theme }) => theme === 'map' && css`
+  ${({ theme }) => theme.activeView === 'map' && css`
     ${MapIcon} {
       opacity: 0;
     }
@@ -71,7 +71,7 @@ const Circle = styled.div`
     }
   `}
 
-  ${({ theme }) => theme === 'list' && css`
+  ${({ theme }) => theme.activeView === 'list' && css`
     ${ListIcon} {
       opacity: 0;
     }
@@ -87,7 +87,10 @@ const UnstyledMobileViewChanger = (props: Props) => {
 
   return (
     <button type="button" {...props} onClick={() => toggleActiveView()}>
-      <Circle theme={activeView === ActiveView.Map ? 'map' : 'list'}>
+      <Circle theme={{
+        activeView,
+      }}
+      >
         <ListIcon />
         <MapIcon />
       </Circle>
