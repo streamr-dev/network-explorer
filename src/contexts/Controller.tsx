@@ -110,15 +110,35 @@ function useControllerContext() {
     }
   }, [])
 
-  const loadTopology = useCallback(async (streamId: string) => (
+  const loadTopologyUnionFromApi = useCallback(async () => {
+    try {
+      const nextTopology = await trackerApi.getTopologyUnion()
+
+      return nextTopology
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(e)
+      throw e
+    }
+  }, [])
+
+  const loadTopology = useCallback(async (options: { streamId?: string } = {}) => (
     wrapTopology(async () => {
-      const newTopology = await loadTopologyFromApi({ id: streamId })
+      const { streamId } = options || {}
+
+      let newTopology
+
+      if (streamId) {
+        newTopology = await loadTopologyFromApi({ id: streamId })
+      } else {
+        newTopology = await loadTopologyUnionFromApi()
+      }
 
       if (!isMounted()) { return }
 
       setTopology(newTopology)
     })
-  ), [wrapTopology, loadTopologyFromApi, setTopology, isMounted])
+  ), [wrapTopology, loadTopologyFromApi, loadTopologyUnionFromApi, setTopology, isMounted])
 
   const resetTopology = useCallback(() => {
     setTopology({})
