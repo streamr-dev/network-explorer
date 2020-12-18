@@ -110,9 +110,9 @@ function useControllerContext() {
     }
   }, [])
 
-  const loadTopologyUnionFromApi = useCallback(async () => {
+  const loadNodeConnectionsFromApi = useCallback(async () => {
     try {
-      const nextTopology = await trackerApi.getTopologyUnion()
+      const nextTopology = await trackerApi.getNodeConnections()
 
       return nextTopology
     } catch (e) {
@@ -131,14 +131,14 @@ function useControllerContext() {
       if (streamId) {
         newTopology = await loadTopologyFromApi({ id: streamId })
       } else {
-        newTopology = await loadTopologyUnionFromApi()
+        newTopology = await loadNodeConnectionsFromApi()
       }
 
       if (!isMounted()) { return }
 
       setTopology(newTopology)
     })
-  ), [wrapTopology, loadTopologyFromApi, loadTopologyUnionFromApi, setTopology, isMounted])
+  ), [wrapTopology, loadTopologyFromApi, loadNodeConnectionsFromApi, setTopology, isMounted])
 
   const resetTopology = useCallback(() => {
     setTopology({})

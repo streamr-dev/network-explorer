@@ -127,7 +127,7 @@ describe('tracker API', () => {
     })
   })
 
-  describe('getTopologyUnion', () => {
+  describe('getNodeConnections', () => {
     it('combines topologies from multiple trackers', async () => {
       const results = [{
         http: 'http://tracker1',
@@ -153,21 +153,21 @@ describe('tracker API', () => {
       })
 
       const getMock = jest.fn().mockImplementation(({ url }) => {
-        const { topology } = results.find(({ http }) => `${http}/topology-union/` === url)
+        const { topology } = results.find(({ http }) => `${http}/node-connections/` === url)
 
         return Promise.resolve(topology)
       })
 
       request.get.mockImplementation(getMock)
 
-      const result = await all.getTopologyUnion()
+      const result = await all.getNodeConnections()
 
       expect(getAllTrackersMock).toBeCalled()
       expect(getMock).toBeCalledWith({
-        url: 'http://tracker1/topology-union/',
+        url: 'http://tracker1/node-connections/',
       })
       expect(getMock).toBeCalledWith({
-        url: 'http://tracker2/topology-union/',
+        url: 'http://tracker2/node-connections/',
       })
       expect(result).toStrictEqual({
         'node1': ['node2', 'node4', 'node3'],

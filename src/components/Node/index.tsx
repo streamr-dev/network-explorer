@@ -5,7 +5,7 @@ import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 
-const TopologyUnionLoader = () => {
+const NodeConnectionsLoader = () => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default () => {
 
   return (
     <div>
-      <TopologyUnionLoader />
+      <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
       <TopologyList id={nodeId} />
     </div>

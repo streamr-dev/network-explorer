@@ -101,19 +101,19 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
   return topology || {}
 }
 
-export const getTopologyUnion = async (): Promise<Topology> => {
+export const getNodeConnections = async (): Promise<Topology> => {
   const trackerUrls = await getTrackers()
 
-  let topologyUnion
+  let nodeConnections
 
   try {
     const topologyPromises = trackerUrls.map((url) => get<Topology>({
-      url: `${url}/topology-union/`,
+      url: `${url}/node-connections/`,
     }))
 
     const topologies = await Promise.all(topologyPromises)
 
-    topologyUnion = (topologies || []).reduce((combined, topology) => {
+    nodeConnections = (topologies || []).reduce((combined, topology) => {
       const nextCombined = {
         ...combined,
       }
@@ -121,7 +121,7 @@ export const getTopologyUnion = async (): Promise<Topology> => {
       Object.keys(topology || {}).forEach((nodeId) => {
         if (nextCombined[nodeId]) {
           const connections = new Set([
-            ...(nextCombined[nodeId]),
+            ...nextCombined[nodeId],
             ...topology[nodeId],
           ])
 
@@ -135,8 +135,8 @@ export const getTopologyUnion = async (): Promise<Topology> => {
     }, {})
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load topology union: ${e.message}`)
+    console.warn(`Failed to load node connections: ${e.message}`)
   }
 
-  return topologyUnion || {}
+  return nodeConnections || {}
 }
