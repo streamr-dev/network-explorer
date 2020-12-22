@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useSubscription } from 'streamr-client-react'
 
-import { Stats, Stat } from '../Stats'
+import Stats from '../Stats'
 import EventsPerSecond from '../Graphs/EventsPerSecond'
 import { useStore, ActiveView } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
@@ -12,7 +12,7 @@ import StreamrClientProvider from '../StreamrClientProvider'
 import Search from './Search'
 
 const SearchBox = () => {
-  const [selectedStat, setSelectedStat] = useState<string | null>(null)
+  const [selectedStat, setSelectedStat] = useState<string | undefined>(undefined)
   const [messagesPerSecond, setMessagesPersecond] = useState<number | undefined>(undefined)
   const {
     nodes,
@@ -56,7 +56,7 @@ const SearchBox = () => {
   }, [updateSearch])
 
   const onSelectedStatChanged = useCallback((name) => {
-    setSelectedStat((prev) => prev !== name && name)
+    setSelectedStat((prev) => prev !== name ? name : undefined)
   }, [])
 
   const onBack = useCallback(() => {
@@ -81,18 +81,20 @@ const SearchBox = () => {
           showMobileBackButton: activeView === ActiveView.List,
         }}
       />
-      <Stats>
-        <Stat
+      <Stats active={selectedStat}>
+        <Stats.Stat
+          id="eventsPerSecond"
           label="Msgs/sec"
           value={messagesPerSecond}
           onClick={() => onSelectedStatChanged('eventsPerSecond')}
-          active={selectedStat === 'eventsPerSecond'}
         />
-        <Stat
+        <Stats.Stat
+          id="nodes"
           label="Nodes"
           value={hasLoaded ? nodes.length : undefined}
         />
-        <Stat
+        <Stats.Stat
+          id="latency"
           label="Latency ms"
           value={undefined}
         />

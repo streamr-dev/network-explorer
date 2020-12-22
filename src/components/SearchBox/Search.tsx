@@ -5,7 +5,7 @@ import ControlBox from '../ControlBox'
 
 import SearchInput from './SearchInput'
 import SearchResults from './SearchResults'
-import { Stats } from '../Stats'
+import Stats from '../Stats'
 import Graphs from '../Graphs'
 
 const Search = styled(ControlBox)`
@@ -42,6 +42,10 @@ const Search = styled(ControlBox)`
         display: none;
       }
     `}
+  }
+
+  ${Stats} {
+    background-color: #FFFFFF;
   }
 
   ${SearchResults} {

@@ -3,7 +3,7 @@ import styled from 'styled-components/macro'
 import Identicon from 'react-identicons'
 
 import { MONO, MEDIUM } from '../../utils/styled'
-import { Stats, Stat } from '../Stats'
+import Stats from '../Stats'
 
 const Name = styled.div`
   color: #323232;
@@ -93,15 +93,18 @@ const NodeListItem = ({
     </TitleRow>
     {!!active && (
       <StyledStats>
-        <Stat
+        <Stats.Stat
+          id="messagesPerSecond"
           label="Msgs/sec"
           value={undefined}
         />
-        <Stat
+        <Stats.Stat
+          id="mbsPerSecond"
           label="MB/S"
           value={undefined}
         />
-        <Stat
+        <Stats.Stat
+          id="latency"
           label="Latency ms"
           value={undefined}
         />
