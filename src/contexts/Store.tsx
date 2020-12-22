@@ -32,6 +32,7 @@ type Store = {
   topology: trackerApi.Topology,
   streamId: string | undefined,
   activeNodeId: string | undefined,
+  activeLocationId: string | undefined,
   entities: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
@@ -52,8 +53,10 @@ type ContextProps = {
   topology: trackerApi.Topology,
   setTopology: (topology: trackerApi.Topology, activeNodeId?: string) => void,
   setActiveNodeId: (activeNodeId?: string) => void,
+  setActiveLocationId: (activeLocationId?: string) => void,
   visibleNodes: trackerApi.Node[],
   activeNode: trackerApi.Node | undefined,
+  activeLocation: SearchResult,
   streamId: string | undefined,
   stream: streamrApi.Stream | undefined,
   setStream: (stream: streamrApi.Stream | undefined) => void,
@@ -73,6 +76,7 @@ const getInitialState = (): Store => ({
   topology: {},
   streamId: undefined,
   activeNodeId: undefined,
+  activeLocationId: undefined,
   entities: {
     nodes: {},
     streams: {},
@@ -86,6 +90,7 @@ type Action =
  | { type: 'updateEntities', entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
  | { type: 'setTopology', topology: trackerApi.Topology, activeNodeId?: string }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
+ | { type: 'setActiveLocation', activeLocationId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
  | { type: 'setActiveView', activeView: ActiveView }
  | { type: 'toggleActiveView' }
@@ -135,6 +140,13 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         activeNodeId: action.activeNodeId,
+      }
+    }
+
+    case 'setActiveLocation': {
+      return {
+        ...state,
+        activeLocationId: action.activeLocationId,
       }
     }
 
@@ -233,6 +245,13 @@ function useStoreContext() {
     })
   }, [dispatch])
 
+  const setActiveLocationId = useCallback((activeLocationId?: string) => {
+    dispatch({
+      type: 'setActiveLocation',
+      activeLocationId,
+    })
+  }, [dispatch])
+
   const setStream = useCallback((stream: streamrApi.Stream | undefined) => {
     if (stream) {
       const { entities } = normalize(stream, streamSchema)
@@ -301,6 +320,7 @@ function useStoreContext() {
     search,
     searchResults: searchResultIds,
     activeNodeId,
+    activeLocationId,
     streamId,
     nodes: nodeIds,
     trackers,
@@ -319,6 +339,10 @@ function useStoreContext() {
   const activeNode = useMemo(() => (
     denormalize(activeNodeId, nodeSchema, entities)
   ), [activeNodeId, entities])
+
+  const activeLocation = useMemo(() => (
+    denormalize(activeLocationId, searchResultSchema, entities)
+  ), [activeLocationId, entities])
 
   const stream = useMemo(() => (
     denormalize(streamId, streamSchema, entities)
@@ -346,7 +370,9 @@ function useStoreContext() {
     setTopology,
     visibleNodes,
     activeNode,
+    activeLocation,
     setActiveNodeId,
+    setActiveLocationId,
     streamId,
     stream,
     setStream,
@@ -370,7 +396,9 @@ function useStoreContext() {
     setTopology,
     visibleNodes,
     activeNode,
+    activeLocation,
     setActiveNodeId,
+    setActiveLocationId,
     streamId,
     stream,
     setStream,

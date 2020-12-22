@@ -14,6 +14,7 @@ type GeoCodeResultFeature = {
   place_type: Array<string>,
   place_name: string,
   bbox: Array<number>,
+  center: Array<number>,
 }
 
 type GeoCodeResult = {
@@ -78,10 +79,17 @@ export const getLocations = async ({ search }: LocationSearch): Promise<SearchRe
 
   return (result && result.features || [])
     .filter(({ place_type }) => place_type.includes('place'))
-    .map(({ id, text, place_name }) => ({
+    .map(({
+      id,
+      text,
+      place_name,
+      center: [longitude, latitude],
+    }) => ({
       id,
       name: text,
       description: place_name,
       type: 'locations',
+      longitude,
+      latitude,
     }))
 }

@@ -12,6 +12,8 @@ export type SearchResult = {
   id: string,
   name: string,
   description?: string,
+  longitude?: number,
+  latitude?: number,
 }
 
 export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promise<SearchResult[]> => {
