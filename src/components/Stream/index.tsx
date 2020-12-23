@@ -14,7 +14,9 @@ const TopologyLoader = ({ id }: StreamProps) => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    loadTopology(id)
+    loadTopology({
+      streamId: id,
+    })
 
     return () => {
       resetTopology()
@@ -42,7 +44,7 @@ type NodeProps = {
   id: string,
 }
 
-const ActiveNode = ({ id }: NodeProps) => {
+const ActiveNodeSetter = ({ id }: NodeProps) => {
   const { setActiveNodeId } = useStore()
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default () => {
     <div>
       <TopologyLoader id={streamId} />
       <StreamLoader id={streamId} />
-      <ActiveNode id={nodeId} />
+      <ActiveNodeSetter id={nodeId} />
       <TopologyList id={streamId} />
     </div>
   )

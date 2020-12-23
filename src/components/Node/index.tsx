@@ -2,28 +2,35 @@ import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
+import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 
-type NodeProps = {
-  activeNodeId: string,
-}
-
-const AllNodes = ({ activeNodeId }: NodeProps) => {
-  const { setTopology } = useStore()
-  const { nodes } = useStore()
+const NodeConnectionsLoader = () => {
+  const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    const topology = nodes.reduce((result, { id }) => ({
-      ...result,
-      [id]: [],
-    }), {})
-
-    setTopology(topology, activeNodeId)
+    loadTopology()
 
     return () => {
-      setTopology({})
+      resetTopology()
     }
-  }, [nodes, setTopology, activeNodeId])
+  }, [loadTopology, resetTopology])
+
+  return null
+}
+
+type NodeProps = {
+  id: string,
+}
+
+const ActiveNodeSetter = ({ id }: NodeProps) => {
+  const { setActiveNodeId } = useStore()
+
+  useEffect(() => {
+    setActiveNodeId(id)
+
+    return () => setActiveNodeId(undefined)
+  }, [id, setActiveNodeId])
 
   return null
 }
@@ -38,7 +45,8 @@ export default () => {
 
   return (
     <div>
-      <AllNodes activeNodeId={nodeId} />
+      <NodeConnectionsLoader />
+      <ActiveNodeSetter id={nodeId} />
       <TopologyList id={nodeId} />
     </div>
   )

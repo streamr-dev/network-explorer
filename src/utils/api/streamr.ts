@@ -14,7 +14,7 @@ export type SearchResult = {
   description?: string,
 }
 
-export const searchStreams = async ({ search = '' }: SearchStreams): Promise<SearchResult[]> => {
+export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promise<SearchResult[]> => {
   const params = {
     public: true,
     search: (search || '').trim().toLowerCase(),

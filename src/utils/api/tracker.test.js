@@ -126,4 +126,55 @@ describe('tracker API', () => {
       expect(result).toStrictEqual(['stream-1', 'stream-2'])
     })
   })
+
+  describe('getNodeConnections', () => {
+    it('combines topologies from multiple trackers', async () => {
+      const results = [{
+        http: 'http://tracker1',
+        topology: {
+          'node1': ['node2'],
+          'node2': ['node1', 'node3'],
+          'node3': ['node2'],
+          'node4': [],
+        },
+      }, {
+        http: 'http://tracker2',
+        topology: {
+          'node1': ['node4', 'node3'],
+          'node2': [],
+          'node3': ['node1'],
+          'node4': ['node1'],
+        },
+      }]
+      const getAllTrackersMock = jest.fn(() => results)
+
+      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+        getAllTrackers: getAllTrackersMock,
+      })
+
+      const getMock = jest.fn().mockImplementation(({ url }) => {
+        const { topology } = results.find(({ http }) => `${http}/node-connections/` === url)
+
+        return Promise.resolve(topology)
+      })
+
+      request.get.mockImplementation(getMock)
+
+      const result = await all.getNodeConnections()
+
+      expect(getAllTrackersMock).toBeCalled()
+      expect(getMock).toBeCalledWith({
+        url: 'http://tracker1/node-connections/',
+      })
+      expect(getMock).toBeCalledWith({
+        url: 'http://tracker2/node-connections/',
+      })
+      expect(result).toStrictEqual({
+        'node1': ['node2', 'node4', 'node3'],
+        'node2': ['node1', 'node3'],
+        'node3': ['node2', 'node1'],
+        'node4': ['node1'],
+      })
+    })
+  })
 })

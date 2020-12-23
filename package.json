@@ -56,6 +56,19 @@
       "last 1 safari version"
     ]
   },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!<rootDir>/node_modules/",
+      "!*.stories.*"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 50
+      }
+    },
+    "coverageReporters": ["text"]
+  },
   "devDependencies": {
     "@babel/core": "^7.11.6",
     "@storybook/addon-actions": "^6.0.21",

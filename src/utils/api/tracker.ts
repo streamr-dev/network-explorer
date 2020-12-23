@@ -100,3 +100,43 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
 
   return topology || {}
 }
+
+export const getNodeConnections = async (): Promise<Topology> => {
+  const trackerUrls = await getTrackers()
+
+  let nodeConnections
+
+  try {
+    const topologyPromises = trackerUrls.map((url) => get<Topology>({
+      url: `${url}/node-connections/`,
+    }))
+
+    const topologies = await Promise.all(topologyPromises)
+
+    nodeConnections = (topologies || []).reduce((combined, topology) => {
+      const nextCombined = {
+        ...combined,
+      }
+
+      Object.keys(topology || {}).forEach((nodeId) => {
+        if (nextCombined[nodeId]) {
+          const connections = new Set([
+            ...nextCombined[nodeId],
+            ...topology[nodeId],
+          ])
+
+          nextCombined[nodeId] = [...connections]
+        } else {
+          nextCombined[nodeId] = [...topology[nodeId]]
+        }
+      })
+
+      return nextCombined
+    }, {})
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`Failed to load node connections: ${e.message}`)
+  }
+
+  return nodeConnections || {}
+}
