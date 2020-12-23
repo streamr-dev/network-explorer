@@ -27,7 +27,7 @@ const LayoutComponent = styled.div`
       width: calc(100% - 32px);
 
       ${ControlBox} + ${ControlBox} {
-        opacity: 0;
+        display: none;
       }
     `}
 
