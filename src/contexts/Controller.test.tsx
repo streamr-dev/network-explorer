@@ -2,21 +2,14 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 
-import * as Store from '../../contexts/Store'
-import * as streamrApi from '../../utils/api/streamr'
-import * as mapApi from '../../utils/api/mapbox'
+import { Provider as PendingProvider } from './Pending'
+import { Provider as StoreProvider, useStore } from './Store'
+import { Provider as ControllerProvider, useController } from './Controller'
+import * as streamrApi from '../utils/api/streamr'
+import * as mapApi from '../utils/api/mapbox'
 
-import useSearch from './useSearch'
-
-jest.mock('../../contexts/Pending', () => ({
-  usePending: () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-  }),
-}))
-jest.mock('../../contexts/Store')
-jest.mock('../../utils/api/streamr')
-jest.mock('../../utils/api/mapbox')
+jest.mock('../utils/api/streamr')
+jest.mock('../utils/api/mapbox')
 
 let container
 
@@ -30,40 +23,61 @@ afterEach(() => {
   container = null
 })
 
-describe('useSearch', () => {
+describe('search', () => {
   afterEach(() => {
-    Store.useStore.mockClear()
     streamrApi.searchStreams.mockClear()
     mapApi.getLocations.mockClear()
   })
 
   it('returns empty results by default', () => {
-    let search
+    let store
+
     function Test() {
-      search = useSearch()
+      store = useStore()
 
       return null
     }
 
-    Store.useStore.mockReturnValue({
-      nodes: [],
-    })
+    render((
+      <PendingProvider>
+        <StoreProvider>
+          <ControllerProvider>
+            <Test />
+          </ControllerProvider>
+        </StoreProvider>
+      </PendingProvider>
+    ), container)
 
-    render(<Test />, container)
-
-    expect(search.results).toStrictEqual([])
+    expect(store.search).toStrictEqual('')
+    expect(store.searchResults).toStrictEqual([])
   })
 
   it('searches from nodes', async () => {
-    let search
+    let store
+    let controller
+
     function Test() {
-      search = useSearch()
+      controller = useController()
+      store = useStore()
 
       return null
     }
 
-    Store.useStore.mockReturnValue({
-      nodes: [{
+    streamrApi.searchStreams.mockResolvedValue([])
+    mapApi.getLocations.mockResolvedValue([])
+
+    render((
+      <PendingProvider>
+        <StoreProvider>
+          <ControllerProvider>
+            <Test />
+          </ControllerProvider>
+        </StoreProvider>
+      </PendingProvider>
+    ), container)
+
+    act(() => {
+      store.addNodes([{
         id: '1',
         title: 'Berlin',
       }, {
@@ -72,19 +86,16 @@ describe('useSearch', () => {
       }, {
         id: '3',
         title: 'New York',
-      }],
+      }])
     })
-    streamrApi.searchStreams.mockResolvedValue([])
-    mapApi.getLocations.mockResolvedValue([])
-
-    render(<Test />, container)
 
     await act(async () => {
-      await search.updateResults({ search: 'new' })
+      await controller.updateSearch({ search: 'new' })
       await new Promise((resolve) => setTimeout(resolve, 500))
     })
 
-    expect(search.results).toStrictEqual([{
+    expect(store.search).toStrictEqual('new')
+    expect(store.searchResults).toStrictEqual([{
       id: '3',
       description: '3',
       type: 'nodes',
@@ -93,19 +104,16 @@ describe('useSearch', () => {
   })
 
   it('searches from streams, appends results', async () => {
-    let search
+    let store
+    let controller
+
     function Test() {
-      search = useSearch()
+      controller = useController()
+      store = useStore()
 
       return null
     }
 
-    Store.useStore.mockReturnValue({
-      nodes: [{
-        id: '1',
-        title: 'Berlin',
-      }],
-    })
     const streamSearchMock = jest.fn(() => Promise.resolve([{
       id: '2',
       name: 'Stream',
@@ -115,17 +123,33 @@ describe('useSearch', () => {
     streamrApi.searchStreams.mockImplementation(streamSearchMock)
     mapApi.getLocations.mockResolvedValue([])
 
-    render(<Test />, container)
+    render((
+      <PendingProvider>
+        <StoreProvider>
+          <ControllerProvider>
+            <Test />
+          </ControllerProvider>
+        </StoreProvider>
+      </PendingProvider>
+    ), container)
+
+    act(() => {
+      store.addNodes([{
+        id: '1',
+        title: 'Berlin',
+      }])
+    })
 
     await act(async () => {
-      await search.updateResults({ search: 'berlin' })
+      await controller.updateSearch({ search: 'berlin' })
       await new Promise((resolve) => setTimeout(resolve, 500))
     })
 
+    expect(store.search).toStrictEqual('berlin')
     expect(streamSearchMock).toBeCalledWith({
       search: 'berlin',
     })
-    expect(search.results).toStrictEqual([{
+    expect(store.searchResults).toStrictEqual([{
       id: '1',
       description: '1',
       type: 'nodes',
@@ -139,19 +163,16 @@ describe('useSearch', () => {
   })
 
   it('searches from locations, appends results', async () => {
-    let search
+    let store
+    let controller
+
     function Test() {
-      search = useSearch()
+      controller = useController()
+      store = useStore()
 
       return null
     }
 
-    Store.useStore.mockReturnValue({
-      nodes: [{
-        id: '1',
-        title: 'Berlin',
-      }],
-    })
     const getLocationsMock = jest.fn(() => Promise.resolve([{
       id: 'places.abc123',
       name: 'Berlin',
@@ -161,17 +182,33 @@ describe('useSearch', () => {
     mapApi.getLocations.mockImplementation(getLocationsMock)
     streamrApi.searchStreams.mockResolvedValue([])
 
-    render(<Test />, container)
+    render((
+      <PendingProvider>
+        <StoreProvider>
+          <ControllerProvider>
+            <Test />
+          </ControllerProvider>
+        </StoreProvider>
+      </PendingProvider>
+    ), container)
+
+    act(() => {
+      store.addNodes([{
+        id: '1',
+        title: 'Berlin',
+      }])
+    })
 
     await act(async () => {
-      await search.updateResults({ search: 'berlin' })
+      await controller.updateSearch({ search: 'berlin' })
       await new Promise((resolve) => setTimeout(resolve, 500))
     })
 
+    expect(store.search).toStrictEqual('berlin')
     expect(getLocationsMock).toBeCalledWith({
       search: 'berlin',
     })
-    expect(search.results).toStrictEqual([{
+    expect(store.searchResults).toStrictEqual([{
       id: '1',
       description: '1',
       type: 'nodes',

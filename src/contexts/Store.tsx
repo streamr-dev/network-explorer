@@ -9,13 +9,24 @@ import mergeWith from 'lodash/mergeWith'
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
 import { getEnvironment } from '../utils/config'
+import { SearchResult } from '../utils/api/streamr'
 
 const nodeSchema = new schema.Entity('nodes')
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
+const searchResultSchema = new schema.Entity('searchResults')
+const searchResultsSchema = [searchResultSchema]
+
+export enum ActiveView {
+  Map = 'map',
+  List = 'list'
+}
 
 type Store = {
   env: string | undefined,
+  activeView: ActiveView,
+  search: string,
+  searchResults: Array<SearchResult>,
   nodes: string[],
   trackers: string[],
   topology: trackerApi.Topology,
@@ -26,6 +37,14 @@ type Store = {
 
 type ContextProps = {
   env: string | undefined,
+  activeView: ActiveView,
+  toggleActiveView: () => void,
+  setActiveView: (activeView: ActiveView) => void,
+  search: string,
+  updateSearch: (search: string) => void,
+  searchResults: Array<SearchResult>,
+  addSearchResults: (results: Array<SearchResult>) => void,
+  resetSearchResults: () => void,
   nodes: trackerApi.Node[],
   addNodes: (nodes: trackerApi.Node[]) => void,
   trackers: string[],
@@ -46,6 +65,9 @@ const StoreContext = React.createContext<ContextProps | undefined>(undefined)
 
 const getInitialState = (): Store => ({
   env: getEnvironment(),
+  activeView: ActiveView.Map,
+  search: '',
+  searchResults: [],
   nodes: [],
   trackers: [],
   topology: {},
@@ -54,6 +76,7 @@ const getInitialState = (): Store => ({
   entities: {
     nodes: {},
     streams: {},
+    searchResults: {},
   },
 })
 
@@ -64,6 +87,11 @@ type Action =
  | { type: 'setTopology', topology: trackerApi.Topology, activeNodeId?: string }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
+ | { type: 'setActiveView', activeView: ActiveView }
+ | { type: 'toggleActiveView' }
+ | { type: 'updateSearch', search: string }
+ | { type: 'addSearchResults', ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
+ | { type: 'resetSearchResults' }
  | { type: 'reset' }
 
 const reducer = (state: Store, action: Action) => {
@@ -114,6 +142,46 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         streamId: action.streamId,
+      }
+    }
+
+    case 'toggleActiveView': {
+      return {
+        ...state,
+        activeView: state.activeView === ActiveView.Map ? ActiveView.List : ActiveView.Map,
+      }
+    }
+
+    case 'setActiveView': {
+      return {
+        ...state,
+        activeView: action.activeView,
+      }
+    }
+
+    case 'updateSearch': {
+      return {
+        ...state,
+        search: action.search,
+      }
+    }
+
+    case 'addSearchResults': {
+      const nextResults = new Set([
+        ...state.searchResults,
+        ...action.ids,
+      ])
+
+      return {
+        ...state,
+        searchResults: [...nextResults],
+      }
+    }
+
+    case 'resetSearchResults': {
+      return {
+        ...state,
+        searchResults: [],
       }
     }
 
@@ -181,14 +249,57 @@ function useStoreContext() {
     })
   }, [dispatch])
 
+  const setActiveView = useCallback((activeView: ActiveView) => {
+    dispatch({
+      type: 'setActiveView',
+      activeView,
+    })
+  }, [])
+
+  const toggleActiveView = useCallback(() => {
+    dispatch({
+      type: 'toggleActiveView',
+    })
+  }, [])
+
   const resetStore = useCallback(() => {
     dispatch({
       type: 'reset',
     })
   }, [dispatch])
 
+  const updateSearch = useCallback((search: string) => {
+    dispatch({
+      type: 'updateSearch',
+      search,
+    })
+  }, [dispatch])
+
+  const resetSearchResults = useCallback(() => {
+    dispatch({
+      type: 'resetSearchResults',
+    })
+  }, [dispatch])
+
+  const addSearchResults = useCallback((results: Array<SearchResult>) => {
+    const { result: ids, entities } = normalize(results, searchResultsSchema)
+
+    dispatch({
+      type: 'updateEntities',
+      entities,
+    })
+
+    dispatch({
+      type: 'addSearchResults',
+      ids,
+    })
+  }, [dispatch])
+
   const {
     env,
+    activeView,
+    search,
+    searchResults: searchResultIds,
     activeNodeId,
     streamId,
     nodes: nodeIds,
@@ -213,8 +324,20 @@ function useStoreContext() {
     denormalize(streamId, streamSchema, entities)
   ), [streamId, entities])
 
+  const searchResults = useMemo(() => (
+    denormalize(searchResultIds, searchResultsSchema, entities)
+  ), [searchResultIds, entities])
+
   return useMemo(() => ({
     env,
+    activeView,
+    toggleActiveView,
+    setActiveView,
+    search,
+    updateSearch,
+    searchResults,
+    addSearchResults,
+    resetSearchResults,
     nodes,
     addNodes,
     trackers,
@@ -231,6 +354,14 @@ function useStoreContext() {
     resetStore,
   }), [
     env,
+    activeView,
+    toggleActiveView,
+    setActiveView,
+    search,
+    updateSearch,
+    searchResults,
+    addSearchResults,
+    resetSearchResults,
     nodes,
     addNodes,
     trackers,

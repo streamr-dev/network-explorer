@@ -28,12 +28,6 @@ const IntervalChoice = styled.div<ChoiceProps>`
   user-select: none;
 `
 
-const Container = styled.div`
-  display: grid;
-  grid-template-rows: 200px 64px;
-  font-family: ${SANS};
-`
-
 type Interval = '24hours' | '1month' | '3months' | 'all'
 
 type ContextProps = {
@@ -48,7 +42,7 @@ type Props = {
   defaultInterval?: Interval,
 }
 
-const Graphs = ({ children, defaultInterval }: Props) => {
+const UnstyledGraphs = ({ children, defaultInterval, ...props }: Props) => {
   const [interval, setInterval] = useState<Interval | undefined>(defaultInterval)
 
   const value = useMemo(() => {
@@ -63,12 +57,18 @@ const Graphs = ({ children, defaultInterval }: Props) => {
 
   return (
     <GraphContext.Provider value={value}>
-      <Container>
+      <div {...props}>
         {children || null}
-      </Container>
+      </div>
     </GraphContext.Provider>
   )
 }
+
+const Graphs = styled(UnstyledGraphs)`
+  display: grid;
+  grid-template-rows: 200px 64px;
+  font-family: ${SANS};
+`
 
 type IntervalsProps = {
   options: Array<Interval>,
@@ -111,7 +111,7 @@ const Intervals = ({ options }: IntervalsProps) => {
   )
 }
 
-Graphs.Intervals = Intervals
-Graphs.TimeSeries = TimeSeries
-
-export default Graphs
+export default Object.assign(Graphs, {
+  Intervals,
+  TimeSeries,
+})

@@ -30,7 +30,7 @@ const LoadingBar = styled.div`
   top: 0;
   width: 100%;
   height: 4px;
-  z-index: 1;
+  z-index: 4;
   background-color: transparent;
   will-change: opacity;
   transition: opacity 0.3s ease-out;
