@@ -161,6 +161,7 @@ export const ConnectedMap = () => {
     visibleNodes,
     topology,
     activeNode,
+    activeLocation,
     streamId,
     setActiveView,
   } = useStore()
@@ -202,6 +203,18 @@ export const ConnectedMap = () => {
       }))
     }
   }, [debouncedSetViewport, activeNode])
+
+  // zoom selected location into view
+  useEffect(() => {
+    if (activeLocation) {
+      debouncedSetViewport((prev: ViewportProps) => ({
+        ...prev,
+        longitude: activeLocation.longitude,
+        latitude: activeLocation.latitude,
+        zoom: 10,
+      }))
+    }
+  }, [debouncedSetViewport, activeLocation])
 
   // zoom topology into view
   useEffect(() => {

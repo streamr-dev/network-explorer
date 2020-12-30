@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useSubscription } from 'streamr-client-react'
+import { useHistory } from 'react-router-dom'
 
 import { Stats, Stat } from '../Stats'
 import EventsPerSecond from '../Graphs/EventsPerSecond'
@@ -19,6 +20,7 @@ const SearchBox = () => {
     streamId,
     activeView,
     setActiveView,
+    setActiveLocationId,
     search,
     updateSearch: updateSearchText,
     searchResults,
@@ -27,6 +29,7 @@ const SearchBox = () => {
   const { hasLoaded, updateSearch } = useController()
   const { isPending: isStreamLoading } = usePending('streams')
   const isMounted = useIsMounted()
+  const history = useHistory()
 
   const onMessagesPerSecond = useCallback(({
     eventsPerSecond,
@@ -62,6 +65,25 @@ const SearchBox = () => {
   const onBack = useCallback(() => {
     setActiveView(ActiveView.Map)
   }, [setActiveView])
+
+  const onResultClick = useCallback(({ id, type }) => {
+    switch (type) {
+      case 'streams':
+        history.push(`/streams/${encodeURIComponent(id)}`)
+        break
+
+      case 'nodes':
+        history.push(`/nodes/${id}`)
+        break
+
+      case 'locations':
+        setActiveLocationId(id)
+        break
+
+      default:
+        break
+    }
+  }, [history, setActiveLocationId])
 
   return (
     <Search
@@ -101,7 +123,10 @@ const SearchBox = () => {
         <EventsPerSecond />
       )}
       {searchResults.length > 0 && (
-        <Search.Results results={searchResults} />
+        <Search.Results
+          results={searchResults}
+          onClick={onResultClick}
+        />
       )}
     </Search>
   )

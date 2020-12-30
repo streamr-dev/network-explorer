@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import React from 'react'
 import styled from 'styled-components/macro'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
@@ -99,93 +98,53 @@ const List = styled.div`
 
 type Props = {
   results: Array<SearchResult>,
+  onClick?: (result: SearchResult) => void,
 }
 
-const Stream = ({
-  id,
-  type,
-  name: nameProp,
-  description,
-}: SearchResult) => {
-  const name = useMemo(() => {
-    if (nameProp.indexOf('0x') === 0) {
-      return nameProp.replace(/^0x([A-Fa-f0-9]{3})[A-Fa-f0-9]*([A-Fa-f0-9]{5})/, '0x$1...$2')
-    }
+const truncate = (path: string) => {
+  if (typeof path === 'string' && path.indexOf('0x') >= 0) {
+    return path.replace(/0x([A-Fa-f0-9]{3})[A-Fa-f0-9]{32,}([A-Fa-f0-9]{5)/g, '0x$1...$2')
+  }
 
-    return nameProp
-  }, [nameProp])
-
-  return (
-    <Row as={Link} to={`/streams/${encodeURIComponent(id)}`}>
-      <IconWrapper>
-        <Icon>
-          <StreamIcon />
-        </Icon>
-      </IconWrapper>
-      <Item>
-        <span>{name}</span>
-        <span>{description}</span>
-      </Item>
-    </Row>
-  )
+  return path
 }
 
-const Node = ({
-  id,
-  type,
-  name,
-  description,
-}: SearchResult) => (
-  <Row as={Link} to={`/nodes/${id}`}>
-    <IconWrapper>
-      <Icon>
-        <NodeIcon />
-      </Icon>
-    </IconWrapper>
-    <Item>
-      <span>{name}</span>
-      <span>{description}</span>
-    </Item>
-  </Row>
-)
+type ResultIconProps = {
+  type: SearchResult['type'],
+}
 
-const Location = ({
-  id,
-  type,
-  name,
-  description,
-}: SearchResult) => (
-  <Row>
-    <IconWrapper>
-      <Icon>
-        <LocationIcon />
-      </Icon>
-    </IconWrapper>
-    <Item>
-      <span>{name}</span>
-      <span>{description}</span>
-    </Item>
-  </Row>
-)
+const ResultIcon = ({ type }: ResultIconProps) => {
+  switch (type) {
+    case 'streams':
+      return <StreamIcon />
 
-const UnstyledSearchResults = ({ results, ...props }: Props) => (
+    case 'locations':
+      return <LocationIcon />
+
+    case 'nodes':
+      return <NodeIcon />
+
+    default:
+      return null
+  }
+}
+
+const UnstyledSearchResults = ({ results, onClick, ...props }: Props) => (
   <div {...props}>
     <List>
-      {results.map((result) => {
-        switch (result.type) {
-          case 'streams':
-            return <Stream key={result.id} {...result} />
-
-          case 'locations':
-            return <Location key={result.id} {...result} />
-
-          case 'nodes':
-            return <Node key={result.id} {...result} />
-
-          default:
-            return null
-        }
-      })}
+      {results.map((result) => (
+        <Row key={result.id} onClick={() => typeof onClick === 'function' && onClick(result)}>
+          <IconWrapper>
+            <Icon>
+              <ResultIcon type={result.type} />
+            </Icon>
+          </IconWrapper>
+          <Item>
+            <span>{truncate(result.name)}</span>
+            <span>{result.description}</span>
+          </Item>
+        </Row>
+      ))}
     </List>
   </div>
 )

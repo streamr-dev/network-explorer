@@ -160,21 +160,23 @@ function useControllerContext() {
     loadTrackers()
   }, [resetStore, loadTrackers, history])
 
-  const searchNodes = useCallback((search: string): streamrApi.SearchResult[] => nodes
-    .filter(({ id, title }) => (
-      id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0
-    ))
-    .map(({ id, title }) => ({
-      id,
-      type: 'nodes',
-      name: title,
-      description: id,
-    })), [nodes])
+  const searchNodes = useCallback((rawSearchString: string): streamrApi.SearchResult[] => {
+    const search = rawSearchString.toLowerCase()
+
+    return nodes
+      .filter(({ id, title }) => (
+        id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0
+      ))
+      .map(({ id, title }) => ({
+        id,
+        type: 'nodes',
+        name: title,
+        description: id,
+      }))
+  }, [nodes])
 
   const debouncedUpdateSearch = useDebounced(
-    useCallback(async ({ search: rawSearchString }: { search: string }) => {
-      const search = rawSearchString.toLowerCase()
-
+    useCallback(async ({ search }: { search: string }) => {
       resetSearchResults()
 
       if (!search) {
