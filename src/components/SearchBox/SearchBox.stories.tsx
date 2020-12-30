@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import styled, { css } from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
 import { MemoryRouter } from 'react-router-dom'
 
 import { SearchResult } from '../../utils/api/streamr'
+import Stats from '../Stats'
 import { SM } from '../../utils/styled'
 
 import Search from './Search'
@@ -140,3 +141,44 @@ export const SearchInput = () => {
 export const SearchResults = () => (
   <Search.Results results={results} />
 )
+
+export const SearchResultsWithStats = () => {
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState(undefined)
+
+  const onClick = useCallback((name) => {
+    setSelected((prev) => prev !== name ? name : undefined)
+  }, [])
+
+  return (
+    <Wrapper>
+      <Search>
+        <Search.Input
+          value={search}
+          onChange={setSearch}
+          onClear={() => setSearch('')}
+        />
+        <Stats active={selected}>
+          <Stats.Stat
+            id="1"
+            label="Key 1"
+            value={100}
+            onClick={() => onClick('1')}
+          />
+          <Stats.Stat
+            id="2"
+            label="Key 2"
+            value={200}
+            onClick={() => onClick('2')}
+          />
+          <Stats.Stat
+            id="3"
+            label="Key 3"
+            value={300}
+            onClick={() => onClick('3')}
+          />
+        </Stats>
+      </Search>
+    </Wrapper>
+  )
+}

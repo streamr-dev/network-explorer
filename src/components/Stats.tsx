@@ -1,27 +1,51 @@
-import React, { useCallback } from 'react'
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react'
 import styled, { css } from 'styled-components/macro'
 
 import { SANS } from '../utils/styled'
 
-type StatContainerProps = {
-  clickable?: boolean,
+type StatProps = {
+  id: string,
+  label: string,
+  value: number | string | undefined,
+  onClick?: () => void,
   disabled?: boolean,
+  theme?: Record<string, number | string | boolean>
 }
 
-const StatContainer = styled.div<StatContainerProps>`
-  text-align: center;
-  user-select: none;
-  position: relative;
+const UnstyledStat = ({
+  label,
+  value,
+  onClick: onClickProp,
+  disabled,
+  ...props
+}: StatProps) => {
+  const onClick = useCallback(() => {
+    if (typeof onClickProp === 'function') {
+      onClickProp()
+    }
+  }, [onClickProp])
 
-  ${({ clickable, disabled }) => !!clickable && !disabled && css`
-    cursor: pointer;
-  `}
-
-  ${({ disabled }) => !!disabled && css`
-    cursor: not-allowed;
-    opacity: 0.5;
-  `}
-`
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      {...props}
+    >
+      <StatName>{label}</StatName>
+      <StatValue>
+        {value !== undefined && value}
+        {value === undefined && (
+          <InfinityIcon />
+        )}
+      </StatValue>
+    </button>
+  )
+}
 
 const StatName = styled.div`
   font-size: 10px;
@@ -45,17 +69,38 @@ const StatValue = styled.div`
   }
 `
 
-const UnderlineContainer = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  position: absolute;
-  bottom: -1px;
-`
+const Stat = styled(UnstyledStat)`
+  background: transparent;
+  border: 0;
+  appearance: none;
+  text-align: center;
+  user-select: none;
+  position: relative;
+  font-family: inherit;
+  outline: none;
 
-const Underline = styled.div`
-  border-bottom: 1.5px solid #0324FF;
-  width: 32px;
+  &:focus {
+    outline: none;
+  }
+
+  ${StatName} {
+    transition: color 300ms ease-in-out;
+  }
+
+  ${({ theme }) => !!theme.clickable && !theme.disabled && !theme.active && css`
+    &:hover {
+      cursor: pointer;
+
+      ${StatName} {
+        color: #0324FF;
+      }
+    }
+  `}
+
+  ${({ theme }) => !!theme.disabled && css`
+    cursor: not-allowed;
+    opacity: 0.5;
+  `}
 `
 
 const InfinityIcon = () => (
@@ -67,52 +112,110 @@ const InfinityIcon = () => (
   </svg>
 )
 
-type StatProps = {
-  label: string,
-  value: number | string | undefined,
-  onClick?: () => void,
-  active?: boolean,
-  disabled?: boolean,
-}
-
-export const Stat = ({
-  label,
-  value,
-  onClick: onClickProp,
-  active,
-  disabled,
-}: StatProps) => {
-  const onClick = useCallback(() => {
-    if (typeof onClickProp === 'function') {
-      onClickProp()
-    }
-  }, [onClickProp])
-
-  return (
-    <StatContainer
-      onClick={onClick}
-      clickable={typeof onClickProp === 'function'}
-      disabled={disabled}
-    >
-      <StatName>{label}</StatName>
-      <StatValue>
-        {value !== undefined && value}
-        {value === undefined && (
-          <InfinityIcon />
-        )}
-      </StatValue>
-      {!!active && (
-        <UnderlineContainer>
-          <Underline />
-        </UnderlineContainer>
-      )}
-    </StatContainer>
-  )
-}
-
-export const Stats = styled.div`
+const ButtonGrid = styled.div`
   display: grid;
   grid-auto-flow: column;
   padding-top: 12px;
   font-family: ${SANS};
 `
+
+const Underline = styled.div`
+  border-bottom: 1.5px solid #0324FF;
+  width: 32px;
+`
+
+const UnderlineContainer = styled.div`
+  transition: all 300ms ease-in-out;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: -1px;
+  opacity: 0;
+  width: ${({ theme }) => (100 / Math.max(1, theme.childCount))}%;
+
+  ${({ theme }) => theme.active !== undefined && css`
+    left: ${theme.active * (100 / Math.max(1, theme.childCount))}%;
+  `}
+
+  ${({ theme }) => !!theme.visible && css`
+    opacity: 1;
+  `}
+`
+
+type StatsProps = {
+  children: React.ReactNode,
+  active?: string | number,
+}
+
+type ChildProps = {
+  props: React.Props<StatProps>,
+}
+
+const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
+  const childrenArray = useMemo(() => (
+    React.Children.toArray(children)
+  ), [children])
+  const [prevActiveIndex, setPrevActiveIndex] = useState<number | undefined>(undefined)
+
+  const activeIndex = useMemo(() => {
+    const index = childrenArray.findIndex((child) => {
+      if (React.isValidElement<StatProps>(child)) {
+        return child.props.id === active
+      }
+      return false
+    })
+
+    return index >= 0 ? index : undefined
+  }, [childrenArray, active])
+
+  useEffect(() => {
+    if (activeIndex !== undefined) {
+      setPrevActiveIndex(activeIndex)
+
+      return () => {}
+    }
+
+    // clear previous value once animation has finished
+    const timeoutId = setTimeout(() => {
+      setPrevActiveIndex(undefined)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [activeIndex])
+
+  return (
+    <div {...props}>
+      <ButtonGrid>
+        {React.Children.map(children, (child, index) => {
+          if (React.isValidElement<StatProps>(child)) {
+            return React.cloneElement(child, {
+              theme: {
+                active: child.props.id === active,
+                clickable: !!(typeof child.props.onClick === 'function'),
+                disabled: !!child.props.disabled,
+              },
+            })
+          }
+
+          return null
+        })}
+      </ButtonGrid>
+      <UnderlineContainer theme={{
+        childCount: childrenArray.length,
+        active: prevActiveIndex,
+        visible: active !== undefined,
+      }}
+      >
+        <Underline />
+      </UnderlineContainer>
+    </div>
+  )
+}
+
+const Stats = styled(UnstyledStats)`
+  position: relative;
+`
+
+export default Object.assign(Stats, {
+  Stat,
+})

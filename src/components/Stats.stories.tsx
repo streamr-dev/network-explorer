@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Meta } from '@storybook/react/types-6-0'
 
-import { Stats, Stat } from './Stats'
+import Stats from './Stats'
 
 export default {
   title: 'Stats',
@@ -12,28 +12,28 @@ export const Selectable = () => {
   const [selected, setSelected] = useState(undefined)
 
   const onClick = useCallback((name) => {
-    setSelected((prev) => prev !== name && name)
+    setSelected((prev) => prev !== name ? name : undefined)
   }, [])
 
   return (
-    <Stats>
-      <Stat
+    <Stats active={selected}>
+      <Stats.Stat
+        id="1"
         label="Key 1"
         value={100}
         onClick={() => onClick('1')}
-        active={selected === '1'}
       />
-      <Stat
+      <Stats.Stat
+        id="2"
         label="Key 2"
         value={200}
         onClick={() => onClick('2')}
-        active={selected === '2'}
       />
-      <Stat
+      <Stats.Stat
+        id="3"
         label="Key 3"
         value={300}
         onClick={() => onClick('3')}
-        active={selected === '3'}
       />
     </Stats>
   )
@@ -43,23 +43,25 @@ export const PartlySelectable = () => {
   const [selected, setSelected] = useState(undefined)
 
   const onClick = useCallback((name) => {
-    setSelected((prev) => prev !== name && name)
+    setSelected((prev) => prev !== name ? name : undefined)
   }, [])
 
   return (
-    <Stats>
-      <Stat
+    <Stats active={selected}>
+      <Stats.Stat
+        id="1"
         label="Key 1"
         value={100}
         onClick={() => onClick('1')}
-        active={selected === '1'}
       />
-      <Stat
+      <Stats.Stat
+        id="2"
         label="Key 2"
         value={200}
         disabled
       />
-      <Stat
+      <Stats.Stat
+        id="3"
         label="Key 3"
         value={300}
       />
