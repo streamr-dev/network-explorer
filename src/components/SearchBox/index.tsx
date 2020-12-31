@@ -103,12 +103,12 @@ const SearchBox = () => {
           showMobileBackButton: activeView === ActiveView.List,
         }}
       />
-      <Stats active={selectedStat}>
+      <Stats active={(searchResults.length === 0) ? selectedStat : undefined}>
         <Stats.Stat
           id="eventsPerSecond"
           label="Msgs/sec"
           value={messagesPerSecond}
-          onClick={() => onSelectedStatChanged('eventsPerSecond')}
+          onClick={(searchResults.length === 0) ? (() => onSelectedStatChanged('eventsPerSecond')) : undefined}
         />
         <Stats.Stat
           id="nodes"

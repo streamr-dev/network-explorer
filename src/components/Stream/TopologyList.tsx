@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
+import { truncate } from '../../utils/text'
 import NodeList from '../NodeList'
 
 type Props = {
@@ -38,7 +39,7 @@ const TopologyList = ({ id }: Props) => {
         {' '}
         nodes carrying the stream
         {' '}
-        <strong title={id}>{streamTitle}</strong>
+        <strong title={id}>{truncate(streamTitle)}</strong>
       </NodeList.Header>
     </NodeList>
   )

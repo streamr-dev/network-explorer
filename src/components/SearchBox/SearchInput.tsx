@@ -1,7 +1,14 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useCallback, useRef } from 'react'
+import React, {
+  useCallback,
+  useRef,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react'
 import styled, { css } from 'styled-components/macro'
 import { Link } from 'react-router-dom'
+import { truncate } from '../../utils/text'
 
 import { SM, MD, SANS } from '../../utils/styled'
 
@@ -188,11 +195,11 @@ const UnstyledSearchInput = ({
   ...props
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null)
+  const displayValue = useMemo(() => truncate(value), [value])
+  const [focused, setFocused] = useState(false)
 
   const onFocus = useCallback(() => {
-    if (inputRef.current) {
-      inputRef.current.select()
-    }
+    setFocused(true)
 
     if (typeof onFocusProp === 'function') {
       onFocusProp()
@@ -200,10 +207,18 @@ const UnstyledSearchInput = ({
   }, [onFocusProp])
 
   const onBlur = useCallback(() => {
+    setFocused(false)
+
     if (typeof onBlurProp === 'function') {
       onBlurProp()
     }
   }, [onBlurProp])
+
+  useEffect(() => {
+    if (focused && inputRef.current) {
+      inputRef.current.select()
+    }
+  }, [focused])
 
   const onBack = useCallback(() => {
     if (typeof onBackProp === 'function') {
@@ -231,7 +246,7 @@ const UnstyledSearchInput = ({
         <Input
           id="input"
           placeholder="Search Streamr Network"
-          value={value}
+          value={focused ? value : displayValue}
           onChange={(e) => onChange(e.target.value)}
           disabled={!!disabled}
           autoComplete="off"
