@@ -1,8 +1,6 @@
 import React from 'react'
 import styled, { keyframes } from 'styled-components/macro'
 
-import { usePending } from '../../contexts/Pending'
-
 const animation = keyframes`
   0% {
     left: 0%;
@@ -26,19 +24,17 @@ const animation = keyframes`
 `
 
 const LoadingBar = styled.div`
-  position: fixed;
-  top: 0;
   width: 100%;
-  height: 4px;
-  z-index: 4;
+  height: ${({ theme }) => theme.large ? '4' : '1'}px;
   background-color: transparent;
   will-change: opacity;
   transition: opacity 0.3s ease-out;
+  opacity: ${({ theme }) => theme.loading ? '1' : '0'};
 
   ::after {
     content: '';
     display: block;
-    height: 4px;
+    height: ${({ theme }) => theme.large ? '4' : '1'}px;
     background: #0424FF;
     position: absolute;
     left: 0;
@@ -49,21 +45,19 @@ const LoadingBar = styled.div`
   }
 `
 
-const LoadingIndicator = () => {
-  const { isPending: isLoadingTrackers } = usePending('trackers')
-  const { isPending: isLoadingNodes } = usePending('nodes')
-  const { isPending: isLoadingTopology } = usePending('topology')
-  const { isPending: isSearching } = usePending('search')
-
-  const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
-
-  return (
-    <LoadingBar
-      style={{
-        opacity: isLoading ? '1' : '0',
-      }}
-    />
-  )
+type Props = {
+  loading?: boolean,
+  large?: boolean,
 }
+
+const LoadingIndicator = ({ loading, large, ...props }: Props) => (
+  <LoadingBar
+    {...props}
+    theme={{
+      loading: !!loading,
+      large: !!large,
+    }}
+  />
+)
 
 export default LoadingIndicator

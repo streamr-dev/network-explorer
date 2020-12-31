@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useContext } from 'react'
-import styled from 'styled-components/macro'
+import styled, { css } from 'styled-components/macro'
 
 import { SANS } from '../../utils/styled'
+import UnstyledLoadingIndicator from '../LoadingIndicator'
 import TimeSeries from './TimeSeries'
 
 const IntervalContainer = styled.div`
@@ -65,6 +66,7 @@ const UnstyledGraphs = ({ children, defaultInterval, ...props }: Props) => {
 }
 
 const Graphs = styled(UnstyledGraphs)`
+  position: relative;
   display: grid;
   grid-template-rows: 200px 64px;
   font-family: ${SANS};
@@ -111,7 +113,31 @@ const Intervals = ({ options }: IntervalsProps) => {
   )
 }
 
+type LoadingProps = {
+  loading?: boolean,
+  row?: number,
+}
+
+const LoadingIndicator = styled(UnstyledLoadingIndicator)`
+  position: absolute;
+
+  ${({ theme }) => !!theme.row && css`
+    grid-row: ${theme.row}
+  `}
+`
+
+const Loading = ({ row, loading, ...props }: LoadingProps) => (
+  <LoadingIndicator
+    {...props}
+    loading={loading}
+    theme={{
+      row,
+    }}
+  />
+)
+
 export default Object.assign(Graphs, {
   Intervals,
   TimeSeries,
+  Loading,
 })
