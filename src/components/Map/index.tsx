@@ -10,6 +10,7 @@ import ReactMapGL, {
   ViewportProps,
   FlyToInterpolator,
   LinearInterpolator,
+  WebMercatorViewport,
 } from 'react-map-gl'
 import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
@@ -66,6 +67,16 @@ const padBounds = (bounds: number[], padding: number) => {
   return bounds
 }
 
+const getBounds = (viewport: ViewportProps) => {
+  const vp = new WebMercatorViewport({
+    ...viewport,
+  })
+  const [north, west] = vp.unproject([0, 0])
+  const [east, south] = vp.unproject([viewport.width, viewport.height])
+  const bounds = [north, south, east, west]
+  return bounds
+}
+
 export const Map = ({
   nodes,
   topology,
@@ -104,12 +115,7 @@ export const Map = ({
     })), [nodes])
 
   // Calculate map bounds for current viewport
-  const vp = new WebMercatorViewport({
-    ...viewport,
-  })
-  const [north, west] = vp.unproject([0, 0])
-  const [east, south] = vp.unproject([viewport.width, viewport.height])
-  const bounds = [north, south, east, west]
+  const bounds = getBounds(viewport)
 
   // Calculate clusters
   const { clusters, supercluster } = useSupercluster({
