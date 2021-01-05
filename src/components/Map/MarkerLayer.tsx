@@ -22,7 +22,7 @@ const getCirclePositions = (center: [number, number], count: number) => {
   const legLength = circumference / (2 * Math.PI)
   const angleStep = (2 * Math.PI) / count
 
-  return [...Array(count).keys()].map((item, index) => {
+  return [...Array(count).keys()].map((_, index) => {
     const angle = index * angleStep
     return {
       latitude: center[1] + (legLength * Math.cos(angle)),
