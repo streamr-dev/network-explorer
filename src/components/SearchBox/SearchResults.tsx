@@ -4,6 +4,7 @@ import styled from 'styled-components/macro'
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import { SearchResult } from '../../utils/api/streamr'
 import { SM, MD, SANS } from '../../utils/styled'
+import { truncate } from '../../utils/text'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -99,14 +100,6 @@ const List = styled.div`
 type Props = {
   results: Array<SearchResult>,
   onClick?: (result: SearchResult) => void,
-}
-
-const truncate = (path: string) => {
-  if (typeof path === 'string' && path.indexOf('0x') >= 0) {
-    return path.replace(/0x([A-Fa-f0-9]{3})[A-Fa-f0-9]{32,}([A-Fa-f0-9]{5)/g, '0x$1...$2')
-  }
-
-  return path
 }
 
 type ResultIconProps = {
