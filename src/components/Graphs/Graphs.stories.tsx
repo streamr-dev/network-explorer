@@ -42,3 +42,17 @@ export const WithIntervalSelect = () => {
     </Graphs>
   )
 }
+
+export const WithLoadingIndicator = () => {
+  return (
+    <Graphs>
+      <Graphs.TimeSeries
+        graphData={{ data }}
+        height="200px"
+        ratio="1:2"
+      />
+      <Graphs.Loading loading row={2} />
+      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
+    </Graphs>
+  )
+}

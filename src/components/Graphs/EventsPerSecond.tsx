@@ -143,6 +143,8 @@ const EventsPerSecond = () => {
     }
   }), [values])
 
+  const hasData = (minData.length + maxData.length) > 0
+
   return (
     <>
       <Graphs.TimeSeries
@@ -155,6 +157,7 @@ const EventsPerSecond = () => {
         showCrosshair
         dateDisplay={interval === '24hours' ? 'hour' : 'day'}
       />
+      <Graphs.Loading loading={!hasData} row={2} />
       <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
     </>
   )
