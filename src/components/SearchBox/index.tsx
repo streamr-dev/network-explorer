@@ -128,6 +128,7 @@ const SearchBox = () => {
         <Search.Results
           results={searchResults}
           onClick={onResultClick}
+          highlight={search}
         />
       )}
     </Search>

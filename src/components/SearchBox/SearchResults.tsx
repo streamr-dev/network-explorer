@@ -2,6 +2,8 @@ import React from 'react'
 import styled from 'styled-components/macro'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
+import Highlight from '../Highlight'
+
 import { SearchResult } from '../../utils/api/streamr'
 import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
@@ -69,26 +71,31 @@ const Item = styled.div`
   padding-right: 12px;
   white-space: nowrap;
 
-  > span:first-child {
+  > div:first-child {
     color: #323232;
     font-weight: 500;
     font-size: 12px;
   }
 
-  > span:last-child {
+  > div:last-child {
     font-weight: 500;
     font-size: 10px;
   }
 
-  > span {
+  > div {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
   }
 
+  mark {
+    background-color: transparent;
+    font-weight: 700;
+  }
+
   @media (max-width: ${MD}px) {
-    > span:first-child {
+    > div:first-child {
       margin-bottom: 2px;
     }
   }
@@ -108,6 +115,7 @@ const List = styled.div`
 type Props = {
   results: Array<SearchResult>,
   onClick?: (result: SearchResult) => void,
+  highlight?: string,
 }
 
 type ResultIconProps = {
@@ -136,7 +144,12 @@ const resultTypes = {
   'nodes': 'Node',
 }
 
-const UnstyledSearchResults = ({ results, onClick, ...props }: Props) => (
+const UnstyledSearchResults = ({
+  results,
+  onClick,
+  highlight,
+  ...props
+}: Props) => (
   <div {...props}>
     <List>
       {results.map((result) => (
@@ -147,8 +160,12 @@ const UnstyledSearchResults = ({ results, onClick, ...props }: Props) => (
             </Icon>
           </IconWrapper>
           <Item>
-            <span>{truncate(result.name)}</span>
-            <span>{resultTypes[result.type] || ('')}</span>
+            <div>
+              <Highlight search={highlight && truncate(highlight)}>
+                {truncate(result.name)}
+              </Highlight>
+            </div>
+            <div>{resultTypes[result.type] || ('')}</div>
           </Item>
         </Row>
       ))}

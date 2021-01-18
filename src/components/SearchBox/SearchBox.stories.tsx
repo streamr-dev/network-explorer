@@ -42,6 +42,10 @@ const results: Array<SearchResult> = [{
   type: 'nodes',
   name: 'Warm Fiery Octagon',
   description: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1',
+}, {
+  id: '4',
+  type: 'streams',
+  name: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1/test/long-path',
 }]
 
 export const Basic = () => {
@@ -120,7 +124,10 @@ export const WithResults = () => {
           onChange={setSearch}
           onClear={() => setSearch('')}
         />
-        <Search.Results results={results} />
+        <Search.Results
+          results={results}
+          highlight={search}
+        />
       </Search>
     </Wrapper>
   )
