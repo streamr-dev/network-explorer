@@ -6,13 +6,10 @@ import React, {
   useCallback,
 } from 'react'
 import ReactMapGL, {
-  NavigationControl,
   InteractiveMap,
   ViewportProps,
-  WebMercatorViewport,
   FlyToInterpolator,
 } from 'react-map-gl'
-import styled from 'styled-components/macro'
 import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -21,27 +18,21 @@ import { useHistory } from 'react-router-dom'
 import { NodeProperties } from './types'
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
+import NavigationControl from './NavigationControl'
 
 import useWindowSize from '../../hooks/useWindowSize'
 import { useStore, ActiveView } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node, Topology } from '../../utils/api/tracker'
 import { useDebounced } from '../../hooks/wrapCallback'
-
-const NavigationContainer = styled.div`
-  position: absolute;
-  right: 32px;
-  bottom: 32px;
-`
-
-type ViewPort = Record<string, number>
+import { getCenteredViewport } from './utils'
 
 type Props = {
   nodes: Node[],
   topology: Topology,
   activeNode?: Node,
   viewport: ViewportProps,
-  setViewport: (viewport: ViewportProps) => void,
+  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>,
   onNodeClick?: (v: string) => void,
   onMapClick?: () => void,
 }
@@ -146,12 +137,9 @@ export const Map = ({
           />
         </>
       )}
-      <NavigationContainer>
-        <NavigationControl
-          showCompass={false}
-          onViewportChange={setViewport}
-        />
-      </NavigationContainer>
+      <NavigationControl
+        setViewport={setViewport}
+      />
     </ReactMapGL>
   )
 }
@@ -221,25 +209,10 @@ export const ConnectedMap = () => {
     if (visibleNodes.length <= 0 || !!activeNode) { return }
 
     debouncedSetViewport((prev: ViewportProps) => {
-      const pointsLong = visibleNodes.map(point => point.longitude)
-      const pointsLat = visibleNodes.map(point => point.latitude)
-      const cornersLongLat: [[number, number], [number, number]] = [
-        [Math.min(...pointsLong), Math.min(...pointsLat)],
-        [Math.max(...pointsLong), Math.max(...pointsLat)],
-      ]
-
-      // Use WebMercatorViewport to get center longitude/latitude and zoom
-      const { longitude, latitude, zoom } = new WebMercatorViewport({
-        width: prev.width,
-        height: prev.height,
-      })
-        .fitBounds(cornersLongLat, { padding: 200 }) // Can also use option: offset: [0, -100]
-
+      const vp = getCenteredViewport(visibleNodes, prev.width, prev.height)
       return {
         ...prev,
-        longitude,
-        latitude,
-        zoom,
+        ...vp,
       }
     })
   }, [debouncedSetViewport, visibleNodes, activeNode])
