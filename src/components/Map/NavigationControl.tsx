@@ -94,7 +94,7 @@ const NavigationControl = ({ setViewport }: Props) => {
   }, [setViewport, visibleNodes])
 
   useKeyDown(useMemo(() => ({
-    0: () => {
+    '0': () => {
       reset()
     },
   }), [reset]))
