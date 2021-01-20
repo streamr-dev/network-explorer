@@ -57,6 +57,7 @@ const Search = styled(ControlBox)`
     ${SearchResults} {
       max-height: 280px;
       overflow: scroll;
+      padding: 8px 0;
     }
   }
 `

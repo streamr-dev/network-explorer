@@ -2,6 +2,8 @@ import React from 'react'
 import styled from 'styled-components/macro'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
+import Highlight from '../Highlight'
+
 import { SearchResult } from '../../utils/api/streamr'
 import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
@@ -24,25 +26,31 @@ const Icon = styled.div`
     left: 50%;
     transform: translate(-50%, -50%);
   }
+
+  @media (min-width: ${SM}px) {
+    width: 24px;
+    height: 24px;
+  }
 `
 
 const Row = styled.div`
   display: grid;
   grid-template-columns: 64px 1fr;
   height: 64px;
-  font-size: 12px;
-  line-height: 16px;
   cursor: pointer;
   color: #CDCDCD;
   background-color: #FFFFFF;
   font-family: ${SANS};
-  font-size: 12px;
+
+  ${Icon} {
+    background-color: #F5F5F5;
+  }
 
   &:hover {
-    background-color: #F8F8F8;
+    background-color: #F5F5F5;
 
     ${Icon} {
-      background-color: transparent;
+      background-color: #EFEFEF;
     }
   }
 
@@ -50,8 +58,9 @@ const Row = styled.div`
     background-color: #F5F5F5;
   }
 
-  @media (min-width: ${MD}px) {
-    font-size: 14px;
+  @media (min-width: ${SM}px) {
+    grid-template-columns: 48px 1fr;
+    height: 40px;
   }
 `
 
@@ -62,26 +71,32 @@ const Item = styled.div`
   padding-right: 12px;
   white-space: nowrap;
 
-  span:first-child {
+  > div:first-child {
     color: #323232;
     font-weight: 500;
+    font-size: 12px;
   }
 
-  span {
+  > div:last-child {
+    font-weight: 500;
+    font-size: 10px;
+  }
+
+  > div {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
   }
 
-  @media (max-width: ${SM}px) {
-    span {
-      display: block;
-    }
+  mark {
+    background-color: transparent;
+    font-weight: 700;
   }
 
-  @media (min-width: ${SM}px) {
-    span + span {
-      margin-left: 8px;
+  @media (max-width: ${MD}px) {
+    > div:first-child {
+      margin-bottom: 2px;
     }
   }
 `
@@ -100,6 +115,7 @@ const List = styled.div`
 type Props = {
   results: Array<SearchResult>,
   onClick?: (result: SearchResult) => void,
+  highlight?: string,
 }
 
 type ResultIconProps = {
@@ -122,7 +138,18 @@ const ResultIcon = ({ type }: ResultIconProps) => {
   }
 }
 
-const UnstyledSearchResults = ({ results, onClick, ...props }: Props) => (
+const resultTypes = {
+  'streams': 'Stream',
+  'locations': 'Place',
+  'nodes': 'Node',
+}
+
+const UnstyledSearchResults = ({
+  results,
+  onClick,
+  highlight,
+  ...props
+}: Props) => (
   <div {...props}>
     <List>
       {results.map((result) => (
@@ -133,8 +160,12 @@ const UnstyledSearchResults = ({ results, onClick, ...props }: Props) => (
             </Icon>
           </IconWrapper>
           <Item>
-            <span>{truncate(result.name)}</span>
-            <span>{result.description}</span>
+            <div>
+              <Highlight search={highlight && truncate(highlight)}>
+                {truncate(result.name)}
+              </Highlight>
+            </div>
+            <div>{resultTypes[result.type] || ('')}</div>
           </Item>
         </Row>
       ))}
@@ -151,10 +182,6 @@ const SearchResults = styled(UnstyledSearchResults)`
     ${Row} {
       border: 1px solid #EFEFEF;
       border-radius: 4px;
-    }
-
-    ${Icon} {
-      background-color: #F5F5F5;
     }
   }
 
