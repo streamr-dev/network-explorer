@@ -43,7 +43,7 @@ const NodeList = ({
   children,
 }: Props) => {
   const onNodeClick = useCallback((nodeId: string) => {
-    if (onNodeClickProp) {
+    if (typeof onNodeClickProp === 'function') {
       onNodeClickProp(nodeId)
     }
   }, [onNodeClickProp])
@@ -59,6 +59,7 @@ const NodeList = ({
             title={title}
             placeName={placeName}
             active={activeNodeId === nodeId}
+            clickable={typeof onNodeClickProp === 'function'}
             onClick={() => onNodeClick(nodeId)}
           />
         ))}

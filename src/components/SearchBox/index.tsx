@@ -50,9 +50,8 @@ const SearchBox = () => {
   const isDisabled = hasStream && !!isStreamLoading
 
   const onClear = useCallback(() => {
-    updateSearchText('')
-    resetSearchResults()
-  }, [updateSearchText, resetSearchResults])
+    history.push('/')
+  }, [history])
 
   const onSearch = useCallback((value: string) => {
     updateSearch({ search: value })
@@ -69,10 +68,14 @@ const SearchBox = () => {
   const onResultClick = useCallback(({ id, type }) => {
     switch (type) {
       case 'streams':
+        updateSearchText(id)
+        resetSearchResults()
         history.push(`/streams/${encodeURIComponent(id)}`)
         break
 
       case 'nodes':
+        updateSearchText('')
+        resetSearchResults()
         history.push(`/nodes/${id}`)
         break
 
@@ -83,7 +86,7 @@ const SearchBox = () => {
       default:
         break
     }
-  }, [history, setActiveLocationId])
+  }, [history, setActiveLocationId, updateSearchText, resetSearchResults])
 
   return (
     <Search

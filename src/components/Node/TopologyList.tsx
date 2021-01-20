@@ -1,5 +1,4 @@
-import React, { useCallback } from 'react'
-import { useHistory } from 'react-router-dom'
+import React, { useMemo } from 'react'
 
 import { useStore } from '../../contexts/Store'
 import NodeList from '../NodeList'
@@ -9,38 +8,15 @@ type Props = {
 }
 
 const TopologyList = ({ id }: Props) => {
-  const { nodes, env } = useStore()
+  const { nodes } = useStore()
 
-  const history = useHistory()
-
-  const onNodeClick = useCallback((nodeId) => {
-    let path = '/'
-
-    if (id !== nodeId) {
-      path += `nodes/${nodeId}`
-    }
-
-    history.replace(path)
-  }, [id, history])
+  const currentNode = useMemo(() => nodes.find(({ id: nodeId }) => nodeId === id), [nodes, id])
 
   return (
     <NodeList
-      nodes={nodes}
+      nodes={currentNode ? [currentNode] : []}
       activeNodeId={id}
-      onNodeClick={onNodeClick}
-    >
-      <NodeList.Header>
-        Showing all
-        {' '}
-        <strong>{nodes.length}</strong>
-        {' '}
-        nodes in the
-        {' '}
-        <strong>{env && env.toUpperCase()}</strong>
-        {' '}
-        network
-      </NodeList.Header>
-    </NodeList>
+    />
   )
 }
 

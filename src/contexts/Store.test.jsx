@@ -154,63 +154,6 @@ describe('Store', () => {
       }])
       expect(store.activeNode).toStrictEqual(undefined)
     })
-
-    it('returns active node when set with topology', () => {
-      let store
-
-      function Test() {
-        store = useStore()
-
-        return null
-      }
-
-      render((
-        <StoreProvider>
-          <Test />
-        </StoreProvider>
-      ), container)
-
-      act(() => {
-        store.addNodes([{
-          id: '1',
-          title: 'Node 1',
-        }, {
-          id: '2',
-          title: 'Node 2',
-        }, {
-          id: '3',
-          title: 'Node 3',
-        }, {
-          id: '4',
-          title: 'Node 4',
-        }])
-      })
-
-      expect(store.visibleNodes).toStrictEqual([])
-
-      act(() => {
-        store.setTopology({
-          '1': ['3', '4'],
-          '3': ['1'],
-          '4': ['1'],
-        }, '4')
-      })
-
-      expect(store.visibleNodes).toStrictEqual([{
-        id: '1',
-        title: 'Node 1',
-      }, {
-        id: '3',
-        title: 'Node 3',
-      }, {
-        id: '4',
-        title: 'Node 4',
-      }])
-      expect(store.activeNode).toStrictEqual({
-        id: '4',
-        title: 'Node 4',
-      })
-    })
   })
 
   describe('streams', () => {

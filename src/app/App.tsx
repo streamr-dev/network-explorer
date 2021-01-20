@@ -32,27 +32,15 @@ function useUpdateSearchTextEffect() {
   const {
     updateSearch: updateSearchText,
     resetSearchResults,
-    streamId,
-    activeNode,
   } = useStore()
   const { pathname } = useLocation()
 
   useEffect(() => {
-    updateSearchText('')
-    resetSearchResults()
-  }, [updateSearchText, resetSearchResults, pathname])
-
-  const activeNodeTitle = activeNode && activeNode.title
-
-  useEffect(() => {
-    if (streamId) {
-      updateSearchText(streamId)
-    } else if (activeNodeTitle) {
-      updateSearchText(activeNodeTitle)
-    } else {
+    if (pathname === '/') {
       updateSearchText('')
+      resetSearchResults()
     }
-  }, [updateSearchText, streamId, activeNodeTitle])
+  }, [updateSearchText, resetSearchResults, pathname])
 }
 
 const TrackerLoader = () => {

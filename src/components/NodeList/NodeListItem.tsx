@@ -1,8 +1,9 @@
 import React, { MouseEvent } from 'react'
-import styled from 'styled-components/macro'
+import styled, { css } from 'styled-components/macro'
 import Identicon from 'react-identicons'
 
 import { MONO, MEDIUM } from '../../utils/styled'
+import { truncate } from '../../utils/text'
 import Stats from '../Stats'
 
 const Name = styled.div`
@@ -17,6 +18,13 @@ const Name = styled.div`
   }
 `
 
+const TitleRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+`
+
 const NodeElement = styled.div`
   background: #FFFFFF;
   border: 1px solid #F5F5F5;
@@ -29,18 +37,16 @@ const NodeElement = styled.div`
   ${Name} {
     margin-left: 20px;
   }
-`
 
-const TitleRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 16px;
-  cursor: pointer;
+  ${({ theme }) => !!theme.clickable && css`
+    ${TitleRow} {
+      cursor: pointer;
 
-  :hover {
-    background: #F8F8F8;
-  }
+      :hover {
+        background: #F8F8F8;
+      }
+    }
+  `}
 `
 
 const PlaceName = styled.div`
@@ -66,6 +72,7 @@ type Props = {
   placeName: string,
   active: boolean,
   onClick: (event: MouseEvent<HTMLInputElement>) => void,
+  clickable?: boolean,
 }
 
 const NodeListItem = ({
@@ -74,8 +81,10 @@ const NodeListItem = ({
   placeName,
   active,
   onClick,
+  clickable,
+  ...props
 }: Props) => (
-  <NodeElement>
+  <NodeElement {...props} theme={{ clickable }}>
     <TitleRow onClick={onClick}>
       <Identicon
         string={nodeId}
@@ -87,7 +96,7 @@ const NodeListItem = ({
           <PlaceName>{placeName}</PlaceName>
         )}
         {!!active && (
-          <Address>{nodeId}</Address>
+          <Address title={nodeId}>{truncate(nodeId)}</Address>
         )}
       </Name>
     </TitleRow>
