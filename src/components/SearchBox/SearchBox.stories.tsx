@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 import { SearchResult } from '../../utils/api/streamr'
 import Stats from '../Stats'
+import Error from '../Error'
 import { SM } from '../../utils/styled'
 
 import Search from './Search'
@@ -149,7 +150,7 @@ export const SearchResults = () => (
   <Search.Results results={results} />
 )
 
-export const SearchResultsWithStats = () => {
+export const SearchWithStats = () => {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(undefined)
 
@@ -185,6 +186,11 @@ export const SearchResultsWithStats = () => {
             onClick={() => onClick('3')}
           />
         </Stats>
+        {!!selected && (
+          <Error>
+            Error loading the graph
+          </Error>
+        )}
       </Search>
     </Wrapper>
   )

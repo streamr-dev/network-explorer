@@ -1,10 +1,9 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import styled from 'styled-components/macro'
 
 import ControlBox from '../ControlBox'
 
 import NodeListItem from './NodeListItem'
-import * as api from '../../utils/api/tracker'
 import { SANS, MEDIUM } from '../../utils/styled'
 
 const Wrapper = styled.div`
@@ -13,9 +12,6 @@ const Wrapper = styled.div`
 `
 
 type Props = {
-  nodes: api.Node[],
-  activeNodeId?: string,
-  onNodeClick?: (v: string) => void,
   children?: React.ReactNode,
 }
 
@@ -36,38 +32,15 @@ const Header = styled.div`
   }
 `
 
-const NodeList = ({
-  nodes,
-  activeNodeId,
-  onNodeClick: onNodeClickProp,
-  children,
-}: Props) => {
-  const onNodeClick = useCallback((nodeId: string) => {
-    if (typeof onNodeClickProp === 'function') {
-      onNodeClickProp(nodeId)
-    }
-  }, [onNodeClickProp])
+const NodeList = ({ children }: Props) => (
+  <ControlBox>
+    <Wrapper>
+      {children}
+    </Wrapper>
+  </ControlBox>
+)
 
-  return (
-    <ControlBox>
-      <Wrapper>
-        {children}
-        {nodes.map(({ id: nodeId, title, placeName }) => (
-          <NodeListItem
-            key={nodeId}
-            nodeId={nodeId}
-            title={title}
-            placeName={placeName}
-            active={activeNodeId === nodeId}
-            clickable={typeof onNodeClickProp === 'function'}
-            onClick={() => onNodeClick(nodeId)}
-          />
-        ))}
-      </Wrapper>
-    </ControlBox>
-  )
-}
-
-NodeList.Header = Header
-
-export default NodeList
+export default Object.assign(NodeList, {
+  Header,
+  Node: NodeListItem,
+})

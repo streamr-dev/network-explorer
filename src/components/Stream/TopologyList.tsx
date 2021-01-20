@@ -4,6 +4,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import { useStore } from '../../contexts/Store'
 import { truncate } from '../../utils/text'
 import NodeList from '../NodeList'
+import Error from '../Error'
 
 type Props = {
   id: string,
@@ -27,11 +28,7 @@ const TopologyList = ({ id }: Props) => {
   const streamTitle = stream && stream.name || id
 
   return (
-    <NodeList
-      nodes={visibleNodes}
-      activeNodeId={activeNodeId}
-      onNodeClick={toggleNode}
-    >
+    <NodeList>
       <NodeList.Header>
         Showing
         {' '}
@@ -41,6 +38,22 @@ const TopologyList = ({ id }: Props) => {
         {' '}
         <strong title={id}>{truncate(streamTitle)}</strong>
       </NodeList.Header>
+      {visibleNodes.map(({ id: nodeId, title, placeName }) => (
+        <NodeList.Node
+          key={nodeId}
+          nodeId={nodeId}
+          title={title}
+          placeName={placeName}
+          onClick={toggleNode}
+          showAddress={activeNodeId === nodeId}
+        >
+          {activeNodeId === nodeId && (
+            <Error>
+              Couldn’t load node metrics
+            </Error>
+          )}
+        </NodeList.Node>
+      ))}
     </NodeList>
   )
 }
