@@ -54,7 +54,7 @@ const NodeMarkerContainer = styled.div<NodeMarkerContainerProps>`
   height: 24px;
   transform: translate(-50%, -50%);
   cursor: pointer;
-  transition: all 100ms ease-in-out;
+  transition: all 150ms ease-in-out;
 
   canvas {
     position: absolute;
@@ -85,7 +85,7 @@ export const NodeMarker = ({ id, isActive, onClick }: NodeMarkerProps) => (
     <NodeIcon />
     <Identicon
       string={id}
-      size={14}
+      size={16}
     />
   </NodeMarkerContainer>
 )
