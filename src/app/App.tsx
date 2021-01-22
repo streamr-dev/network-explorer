@@ -3,7 +3,6 @@ import {
   BrowserRouter,
   Route,
   Switch,
-  useLocation,
 } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -16,7 +15,7 @@ import UnstyledLoadingIndicator from '../components/LoadingIndicator'
 import Layout from '../components/Layout'
 import ErrorBoundary from '../components/ErrorBoundary'
 
-import { Provider as StoreProvider, useStore } from '../contexts/Store'
+import { Provider as StoreProvider } from '../contexts/Store'
 import { Provider as ControllerProvider, useController } from '../contexts/Controller'
 import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
 
@@ -28,28 +27,8 @@ function useLoadTrackersEffect() {
   }, [loadTrackers])
 }
 
-function useUpdateSearchTextEffect() {
-  const {
-    updateSearch: updateSearchText,
-    resetSearchResults,
-  } = useStore()
-  const { pathname } = useLocation()
-
-  useEffect(() => {
-    if (pathname === '/') {
-      updateSearchText('')
-      resetSearchResults()
-    }
-  }, [updateSearchText, resetSearchResults, pathname])
-}
-
 const TrackerLoader = () => {
   useLoadTrackersEffect()
-  return null
-}
-
-const SearchTextUpdater = () => {
-  useUpdateSearchTextEffect()
   return null
 }
 
@@ -82,7 +61,6 @@ const App = () => (
           <Layout>
             <ErrorBoundary>
               <TrackerLoader />
-              <SearchTextUpdater />
               <Debug />
               <SearchBox />
               <Switch>

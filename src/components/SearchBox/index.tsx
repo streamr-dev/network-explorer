@@ -50,8 +50,10 @@ const SearchBox = () => {
   const isDisabled = hasStream && !!isStreamLoading
 
   const onClear = useCallback(() => {
+    updateSearchText('')
+    resetSearchResults()
     history.push('/')
-  }, [history])
+  }, [history, updateSearchText, resetSearchResults])
 
   const onSearch = useCallback((value: string) => {
     updateSearch({ search: value })
