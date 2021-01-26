@@ -12,8 +12,10 @@ type StreamProps = {
 
 const TopologyLoader = ({ id }: StreamProps) => {
   const { loadTopology, resetTopology } = useController()
+  const { updateSearch } = useStore()
 
   useEffect(() => {
+    updateSearch(id)
     loadTopology({
       streamId: id,
     })
@@ -21,7 +23,7 @@ const TopologyLoader = ({ id }: StreamProps) => {
     return () => {
       resetTopology()
     }
-  }, [loadTopology, resetTopology, id])
+  }, [loadTopology, resetTopology, updateSearch, id])
 
   return null
 }
