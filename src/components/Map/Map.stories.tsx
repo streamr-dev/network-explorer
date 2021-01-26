@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 import { ViewportProps } from 'react-map-gl'
+
 import { Map } from '.'
 import { Node } from '../../utils/api/tracker'
 
@@ -48,21 +49,23 @@ const topology = {
   '3': ['1', '4'],
 }
 
+const initialViewport = {
+  width: 800,
+  height: 600,
+  latitude: 60.16952,
+  longitude: 24.93545,
+  zoom: 2,
+  bearing: 0,
+  pitch: 0,
+  altitude: 0,
+  maxZoom: 20,
+  minZoom: 0,
+  maxPitch: 60,
+  minPitch: 0,
+}
+
 export const Nodes: Story = (args) => {
-  const [viewport, setViewport] = useState<ViewportProps>({
-    width: 800,
-    height: 600,
-    latitude: 60.16952,
-    longitude: 24.93545,
-    zoom: 2,
-    bearing: 0,
-    pitch: 0,
-    altitude: 0,
-    maxZoom: 20,
-    minZoom: 0,
-    maxPitch: 60,
-    minPitch: 0,
-  })
+  const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
 
   return (
     <Map
@@ -75,20 +78,7 @@ export const Nodes: Story = (args) => {
 }
 
 export const ActiveNode: Story = (args) => {
-  const [viewport, setViewport] = useState<ViewportProps>({
-    width: 800,
-    height: 600,
-    latitude: 60.16952,
-    longitude: 24.93545,
-    zoom: 2,
-    bearing: 0,
-    pitch: 0,
-    altitude: 0,
-    maxZoom: 20,
-    minZoom: 0,
-    maxPitch: 60,
-    minPitch: 0,
-  })
+  const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
   const [activeNode, setActiveNode] = useState<Node | undefined>(undefined)
 
   const onNodeClick = useCallback((activeId: string) => {
@@ -103,6 +93,42 @@ export const ActiveNode: Story = (args) => {
       setViewport={setViewport}
       activeNode={activeNode}
       onNodeClick={onNodeClick}
+    />
+  )
+}
+
+export const ZoomControls: Story = (args) => {
+  const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
+
+  const onZoomIn = useCallback(() => {
+    setViewport((prev) => ({
+      ...prev,
+      zoom: prev.zoom + 1,
+    }))
+  }, [setViewport])
+
+  const onZoomOut = useCallback(() => {
+    setViewport((prev) => ({
+      ...prev,
+      zoom: prev.zoom - 1,
+    }))
+  }, [setViewport])
+
+  const onZoomReset = useCallback(() => {
+    setViewport((prev) => ({
+      ...initialViewport,
+    }))
+  }, [setViewport])
+
+  return (
+    <Map
+      nodes={nodes}
+      topology={topology}
+      viewport={viewport}
+      setViewport={setViewport}
+      onZoomIn={onZoomIn}
+      onZoomOut={onZoomOut}
+      onZoomReset={onZoomReset}
     />
   )
 }
