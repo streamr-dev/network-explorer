@@ -3,6 +3,7 @@ import React, {
   useContext,
   useCallback,
   useReducer,
+  useRef,
 } from 'react'
 import { schema, normalize, denormalize } from 'normalizr'
 import mergeWith from 'lodash/mergeWith'
@@ -51,7 +52,7 @@ type ContextProps = {
   trackers: string[],
   setTrackers: (trackers: string[]) => void,
   topology: trackerApi.Topology,
-  setTopology: (topology: trackerApi.Topology, activeNodeId?: string) => void,
+  setTopology: (topology: trackerApi.Topology) => void,
   setActiveNodeId: (activeNodeId?: string) => void,
   setActiveLocationId: (activeLocationId?: string) => void,
   visibleNodes: trackerApi.Node[],
@@ -88,7 +89,7 @@ type Action =
  | { type: 'setTrackers', trackers: string[] }
  | { type: 'addNodes', nodes: string[] }
  | { type: 'updateEntities', entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
- | { type: 'setTopology', topology: trackerApi.Topology, activeNodeId?: string }
+ | { type: 'setTopology', topology: trackerApi.Topology }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
  | { type: 'setActiveLocation', activeLocationId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
@@ -132,7 +133,6 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         topology: action.topology,
-        activeNodeId: action.activeNodeId,
       }
     }
 
@@ -230,11 +230,10 @@ function useStoreContext() {
     })
   }, [dispatch])
 
-  const setTopology = useCallback((topology: trackerApi.Topology, activeNodeId?: string) => {
+  const setTopology = useCallback((topology: trackerApi.Topology) => {
     dispatch({
       type: 'setTopology',
       topology,
-      activeNodeId,
     })
   }, [dispatch])
 
@@ -328,29 +327,33 @@ function useStoreContext() {
     entities,
   } = store
 
+  // Use ref to avoid unnecessary redraws when entities update
+  const entitiesRef = useRef(entities)
+  entitiesRef.current = entities
+
   const nodes = useMemo(() => (
-    denormalize(nodeIds, nodesSchema, entities) || []
-  ), [nodeIds, entities])
+    denormalize(nodeIds, nodesSchema, entitiesRef.current) || []
+  ), [nodeIds])
 
   const visibleNodes = useMemo(() => (
-    denormalize(Object.keys(topology), nodesSchema, entities) || []
-  ), [topology, entities])
+    denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || []
+  ), [topology])
 
   const activeNode = useMemo(() => (
-    denormalize(activeNodeId, nodeSchema, entities)
-  ), [activeNodeId, entities])
+    denormalize(activeNodeId, nodeSchema, entitiesRef.current)
+  ), [activeNodeId])
 
   const activeLocation = useMemo(() => (
-    denormalize(activeLocationId, searchResultSchema, entities)
-  ), [activeLocationId, entities])
+    denormalize(activeLocationId, searchResultSchema, entitiesRef.current)
+  ), [activeLocationId])
 
   const stream = useMemo(() => (
-    denormalize(streamId, streamSchema, entities)
-  ), [streamId, entities])
+    denormalize(streamId, streamSchema, entitiesRef.current)
+  ), [streamId])
 
   const searchResults = useMemo(() => (
-    denormalize(searchResultIds, searchResultsSchema, entities)
-  ), [searchResultIds, entities])
+    denormalize(searchResultIds, searchResultsSchema, entitiesRef.current) || []
+  ), [searchResultIds])
 
   return useMemo(() => ({
     env,

@@ -47,7 +47,9 @@ export default () => {
     <>
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
-      <TopologyList id={nodeId} />
+      {!!nodeId && (
+        <TopologyList id={nodeId} />
+      )}
     </>
   )
 }

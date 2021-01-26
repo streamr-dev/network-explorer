@@ -180,18 +180,6 @@ export const ConnectedMap = () => {
     250,
   )
 
-  // zoom selected network node into view
-  useEffect(() => {
-    if (activeNode) {
-      debouncedSetViewport((prev: ViewportProps) => ({
-        ...prev,
-        longitude: activeNode.longitude,
-        latitude: activeNode.latitude,
-        zoom: 10,
-      }))
-    }
-  }, [debouncedSetViewport, activeNode])
-
   // zoom selected location into view
   useEffect(() => {
     if (activeLocation) {
@@ -206,7 +194,7 @@ export const ConnectedMap = () => {
 
   // zoom topology into view
   useEffect(() => {
-    if (visibleNodes.length <= 0 || !!activeNode) { return }
+    if (visibleNodes.length <= 0) { return }
 
     debouncedSetViewport((prev: ViewportProps) => {
       const vp = getCenteredViewport(visibleNodes, prev.width, prev.height)
@@ -215,7 +203,7 @@ export const ConnectedMap = () => {
         ...vp,
       }
     })
-  }, [debouncedSetViewport, visibleNodes, activeNode])
+  }, [debouncedSetViewport, visibleNodes])
 
   const windowSize = useWindowSize()
 
@@ -227,8 +215,6 @@ export const ConnectedMap = () => {
     }))
   }, [debouncedSetViewport, windowSize.width, windowSize.height])
 
-  const { id: activeNodeId } = activeNode || {}
-
   const onNodeClick = useCallback((nodeId: string) => {
     let path = '/'
 
@@ -236,12 +222,10 @@ export const ConnectedMap = () => {
       path += `streams/${encodeURIComponent(streamId)}/`
     }
 
-    if (nodeId !== activeNodeId) {
-      path += `nodes/${nodeId}`
-    }
+    path += `nodes/${nodeId}`
 
     history.replace(path)
-  }, [streamId, activeNodeId, history])
+  }, [streamId, history])
 
   // reset search view when clicking on map
   const onMapClick = useCallback(() => {
