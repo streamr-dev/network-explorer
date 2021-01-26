@@ -7,8 +7,14 @@ import React, {
 } from 'react'
 import { useSubscription } from 'streamr-client-react'
 
-import Graphs, { useGraphContext } from '.'
+import Graphs from '.'
+import { useGraphContext } from './Graphs'
+import Error from '../Error'
 import useIsMounted from '../../hooks/useIsMounted'
+
+type Props = {
+  onError: Function,
+}
 
 type RawValue = {
   timestamp: number,
@@ -20,7 +26,7 @@ type Values = {
   max: number,
 }
 
-const EventsPerSecond = () => {
+const EventsPerSecond = ({ onError: onErrorProp }: Props) => {
   const isMounted = useIsMounted()
   const dataRef = useRef<RawValue[]>([])
   const [values, setValues] = useState<Record<string, Values>>({})
@@ -123,7 +129,7 @@ const EventsPerSecond = () => {
   useSubscription({
     stream: 'Y1gWr4X9S8mQdg5mzBq1dA',
     resend,
-  }, onMessagesPerSecond)
+  }, onMessagesPerSecond, onErrorProp)
 
   const minData = useMemo(() => Object.keys(values).map((date) => {
     const { min } = values[date]
@@ -163,8 +169,31 @@ const EventsPerSecond = () => {
   )
 }
 
-export default () => (
-  <Graphs defaultInterval="24hours">
-    <EventsPerSecond />
-  </Graphs>
-)
+export default () => {
+  const [error, setError] = useState(undefined)
+  const isMounted = useIsMounted()
+
+  const onError = useCallback((nextError) => {
+    if (isMounted()) {
+      if (nextError && nextError.message) {
+        setError(nextError.message)
+      } else {
+        nextError('Couldn\'t load network metrics')
+      }
+    }
+  }, [isMounted])
+
+  if (error) {
+    return (
+      <Error>
+        {error}
+      </Error>
+    )
+  }
+
+  return (
+    <Graphs defaultInterval="24hours">
+      <EventsPerSecond onError={onError} />
+    </Graphs>
+  )
+}

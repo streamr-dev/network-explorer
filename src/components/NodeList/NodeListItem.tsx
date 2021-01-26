@@ -1,10 +1,11 @@
-import React, { MouseEvent } from 'react'
+import React, { useCallback } from 'react'
 import styled, { css } from 'styled-components/macro'
 import Identicon from 'react-identicons'
 
 import { MONO, MEDIUM } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 import Stats from '../Stats'
+import Error from '../Error'
 
 const Name = styled.div`
   color: #323232;
@@ -25,6 +26,8 @@ const TitleRow = styled.div`
   padding: 16px;
 `
 
+const IconWrapper = styled.div``
+
 const NodeElement = styled.div`
   background: #FFFFFF;
   border: 1px solid #F5F5F5;
@@ -34,8 +37,17 @@ const NodeElement = styled.div`
     margin-top: 12px;
   }
 
+  ${IconWrapper} {
+    margin: 0 4px;
+  }
+
   ${Name} {
     margin-left: 20px;
+  }
+
+  ${Stats},
+  ${Error} {
+    border-top: 1px solid #F5F5F5;
   }
 
   ${({ theme }) => !!theme.clickable && css`
@@ -62,64 +74,52 @@ const Address = styled(PlaceName)`
   letter-spacing: 0.05em;
 `
 
-const StyledStats = styled(Stats)`
-  border-top: 1px solid #F5F5F5;
-`
-
 type Props = {
   nodeId: string,
   title: string,
   placeName: string,
-  active: boolean,
-  onClick: (event: MouseEvent<HTMLInputElement>) => void,
-  clickable?: boolean,
+  onClick?: (id: string) => void,
+  showAddress?: boolean,
+  children?: React.ReactNode,
 }
 
 const NodeListItem = ({
   nodeId,
   title,
   placeName,
-  active,
-  onClick,
-  clickable,
+  onClick: onClickProp,
+  showAddress,
+  children,
   ...props
-}: Props) => (
-  <NodeElement {...props} theme={{ clickable }}>
-    <TitleRow onClick={onClick}>
-      <Identicon
-        string={nodeId}
-        size={20}
-      />
-      <Name>
-        <strong>{title}</strong>
-        {!active && (
-          <PlaceName>{placeName}</PlaceName>
-        )}
-        {!!active && (
-          <Address title={nodeId}>{truncate(nodeId)}</Address>
-        )}
-      </Name>
-    </TitleRow>
-    {!!active && (
-      <StyledStats>
-        <Stats.Stat
-          id="messagesPerSecond"
-          label="Msgs/sec"
-          value={undefined}
-        />
-        <Stats.Stat
-          id="mbsPerSecond"
-          label="MB/S"
-          value={undefined}
-        />
-        <Stats.Stat
-          id="latency"
-          label="Latency ms"
-          value={undefined}
-        />
-      </StyledStats>
-    )}
-  </NodeElement>
-)
+}: Props) => {
+  const onClick = useCallback(() => {
+    if (typeof onClickProp === 'function') {
+      onClickProp(nodeId)
+    }
+  }, [onClickProp, nodeId])
+
+  return (
+    <NodeElement {...props} theme={{ clickable: typeof onClickProp === 'function' }}>
+      <TitleRow onClick={onClick}>
+        <IconWrapper>
+          <Identicon
+            string={nodeId}
+            size={20}
+          />
+        </IconWrapper>
+        <Name>
+          <strong>{title}</strong>
+          {!showAddress && (
+            <PlaceName>{placeName}</PlaceName>
+          )}
+          {!!showAddress && (
+            <Address title={nodeId}>{truncate(nodeId)}</Address>
+          )}
+        </Name>
+      </TitleRow>
+      {children || null}
+    </NodeElement>
+  )
+}
 
 export default NodeListItem

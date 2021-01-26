@@ -22,6 +22,7 @@ const UnstyledStat = ({
   value,
   onClick: onClickProp,
   disabled,
+  theme,
   ...props
 }: StatProps) => {
   const onClick = useCallback(() => {
@@ -122,6 +123,7 @@ const ButtonGrid = styled.div`
 const Underline = styled.div`
   border-bottom: 1.5px solid #0324FF;
   width: 32px;
+  z-index: 1;
 `
 
 const UnderlineContainer = styled.div`
