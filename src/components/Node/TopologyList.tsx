@@ -2,8 +2,9 @@ import React, { useMemo } from 'react'
 
 import { useStore } from '../../contexts/Store'
 import NodeList from '../NodeList'
+import StreamrClientProvider from '../StreamrClientProvider'
 
-import Error from '../Error'
+import NodeStats from '../NodeStats'
 
 type Props = {
   id?: string,
@@ -16,15 +17,16 @@ const TopologyList = ({ id }: Props) => {
 
   return currentNode ? (
     <NodeList>
-      <NodeList.Node
-        nodeId={currentNode.id}
-        title={currentNode.title}
-        placeName={currentNode.placeName}
-      >
-        <Error>
-          Couldn’t load node metrics
-        </Error>
-      </NodeList.Node>
+      <StreamrClientProvider>
+        <NodeList.Node
+          nodeId={currentNode.id}
+          title={currentNode.title}
+          placeName={currentNode.placeName}
+          showAddress
+        >
+          <NodeStats key={currentNode.id} id={currentNode.id} />
+        </NodeList.Node>
+      </StreamrClientProvider>
     </NodeList>
   ) : null
 }

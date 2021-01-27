@@ -5,6 +5,7 @@ import Identicon from 'react-identicons'
 import { MONO, MEDIUM } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 import Stats from '../Stats'
+import Graphs from '../Graphs'
 import Error from '../Error'
 
 const Name = styled.div`
@@ -46,6 +47,7 @@ const NodeElement = styled.div`
   }
 
   ${Stats},
+  ${Graphs},
   ${Error} {
     border-top: 1px solid #F5F5F5;
   }
