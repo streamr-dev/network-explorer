@@ -9,6 +9,7 @@ import ReactMapGL, {
   InteractiveMap,
   ViewportProps,
   FlyToInterpolator,
+  LinearInterpolator,
 } from 'react-map-gl'
 import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
@@ -18,7 +19,7 @@ import { useHistory } from 'react-router-dom'
 import { NodeProperties } from './types'
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
-import NavigationControl from './NavigationControl'
+import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
 
 import useWindowSize from '../../hooks/useWindowSize'
 import { useStore, ActiveView } from '../../contexts/Store'
@@ -26,6 +27,7 @@ import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node, Topology } from '../../utils/api/tracker'
 import { useDebounced } from '../../hooks/wrapCallback'
 import { getCenteredViewport } from './utils'
+import useKeyDown from '../../hooks/useKeyDown'
 
 type Props = {
   nodes: Node[],
@@ -35,7 +37,7 @@ type Props = {
   setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>,
   onNodeClick?: (v: string) => void,
   onMapClick?: () => void,
-}
+} & NavigationControlProps
 
 const defaultViewport = {
   width: 400,
@@ -60,6 +62,9 @@ export const Map = ({
   setViewport,
   onNodeClick,
   onMapClick,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
 }: Props) => {
   const mapRef = useRef<InteractiveMap>(null)
 
@@ -138,10 +143,18 @@ export const Map = ({
         </>
       )}
       <NavigationControl
-        setViewport={setViewport}
+        onZoomIn={onZoomIn}
+        onZoomOut={onZoomOut}
+        onZoomReset={onZoomReset}
       />
     </ReactMapGL>
   )
+}
+
+const LINEAR_TRANSITION_PROPS = {
+  transitionDuration: 300,
+  transitionEasing: (t: number) => t,
+  transitionInterpolator: new LinearInterpolator(),
 }
 
 export const ConnectedMap = () => {
@@ -232,6 +245,39 @@ export const ConnectedMap = () => {
     setActiveView(ActiveView.Map)
   }, [setActiveView])
 
+  const zoomIn = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: prev.zoom + 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const zoomOut = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: prev.zoom - 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const reset = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => {
+      const nextViewport = getCenteredViewport(visibleNodes, prev.width, prev.height)
+      return {
+        ...prev,
+        ...nextViewport,
+        LINEAR_TRANSITION_PROPS,
+      }
+    })
+  }, [debouncedSetViewport, visibleNodes])
+
+  useKeyDown(useMemo(() => ({
+    '0': () => {
+      reset()
+    },
+  }), [reset]))
+
   return (
     <Map
       nodes={visibleNodes}
@@ -241,6 +287,9 @@ export const ConnectedMap = () => {
       activeNode={activeNode}
       onNodeClick={onNodeClick}
       onMapClick={onMapClick}
+      onZoomIn={zoomIn}
+      onZoomOut={zoomOut}
+      onZoomReset={reset}
     />
   )
 }
