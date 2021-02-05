@@ -17,7 +17,7 @@ const arePointsOverlapped = (a: ClusterPointFeature, b: ClusterPointFeature) => 
 }
 
 const getCirclePositions = (center: [number, number], count: number) => {
-  const circleFootSeparation = 0.00003
+  const circleFootSeparation = 0.000018
   const circumference = circleFootSeparation * (2 + count)
   const legLength = circumference / (2 * Math.PI)
   const angleStep = (2 * Math.PI) / count
