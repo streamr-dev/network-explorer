@@ -1,6 +1,5 @@
 import React from 'react'
-import { SVGOverlay, HTMLRedrawOptions } from 'react-map-gl'
-import styled from 'styled-components/macro'
+import { Source, Layer } from 'react-map-gl'
 import uniqBy from 'lodash/uniqBy'
 import {
   SuperClusterType,
@@ -8,11 +7,6 @@ import {
   ClusterConnection,
   NodeConnection,
 } from './types'
-
-const NodeConnectionPath = styled.path`
-  color: #0324FF;
-  stroke-dasharray: 5;
-`
 
 const getClusterConnections = (
   supercluster: SuperClusterType,
@@ -69,28 +63,40 @@ type Props = {
   nodeConnections: Array<NodeConnection>,
 }
 
-const ConnectionLayer = ({ supercluster, clusters, nodeConnections }: Props) => (
-  <SVGOverlay
-    redraw={(opts: HTMLRedrawOptions) => {
-      if (supercluster == null) {
-        return null
+const ConnectionLayer = ({ supercluster, clusters, nodeConnections }: Props) => {
+  const connections = getClusterConnections(supercluster, clusters, nodeConnections)
+  const geoJsonLines: GeoJSON.FeatureCollection<GeoJSON.Geometry> = {
+    type: 'FeatureCollection',
+    features: connections.map((conn) => (
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            conn.source,
+            conn.target,
+          ],
+        },
+        properties: {},
       }
+    )),
+  }
 
-      const connections = getClusterConnections(supercluster, clusters, nodeConnections)
-      return connections.map((conn) => {
-        const [ax, ay] = opts.project(conn.source)
-        const [bx, by] = opts.project(conn.target)
-        return (
-          <NodeConnectionPath
-            key={`connection-${conn.sourceId}-${conn.targetId}`}
-            d={`M ${ax} ${ay} L ${bx} ${by}`}
-            fill="transparent"
-            stroke="currentColor"
-          />
-        )
-      })
-    }}
-  />
-)
+  const layerStyle = {
+    id: 'node-connections-layer',
+    type: 'line',
+    paint: {
+      'line-width': 1,
+      'line-color': '#0324FF',
+      'line-dasharray': [5, 5],
+    },
+  }
+
+  return (
+    <Source id="node-connections-source" type="geojson" data={geoJsonLines}>
+      <Layer {...layerStyle} />
+    </Source>
+  )
+}
 
 export default ConnectionLayer

@@ -132,3 +132,36 @@ export const ZoomControls: Story = (args) => {
     />
   )
 }
+
+export const OverlappingNodes: Story = (args) => {
+  const [viewport, setViewport] = useState<ViewportProps>({
+    width: 800,
+    height: 600,
+    latitude: 60.16952,
+    longitude: 24.93545,
+    zoom: 2,
+    bearing: 0,
+    pitch: 0,
+    altitude: 0,
+    maxZoom: 20,
+    minZoom: 0,
+    maxPitch: 60,
+    minPitch: 0,
+  })
+
+  const overlappingNodes = nodes.flatMap((node, index) =>
+    [...Array(index * 3).keys()].flatMap((_, idx) => ({
+      ...node,
+      id: node.id + idx,
+    })),
+  )
+
+  return (
+    <Map
+      nodes={overlappingNodes}
+      topology={topology}
+      viewport={viewport}
+      setViewport={setViewport}
+    />
+  )
+}

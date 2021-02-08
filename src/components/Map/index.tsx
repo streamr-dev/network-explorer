@@ -10,6 +10,7 @@ import ReactMapGL, {
   ViewportProps,
   FlyToInterpolator,
   LinearInterpolator,
+  WebMercatorViewport,
 } from 'react-map-gl'
 import useSupercluster from 'use-supercluster'
 import { PointFeature } from 'supercluster'
@@ -54,6 +55,28 @@ const defaultViewport = {
   minPitch: 0,
 }
 
+const padBounds = (bounds: number[], padding: number) => {
+  if (bounds != null) {
+    return [
+      bounds[0] - padding,
+      bounds[1] - padding,
+      bounds[2] + padding,
+      bounds[3] + padding,
+    ]
+  }
+  return bounds
+}
+
+const getBounds = (viewport: ViewportProps) => {
+  const vp = new WebMercatorViewport({
+    ...viewport,
+  })
+  const [north, west] = vp.unproject([0, 0])
+  const [east, south] = vp.unproject([viewport.width, viewport.height])
+  const bounds = [north, south, east, west]
+  return bounds
+}
+
 export const Map = ({
   nodes,
   topology,
@@ -76,42 +99,49 @@ export const Map = ({
     })
   ), [topology])
 
-  const points: Array<PointFeature<NodeProperties>> = (nodes || []).map((node) => ({
-    type: 'Feature',
-    properties: {
-      nodeId: node.id,
-      cluster: false,
-      point_count: 1,
-      point_count_abbreviated: '1',
-    },
-    geometry: {
-      type: 'Point',
-      coordinates: [node.longitude, node.latitude],
-    },
-  }))
-  let bounds = mapRef.current?.getMap()?.getBounds().toArray().flat() as [
-    number,
-    number,
-    number,
-    number
-  ]
-  const safeMargin = 0.1
-  // Add a bit of safe margin to bounds so that supercluster will not filter
-  // markers on the edges of viewport so aggressively.
-  if (bounds != null) {
-    bounds = [
-      bounds[0] - safeMargin,
-      bounds[1] - safeMargin,
-      bounds[2] + safeMargin,
-      bounds[3] + safeMargin,
-    ]
-  }
+  const points: Array<PointFeature<NodeProperties>> = useMemo(() =>
+    (nodes || []).map((node) => ({
+      type: 'Feature',
+      properties: {
+        nodeId: node.id,
+        cluster: false,
+        point_count: 1,
+        point_count_abbreviated: '1',
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [node.longitude, node.latitude],
+      },
+    })), [nodes])
+
+  // Calculate map bounds for current viewport
+  const bounds = getBounds(viewport)
+
+  // Calculate clusters
   const { clusters, supercluster } = useSupercluster({
     points,
-    bounds,
+    // Add a bit of safe margin to bounds so that supercluster will not filter
+    // markers on the edges of viewport so aggressively.
+    bounds: padBounds(bounds, 0.1) as [number, number, number, number],
     zoom: viewport.zoom,
     options: {
       radius: 40,
+      minZoom: viewport.minZoom,
+      maxZoom: viewport.maxZoom,
+    },
+  })
+
+  // Calculate clusters separately for the whole world at current zoom level
+  // so that we can use it to draw connections even when nodes are out of
+  // current viewport.
+  const worldBounds = [-180, -90, 180, 90] as [number, number, number, number]
+  const { clusters: worldClusters, supercluster: worldSupercluster } = useSupercluster({
+    points,
+    bounds: worldBounds,
+    zoom: viewport.zoom,
+    options: {
+      radius: 40,
+      minZoom: viewport.minZoom,
       maxZoom: viewport.maxZoom,
     },
   })
@@ -125,22 +155,22 @@ export const Map = ({
       ref={mapRef}
       onClick={onMapClick}
     >
+      {worldSupercluster != null && (
+        <ConnectionLayer
+          supercluster={worldSupercluster}
+          clusters={worldClusters}
+          nodeConnections={connections}
+        />
+      )}
       {supercluster != null && (
-        <>
-          <ConnectionLayer
-            supercluster={supercluster}
-            clusters={clusters}
-            nodeConnections={connections}
-          />
-          <MarkerLayer
-            supercluster={supercluster}
-            clusters={clusters}
-            viewport={viewport}
-            setViewport={(...args) => setViewport(...args)}
-            activeNode={activeNode && activeNode.id}
-            onNodeClick={onNodeClick}
-          />
-        </>
+        <MarkerLayer
+          supercluster={supercluster}
+          clusters={clusters}
+          viewport={viewport}
+          setViewport={(...args) => setViewport(...args)}
+          activeNode={activeNode && activeNode.id}
+          onNodeClick={onNodeClick}
+        />
       )}
       <NavigationControl
         onZoomIn={onZoomIn}
@@ -168,18 +198,7 @@ export const ConnectedMap = () => {
   } = useStore()
   const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
-    width: 400,
-    height: 400,
-    latitude: 60.16952,
-    longitude: 24.93545,
-    zoom: 10,
-    bearing: 0,
-    pitch: 0,
-    altitude: 0,
-    maxZoom: 20,
-    minZoom: 0,
-    maxPitch: 60,
-    minPitch: 0,
+    ...defaultViewport,
     transitionInterpolator: new FlyToInterpolator({
       speed: 3,
     }),
