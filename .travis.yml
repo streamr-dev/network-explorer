@@ -38,13 +38,13 @@ jobs:
       - sudo sysctl fs.inotify.max_user_watches=524288
       - sudo sysctl fs.inotify.max_queued_events=524288
       - sudo sysctl -p
-      - travis_scripts/smoke-test.sh
+      - .ci-scripts/smoke_test.sh
     after_failure:
       - docker ps -a
       - docker logs network-explorer
     deploy:
       - provider: script
         skip_cleanup: true
-        script: bash travis_scripts/deploy-docker.sh dev
+        script: bash .ci-scripts/deploy_docker.sh dev
         on:
           branch: master

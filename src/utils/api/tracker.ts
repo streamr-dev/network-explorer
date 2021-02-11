@@ -10,7 +10,7 @@ export const getTrackers = async (): Promise<string[]> => {
   const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
 
   const result: string[] = (trackerRegistry.getAllTrackers() || [])
-    .map(({ http }: { http: string }) => http)
+    .map(({ http }: { http: string }) => http.replace('10.200.10.1', '192.168.1.3'))
     .filter(Boolean)
 
   return result || []
