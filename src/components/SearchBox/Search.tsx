@@ -55,6 +55,12 @@ const Search = styled(ControlBox)`
   }
 
   @media (min-width: ${SM}px) {
+    ${({ theme }) => theme.resultsActive && css`
+      ${Graphs} {
+        display: none;
+      }
+    `}
+
     ${SearchResults} {
       max-height: 280px;
       overflow: hidden;

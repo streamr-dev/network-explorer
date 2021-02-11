@@ -68,7 +68,7 @@ export type Props = {
   ratio?: string,
 }
 
-const curveColors = ['#FF5C00', '#B4BFF8']
+const curveColors = ['#B4BFF8', '#FF5C00']
 
 const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
   const date = new Date(milliseconds)
