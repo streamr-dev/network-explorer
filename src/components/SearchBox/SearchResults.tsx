@@ -64,6 +64,29 @@ const Row = styled.div`
   }
 `
 
+const Name = styled.div`
+  display: flex;
+  min-width: 0;
+
+  mark {
+    background-color: transparent;
+    font-weight: 700;
+  }
+`
+
+const TruncatedPath = styled.span`
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+`
+
+const PathFragment = styled.span`
+  flex-shrink: 0;
+`
+
+const Description = styled.div`
+`
+
 const Item = styled.div`
   align-self: center;
   overflow: hidden;
@@ -71,31 +94,23 @@ const Item = styled.div`
   padding-right: 12px;
   white-space: nowrap;
 
-  > div:first-child {
+  ${Name} {
     color: #323232;
     font-weight: 500;
     font-size: 12px;
   }
 
-  > div:last-child {
+  ${Description} {
     font-weight: 500;
     font-size: 10px;
-  }
-
-  > div {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
   }
 
-  mark {
-    background-color: transparent;
-    font-weight: 700;
-  }
-
   @media (max-width: ${MD}px) {
-    > div:first-child {
+    ${Name} {
       margin-bottom: 2px;
     }
   }
@@ -152,23 +167,47 @@ const UnstyledSearchResults = ({
 }: Props) => (
   <div {...props}>
     <List>
-      {results.map((result) => (
-        <Row key={result.id} onClick={() => typeof onClick === 'function' && onClick(result)}>
-          <IconWrapper>
-            <Icon>
-              <ResultIcon type={result.type} />
-            </Icon>
-          </IconWrapper>
-          <Item>
-            <div>
-              <Highlight search={highlight && truncate(highlight)}>
-                {truncate(result.name)}
-              </Highlight>
-            </div>
-            <div>{resultTypes[result.type] || ('')}</div>
-          </Item>
-        </Row>
-      ))}
+      {results.map((result) => {
+        const fullname = truncate(result.name)
+        const search = highlight && truncate(highlight)
+
+        // Preserve last path fragment & allow the path before it to be truncated
+        const lastSlashPos = fullname.lastIndexOf('/')
+
+        const truncatedPath = (lastSlashPos >= 0) ? fullname.slice(0, lastSlashPos) : fullname
+        const pathFragment = (lastSlashPos >= 0) ? fullname.slice(lastSlashPos + 1) : undefined
+
+        return (
+          <Row key={result.id} onClick={() => typeof onClick === 'function' && onClick(result)}>
+            <IconWrapper>
+              <Icon>
+                <ResultIcon type={result.type} />
+              </Icon>
+            </IconWrapper>
+            <Item>
+              <Name>
+                <TruncatedPath>
+                  <Highlight search={search}>
+                    {truncatedPath}
+                  </Highlight>
+                </TruncatedPath>
+                {!!pathFragment && (
+                  <PathFragment>
+                    /
+                    <Highlight search={search}>
+                      {pathFragment}
+                    </Highlight>
+                  </PathFragment>
+                )}
+              </Name>
+              <Description>
+                {result.type === 'streams' && (result.description || ('No description'))}
+                {result.type !== 'streams' && (resultTypes[result.type] || (''))}
+              </Description>
+            </Item>
+          </Row>
+        )
+      })}
     </List>
   </div>
 )
