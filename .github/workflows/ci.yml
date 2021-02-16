@@ -25,7 +25,7 @@ jobs:
         run: npm run test
 
   docker:
-    needs: [test]
+    #needs: [test]
     name: Publish Docker images
     runs-on: ubuntu-latest
 
