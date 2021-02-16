@@ -8,17 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 12.x ]
+        node-version: [ 14.x ]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build --if-present
-      - run: npm run test
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build app
+        run: npm run build --if-present
+      - name: Run tests
+        run: npm run test
 
   docker:
     needs: [test]
@@ -29,10 +33,16 @@ jobs:
     #if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm ci
+      - name: Build app
+        run: npm run build --if-present
       - name: Build Docker image
         run: docker build -t $OWNER/$IMAGE_NAME:local .
       - name: Smoke test image
-        run: bash .ci_scripts/smoke_test.sh
+        run: |
+          ls -la
+          bash .ci_scripts/smoke_test.sh
       - uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USER }}
