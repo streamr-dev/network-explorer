@@ -1,4 +1,4 @@
-name: Lint, test & deploy docker images
+name: Lint, test & deploy docker image
 
 on: [push]
 
@@ -25,12 +25,12 @@ jobs:
         run: npm run test
 
   docker:
-    #needs: [test]
+    needs: [test]
     name: Publish Docker images
     runs-on: ubuntu-latest
 
     # run job only for master and tags
-    #if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
