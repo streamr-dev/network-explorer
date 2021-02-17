@@ -47,6 +47,11 @@ const results: Array<SearchResult> = [{
   id: '4',
   type: 'streams',
   name: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1/test/long-path',
+}, {
+  id: '4',
+  type: 'streams',
+  name: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1/test/another/category/also/very/long-path',
+  description: 'Real-time telemetrics from public transport vehicles in Helsinki, Finland.',
 }]
 
 export const Basic = () => {
