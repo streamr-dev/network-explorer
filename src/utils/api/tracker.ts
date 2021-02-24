@@ -80,15 +80,29 @@ export const getNodes = async (url: string): Promise<Node[]> => {
 
 export type Topology = Record<string, string[]>
 
-export type Topologyresult = Record<string, Topology>
+export type TopologyEntry = {
+  neighborId: string,
+  rtt: number | undefined,
+}
+
+export type TopologyResult = Record<string, TopologyEntry[]>
+
+export type StreamTopologyResult = Record<string, TopologyResult>
+
+const getTopologyFromResponse = (response: TopologyResult): Topology => (
+  Object.keys(response || {}).reduce((topology: Topology, nodeId: string) => ({
+    ...topology,
+    [nodeId]: (response[nodeId] || []).map(({ neighborId }) => neighborId),
+  }), {})
+)
 
 export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
   const url = await getTrackerForStream({ id })
-  let result: Topologyresult = {}
+  let result: StreamTopologyResult = {}
 
   const encodedId = encodeURIComponent(id)
   try {
-    result = await get<Topologyresult>({
+    result = await get<StreamTopologyResult>({
       url: `${url}/topology/${encodedId}/`, // trailing slash needed
     })
   } catch (e) {
@@ -96,9 +110,9 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
     console.warn(`Failed to load topology from ${url}/topology/${encodedId}/`)
   }
 
-  const [topology] = Object.values(result || {})
+  const [topology] = Object.values(result)
 
-  return topology || {}
+  return getTopologyFromResponse(topology)
 }
 
 export const getNodeConnections = async (): Promise<Topology> => {
@@ -107,13 +121,14 @@ export const getNodeConnections = async (): Promise<Topology> => {
   let nodeConnections
 
   try {
-    const topologyPromises = trackerUrls.map((url) => get<Topology>({
+    const topologyPromises = trackerUrls.map((url) => get<TopologyResult>({
       url: `${url}/node-connections/`,
     }))
 
     const topologies = await Promise.all(topologyPromises)
 
-    nodeConnections = (topologies || []).reduce((combined, topology) => {
+    nodeConnections = (topologies || []).reduce((combined: Topology, response: TopologyResult) => {
+      const topology = getTopologyFromResponse(response)
       const nextCombined = {
         ...combined,
       }

@@ -67,7 +67,9 @@
         "lines": 50
       }
     },
-    "coverageReporters": ["text"]
+    "coverageReporters": [
+      "text"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
