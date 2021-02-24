@@ -116,14 +116,18 @@ describe('tracker API', () => {
         '0x1234/path/tostream': {
           'node1': [{
             neighborId: 'node2',
+            rtt: 1,
           }, {
             neighborId: 'node3',
+            rtt: 8,
           }],
           'node2': [{
             neighborId: 'node1',
+            rtt: 4,
           }],
           'node3': [{
             neighborId: 'node1',
+            rtt: 12,
           }],
         },
       })
@@ -136,28 +140,39 @@ describe('tracker API', () => {
         url: `${http}/topology/0x1234%2Fpath%2Ftostream/`,
       })
       expect(result).toStrictEqual({
-        'node1': ['node2', 'node3'],
-        'node2': ['node1'],
-        'node3': ['node1'],
+        'node1': {
+          'node2': 1,
+          'node3': 8,
+        },
+        'node2': {
+          'node1': 4,
+        },
+        'node3': {
+          'node1': 12,
+        },
       })
     })
   })
 
   describe('getNodeConnections', () => {
-    it('combines topologies from multiple trackers', async () => {
+    it('combines topologies from multiple trackers, uses highest latency value', async () => {
       const results = [{
         http: 'http://tracker1',
         topology: {
           'node1': [{
             neighborId: 'node2',
+            rtt: 11,
           }],
           'node2': [{
             neighborId: 'node1',
+            rtt: 5,
           }, {
             neighborId: 'node3',
+            rtt: 9,
           }],
           'node3': [{
             neighborId: 'node2',
+            rtt: 15,
           }],
           'node4': [],
         },
@@ -165,16 +180,26 @@ describe('tracker API', () => {
         http: 'http://tracker2',
         topology: {
           'node1': [{
+            neighborId: 'node2',
+            rtt: 1,
+          }, {
             neighborId: 'node4',
+            rtt: 2,
           }, {
             neighborId: 'node3',
+            rtt: 6,
           }],
-          'node2': [],
+          'node2': [{
+            neighborId: 'node1',
+            rtt: 15,
+          }],
           'node3': [{
             neighborId: 'node1',
+            rtt: 7,
           }],
           'node4': [{
             neighborId: 'node1',
+            rtt: 2,
           }],
         },
       }]
@@ -202,10 +227,22 @@ describe('tracker API', () => {
         url: 'http://tracker2/node-connections/',
       })
       expect(result).toStrictEqual({
-        'node1': ['node2', 'node4', 'node3'],
-        'node2': ['node1', 'node3'],
-        'node3': ['node2', 'node1'],
-        'node4': ['node1'],
+        'node1': {
+          'node2': 11,
+          'node3': 6,
+          'node4': 2,
+        },
+        'node2': {
+          'node1': 15,
+          'node3': 9,
+        },
+        'node3': {
+          'node1': 7,
+          'node2': 15,
+        },
+        'node4': {
+          'node1': 2,
+        },
       })
     })
   })

@@ -118,16 +118,16 @@ describe('Store', () => {
 
       act(() => {
         store.addNodes([{
-          id: '1',
+          id: 'node1',
           title: 'Node 1',
         }, {
-          id: '2',
+          id: 'node2',
           title: 'Node 2',
         }, {
-          id: '3',
+          id: 'node3',
           title: 'Node 3',
         }, {
-          id: '4',
+          id: 'node4',
           title: 'Node 4',
         }])
       })
@@ -136,20 +136,37 @@ describe('Store', () => {
 
       act(() => {
         store.setTopology({
-          '1': ['3', '4'],
-          '3': ['1'],
-          '4': ['1'],
+          'node1': {
+            'node3': 1,
+            'node4': 2,
+          },
+          'node3': {
+            'node1': 1,
+          },
+          'node4': {
+            'node1': 3,
+          },
         })
       })
 
+      expect(store.topology).toStrictEqual({
+        'node1': ['node3', 'node4'],
+        'node3': ['node1'],
+        'node4': ['node1'],
+      })
+      expect(store.latencies).toStrictEqual({
+        'node1': [1, 2],
+        'node3': [1],
+        'node4': [3],
+      })
       expect(store.visibleNodes).toStrictEqual([{
-        id: '1',
+        id: 'node1',
         title: 'Node 1',
       }, {
-        id: '3',
+        id: 'node3',
         title: 'Node 3',
       }, {
-        id: '4',
+        id: 'node4',
         title: 'Node 4',
       }])
       expect(store.activeNode).toStrictEqual(undefined)

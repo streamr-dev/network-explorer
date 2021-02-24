@@ -78,7 +78,9 @@ export const getNodes = async (url: string): Promise<Node[]> => {
   }))
 }
 
-export type Topology = Record<string, string[]>
+export type Latency = Record<string, number | undefined>
+
+export type Topology = Record<string, Latency>
 
 export type TopologyEntry = {
   neighborId: string,
@@ -92,9 +94,14 @@ export type StreamTopologyResult = Record<string, TopologyResult>
 const getTopologyFromResponse = (response: TopologyResult): Topology => (
   Object.keys(response || {}).reduce((topology: Topology, nodeId: string) => ({
     ...topology,
-    [nodeId]: (response[nodeId] || []).map(({ neighborId }) => neighborId),
+    [nodeId]: (response[nodeId] || []).reduce((latencies, { neighborId, rtt }) => ({
+      ...latencies,
+      [neighborId]: rtt,
+    }), {}),
   }), {})
 )
+
+const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
 
 export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
   const url = await getTrackerForStream({ id })
@@ -134,16 +141,25 @@ export const getNodeConnections = async (): Promise<Topology> => {
       }
 
       Object.keys(topology || {}).forEach((nodeId) => {
-        if (nextCombined[nodeId]) {
-          const connections = new Set([
-            ...nextCombined[nodeId],
-            ...topology[nodeId],
-          ])
+        Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
+          let rtt
 
-          nextCombined[nodeId] = [...connections]
-        } else {
-          nextCombined[nodeId] = [...topology[nodeId]]
-        }
+          if (nextCombined[nodeId] &&
+            isNumber(nextCombined[nodeId][neighborId]) &&
+            isNumber(topology[nodeId][neighborId])) {
+            rtt = Math.max(
+              nextCombined[nodeId][neighborId] || 0,
+              topology[nodeId][neighborId] || 0,
+            )
+          } else if (isNumber(topology[nodeId][neighborId])) {
+            rtt = topology[nodeId][neighborId]
+          }
+
+          nextCombined[nodeId] = {
+            ...(nextCombined[nodeId] || {}),
+            [neighborId]: rtt,
+          }
+        })
       })
 
       return nextCombined

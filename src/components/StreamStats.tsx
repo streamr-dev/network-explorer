@@ -1,11 +1,12 @@
 import React, {
   useCallback,
   useState,
-  useReducer,
+  useMemo,
 } from 'react'
 import { useSubscription } from 'streamr-client-react'
 
 import useIsMounted from '../hooks/useIsMounted'
+import { useStore } from '../contexts/Store'
 
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
@@ -18,35 +19,29 @@ type StatsState = {
 
 const NetworkStats = () => {
   const isMounted = useIsMounted()
-  const [{
-    messagesPerSecond,
-    numberOfNodes,
-    latency,
-  }, updateStats] = useReducer((prevState: StatsState, nextState: StatsState) => ({
-    ...(prevState || {}),
-    ...nextState,
-  }), {
-    messagesPerSecond: undefined,
-    numberOfNodes: undefined,
-    latency: undefined,
-  })
+  const [messagesPerSecond, setMessagesPerSecond] = useState<number | undefined>()
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
+  const { visibleNodes, latencies } = useStore()
+
+  /* const latency = useMemo(() => {
+    if (latencies && latencies.length > 0) {
+      debugger // eslint-disable-line
+      const paths = Object.values(latencies || {})
+      const result = QuickDijkstra.calculateShortestPaths([[2, 3, 1], [0, 2, 3], [2, 1, 4] ])
+      return result
+    }
+
+    return undefined
+  }, [latencies])
+  */
 
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => prev !== name ? name : undefined)
   }, [])
 
-  const onMessage = useCallback(({
-    broker,
-    network,
-    trackers,
-  }) => {
-    if (isMounted()) {
-      updateStats({
-        messagesPerSecond: broker && Math.round(broker.messagesToNetworkPerSec),
-        numberOfNodes: trackers && trackers.totalNumberOfNodes,
-        latency: network && Math.round(network.avgLatencyMs),
-      })
+  const onMessage = useCallback(({ broker }) => {
+    if (isMounted() && broker) {
+      setMessagesPerSecond(Math.round(broker.messagesToNetworkPerSec))
     }
   }, [isMounted])
 
@@ -69,14 +64,12 @@ const NetworkStats = () => {
         <Stats.Stat
           id="numberOfNodes"
           label="Nodes"
-          value={numberOfNodes}
-          onClick={() => toggleStat('numberOfNodes')}
+          value={visibleNodes.length}
         />
         <Stats.Stat
           id="latency"
           label="Latency ms"
-          value={latency}
-          onClick={() => toggleStat('latency')}
+          value={undefined}
         />
       </Stats>
       {!!selectedStat && (
