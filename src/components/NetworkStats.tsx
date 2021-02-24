@@ -1,4 +1,8 @@
-import React, { useCallback, useState, useReducer } from 'react'
+import React, {
+  useCallback,
+  useState,
+  useReducer,
+} from 'react'
 import { useSubscription } from 'streamr-client-react'
 
 import useIsMounted from '../hooks/useIsMounted'
@@ -6,36 +10,31 @@ import useIsMounted from '../hooks/useIsMounted'
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
 
-type Props = {
-  id: string,
-}
-
 type StatsState = {
   messagesPerSecond?: number | undefined,
-  bytesPerSecond?: number | undefined,
+  numberOfNodes?: number | undefined,
   latency?: number | undefined,
 }
 
-const NodeStats = ({ id }: Props) => {
-  const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
+const NetworkStats = () => {
+  const isMounted = useIsMounted()
   const [{
     messagesPerSecond,
-    bytesPerSecond,
+    numberOfNodes,
     latency,
   }, updateStats] = useReducer((prevState: StatsState, nextState: StatsState) => ({
     ...(prevState || {}),
     ...nextState,
   }), {
     messagesPerSecond: undefined,
-    bytesPerSecond: undefined,
+    numberOfNodes: undefined,
     latency: undefined,
   })
+  const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
 
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => prev !== name ? name : undefined)
   }, [])
-
-  const isMounted = useIsMounted()
 
   const onMessage = useCallback(({
     broker,
@@ -45,14 +44,13 @@ const NodeStats = ({ id }: Props) => {
     if (isMounted()) {
       updateStats({
         messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
-        bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
+        numberOfNodes: trackers.totalNumberOfNodes,
         latency: Math.round(network.avgLatencyMs),
       })
     }
   }, [isMounted])
 
   useSubscription({
-    // TODO: use network metric for now, replace with real value
     stream: 'streamr.eth/metrics/network/sec',
     resend: {
       last: 1,
@@ -69,10 +67,10 @@ const NodeStats = ({ id }: Props) => {
           onClick={() => toggleStat('messagesPerSecond')}
         />
         <Stats.Stat
-          id="bytesPerSecond"
-          label="Mb / s"
-          value={bytesPerSecond  && (bytesPerSecond / 1024 / 1024).toPrecision(2)}
-          onClick={() => toggleStat('bytesPerSecond')}
+          id="numberOfNodes"
+          label="Nodes"
+          value={numberOfNodes}
+          onClick={() => toggleStat('numberOfNodes')}
         />
         <Stats.Stat
           id="latency"
@@ -83,8 +81,7 @@ const NodeStats = ({ id }: Props) => {
       </Stats>
       {!!selectedStat && (
         <MetricGraph
-          type="node"
-          id={id}
+          type="network"
           metric={selectedStat}
         />
       )}
@@ -92,4 +89,4 @@ const NodeStats = ({ id }: Props) => {
   )
 }
 
-export default NodeStats
+export default NetworkStats
