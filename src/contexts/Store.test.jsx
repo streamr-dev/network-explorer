@@ -155,9 +155,16 @@ describe('Store', () => {
         'node4': ['node1'],
       })
       expect(store.latencies).toStrictEqual({
-        'node1': [1, 2],
-        'node3': [1],
-        'node4': [3],
+        'node1': {
+          'node3': 1,
+          'node4': 2,
+        },
+        'node3': {
+          'node1': 1,
+        },
+        'node4': {
+          'node1': 3,
+        },
       })
       expect(store.visibleNodes).toStrictEqual([{
         id: 'node1',

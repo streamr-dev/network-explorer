@@ -1,5 +1,6 @@
 import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
+import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
 import { getReversedGeocodedLocation } from './mapbox'
 
@@ -91,7 +92,7 @@ export type TopologyResult = Record<string, TopologyEntry[]>
 
 export type StreamTopologyResult = Record<string, TopologyResult>
 
-const getTopologyFromResponse = (response: TopologyResult): Topology => (
+export const getTopologyFromResponse = (response: TopologyResult): Topology => (
   Object.keys(response || {}).reduce((topology: Topology, nodeId: string) => ({
     ...topology,
     [nodeId]: (response[nodeId] || []).reduce((latencies, { neighborId, rtt }) => ({
@@ -102,6 +103,51 @@ const getTopologyFromResponse = (response: TopologyResult): Topology => (
 )
 
 const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
+
+type MapValue = [target: number, weight: number]
+
+export const getIndexedNodes = (topology: Topology): GraphLink[] => {
+  const ret: GraphLink[] = []
+
+  const matrix:  Map<number, MapValue> = new Map<number, MapValue>()
+
+  // build a mapping from links with arbitrary node ids to links with integer ids,
+  // the integer id is based on the first occurence of the node in the data and
+  // convert links to integer format using the mapping created,
+  // ignoring NULL rtts
+  const nodeIds: {[nodeId: string]: number} = {}
+
+  Object.keys(topology || {}).forEach((nodeId) => {
+    if (!nodeIds[nodeId]) {
+      nodeIds[nodeId] = Object.keys(nodeIds).length
+    }
+
+    Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
+      if (!nodeIds[neighborId]) {
+        nodeIds[neighborId] = Object.keys(nodeIds).length
+      }
+
+      // only take into account one non-null measurement per connection
+      // interpret connections as two-way
+      if (isNumber(topology[nodeId][neighborId])) {
+        const a = nodeIds[nodeId]
+        const b = nodeIds[neighborId]
+
+        if (a < b) {
+          matrix.set(a, [b, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+        } else {
+          matrix.set(b, [a, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+        }
+      }
+    })
+  })
+
+  for (const [key, value] of  matrix.entries()) {
+    ret.push([key, value[0], value[1]])
+  }
+
+  return ret
+}
 
 export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
   const url = await getTrackerForStream({ id })

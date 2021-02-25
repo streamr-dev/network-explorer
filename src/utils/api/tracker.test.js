@@ -246,4 +246,52 @@ describe('tracker API', () => {
       })
     })
   })
+
+  describe('getIndexedNodes', () => {
+    const topology = all.getTopologyFromResponse({
+      'node-1': [{
+        'neighborId': 'node-2',
+        'rtt': 10,
+      }, {
+        'neighborId': 'node-3',
+        'rtt': null,
+      }],
+      'node-2': [{
+        'neighborId': 'node-1',
+        'rtt': 10,
+      }, {
+        'neighborId': 'node-3',
+        'rtt': 120,
+      }],
+      'node-3': [{
+        'neighborId': 'node-1',
+        'rtt': null,
+      }, {
+        'neighborId': 'node-2',
+        'rtt': 120,
+      }],
+    })
+
+    expect(topology).toStrictEqual({
+      'node-1': {
+        'node-2': 10,
+        'node-3': null,
+      },
+      'node-2': {
+        'node-1': 10,
+        'node-3': 120,
+      },
+      'node-3': {
+        'node-1': null,
+        'node-2': 120,
+      },
+    })
+
+    const result = all.getIndexedNodes(topology)
+
+    expect(result).toStrictEqual([
+      [0, 1, 5],
+      [1, 2, 60],
+    ])
+  })
 })

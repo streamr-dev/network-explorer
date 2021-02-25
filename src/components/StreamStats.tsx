@@ -1,12 +1,14 @@
 import React, {
   useCallback,
   useState,
-  useMemo,
+  useEffect,
 } from 'react'
 import { useSubscription } from 'streamr-client-react'
+import { calculateShortestPaths, QuickDijkstraResult } from '@streamr/quick-dijkstra-wasm'
 
 import useIsMounted from '../hooks/useIsMounted'
 import { useStore } from '../contexts/Store'
+import { getIndexedNodes } from '../utils/api/tracker'
 
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
@@ -22,18 +24,19 @@ const NetworkStats = () => {
   const [messagesPerSecond, setMessagesPerSecond] = useState<number | undefined>()
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
   const { visibleNodes, latencies } = useStore()
+  const [latency, setLatency] = useState<number | undefined>(undefined)
 
-  /* const latency = useMemo(() => {
-    if (latencies && latencies.length > 0) {
-      debugger // eslint-disable-line
-      const paths = Object.values(latencies || {})
-      const result = QuickDijkstra.calculateShortestPaths([[2, 3, 1], [0, 2, 3], [2, 1, 4] ])
-      return result
-    }
+  useEffect(() => {
+    if (!latencies || Object.keys(latencies).length <= 0) { return }
 
-    return undefined
-  }, [latencies])
-  */
+    const indexedNodes = getIndexedNodes(latencies)
+
+    calculateShortestPaths(indexedNodes, ({ averageDistance }: QuickDijkstraResult) => {
+      if (isMounted()) {
+        setLatency(averageDistance)
+      }
+    })
+  }, [latencies, isMounted])
 
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => prev !== name ? name : undefined)
@@ -69,7 +72,7 @@ const NetworkStats = () => {
         <Stats.Stat
           id="latency"
           label="Latency ms"
-          value={undefined}
+          value={latency && latency.toFixed(1)}
         />
       </Stats>
       {!!selectedStat && (

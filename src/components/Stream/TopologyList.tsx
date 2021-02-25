@@ -11,9 +11,13 @@ type Props = {
   id: string,
 }
 
+interface ParamTypes {
+  nodeId: string,
+}
+
 const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
-  const { nodeId: activeNodeId } = useParams()
+  const { nodeId: activeNodeId } = useParams<ParamTypes>()
   const history = useHistory()
 
   const toggleNode = useCallback((nodeId) => {

@@ -104,10 +104,17 @@ describe('Controller', () => {
         '4': ['1'],
       })
       expect(store.latencies).toStrictEqual({
-        '1': [5, 1],
-        '2': [],
-        '3': [9],
-        '4': [4],
+        '1': {
+          '3': 5,
+          '4': 1,
+        },
+        '2': {},
+        '3': {
+          '1': 9,
+        },
+        '4': {
+          '1': 4,
+        },
       })
       expect(store.visibleNodes).toStrictEqual(nextNodes)
     })
@@ -186,9 +193,16 @@ describe('Controller', () => {
         '3': ['1', '2'],
       })
       expect(store.latencies).toStrictEqual({
-        '1': [1],
-        '2': [6],
-        '3': [7, 4],
+        '1': {
+          '3': 1,
+        },
+        '2': {
+          '3': 6,
+        },
+        '3': {
+          '1': 7,
+          '2': 4,
+        },
       })
       expect(store.visibleNodes).toStrictEqual([{
         id: '1',

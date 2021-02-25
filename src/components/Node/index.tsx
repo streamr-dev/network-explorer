@@ -35,8 +35,12 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
+interface ParamTypes {
+  nodeId: string,
+}
+
 export default () => {
-  const { nodeId } = useParams()
+  const { nodeId } = useParams<ParamTypes>()
   const { nodes } = useStore()
 
   if (!nodes || nodes.length < 1) {
