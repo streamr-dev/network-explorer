@@ -245,53 +245,104 @@ describe('tracker API', () => {
         },
       })
     })
+
+    it('handles empty topologies', async () => {
+      const results = [{
+        http: 'http://tracker1',
+        topology: {
+          'node1': [],
+          'node2': [],
+          'node3': [],
+          'node4': [],
+        },
+      }, {
+        http: 'http://tracker2',
+        topology: {
+          'node1': [],
+          'node2': [],
+          'node3': [],
+          'node4': [],
+        },
+      }]
+      const getAllTrackersMock = jest.fn(() => results)
+
+      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+        getAllTrackers: getAllTrackersMock,
+      })
+
+      const getMock = jest.fn().mockImplementation(({ url }) => {
+        const { topology } = results.find(({ http }) => `${http}/node-connections/` === url)
+
+        return Promise.resolve(topology)
+      })
+
+      request.get.mockImplementation(getMock)
+
+      const result = await all.getNodeConnections()
+
+      expect(getAllTrackersMock).toBeCalled()
+      expect(getMock).toBeCalledWith({
+        url: 'http://tracker1/node-connections/',
+      })
+      expect(getMock).toBeCalledWith({
+        url: 'http://tracker2/node-connections/',
+      })
+      expect(result).toStrictEqual({
+        'node1': {},
+        'node2': {},
+        'node3': {},
+        'node4': {},
+      })
+    })
   })
 
   describe('getIndexedNodes', () => {
-    const topology = all.getTopologyFromResponse({
-      'node-1': [{
-        'neighborId': 'node-2',
-        'rtt': 10,
-      }, {
-        'neighborId': 'node-3',
-        'rtt': null,
-      }],
-      'node-2': [{
-        'neighborId': 'node-1',
-        'rtt': 10,
-      }, {
-        'neighborId': 'node-3',
-        'rtt': 120,
-      }],
-      'node-3': [{
-        'neighborId': 'node-1',
-        'rtt': null,
-      }, {
-        'neighborId': 'node-2',
-        'rtt': 120,
-      }],
+    it('calculates indexed nodes from topology', () => {
+      const topology = all.getTopologyFromResponse({
+        'node-1': [{
+          'neighborId': 'node-2',
+          'rtt': 10,
+        }, {
+          'neighborId': 'node-3',
+          'rtt': null,
+        }],
+        'node-2': [{
+          'neighborId': 'node-1',
+          'rtt': 10,
+        }, {
+          'neighborId': 'node-3',
+          'rtt': 120,
+        }],
+        'node-3': [{
+          'neighborId': 'node-1',
+          'rtt': null,
+        }, {
+          'neighborId': 'node-2',
+          'rtt': 120,
+        }],
+      })
+
+      expect(topology).toStrictEqual({
+        'node-1': {
+          'node-2': 10,
+          'node-3': null,
+        },
+        'node-2': {
+          'node-1': 10,
+          'node-3': 120,
+        },
+        'node-3': {
+          'node-1': null,
+          'node-2': 120,
+        },
+      })
+
+      const result = all.getIndexedNodes(topology)
+
+      expect(result).toStrictEqual([
+        [0, 1, 5],
+        [1, 2, 60],
+      ])
     })
-
-    expect(topology).toStrictEqual({
-      'node-1': {
-        'node-2': 10,
-        'node-3': null,
-      },
-      'node-2': {
-        'node-1': 10,
-        'node-3': 120,
-      },
-      'node-3': {
-        'node-1': null,
-        'node-2': 120,
-      },
-    })
-
-    const result = all.getIndexedNodes(topology)
-
-    expect(result).toStrictEqual([
-      [0, 1, 5],
-      [1, 2, 60],
-    ])
   })
 })

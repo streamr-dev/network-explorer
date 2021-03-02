@@ -187,6 +187,10 @@ export const getNodeConnections = async (): Promise<Topology> => {
       }
 
       Object.keys(topology || {}).forEach((nodeId) => {
+        if (!nextCombined[nodeId]) {
+          nextCombined[nodeId] = {}
+        }
+
         Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
           let rtt
 
@@ -202,7 +206,7 @@ export const getNodeConnections = async (): Promise<Topology> => {
           }
 
           nextCombined[nodeId] = {
-            ...(nextCombined[nodeId] || {}),
+            ...nextCombined[nodeId],
             [neighborId]: rtt,
           }
         })
