@@ -1,11 +1,14 @@
 import React, {
   useCallback,
   useState,
-  useReducer,
+  useEffect,
 } from 'react'
 import { useSubscription } from 'streamr-client-react'
+import { calculateShortestPaths, QuickDijkstraResult } from '@streamr/quick-dijkstra-wasm'
 
 import useIsMounted from '../hooks/useIsMounted'
+import { useStore } from '../contexts/Store'
+import { getIndexedNodes } from '../utils/api/tracker'
 
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
@@ -18,35 +21,30 @@ type StatsState = {
 
 const NetworkStats = () => {
   const isMounted = useIsMounted()
-  const [{
-    messagesPerSecond,
-    numberOfNodes,
-    latency,
-  }, updateStats] = useReducer((prevState: StatsState, nextState: StatsState) => ({
-    ...(prevState || {}),
-    ...nextState,
-  }), {
-    messagesPerSecond: undefined,
-    numberOfNodes: undefined,
-    latency: undefined,
-  })
+  const [messagesPerSecond, setMessagesPerSecond] = useState<number | undefined>()
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
+  const { visibleNodes, latencies } = useStore()
+  const [latency, setLatency] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    if (!latencies || Object.keys(latencies).length <= 0) { return }
+
+    const indexedNodes = getIndexedNodes(latencies)
+
+    calculateShortestPaths(indexedNodes, ({ averageDistance }: QuickDijkstraResult) => {
+      if (isMounted()) {
+        setLatency(averageDistance)
+      }
+    })
+  }, [latencies, isMounted])
 
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => prev !== name ? name : undefined)
   }, [])
 
-  const onMessage = useCallback(({
-    broker,
-    network,
-    trackers,
-  }) => {
-    if (isMounted()) {
-      updateStats({
-        messagesPerSecond: broker && Math.round(broker.messagesToNetworkPerSec),
-        numberOfNodes: trackers && trackers.totalNumberOfNodes,
-        latency: network && Math.round(network.avgLatencyMs),
-      })
+  const onMessage = useCallback(({ broker }) => {
+    if (isMounted() && broker) {
+      setMessagesPerSecond(Math.round(broker.messagesToNetworkPerSec))
     }
   }, [isMounted])
 
@@ -69,14 +67,12 @@ const NetworkStats = () => {
         <Stats.Stat
           id="numberOfNodes"
           label="Nodes"
-          value={numberOfNodes}
-          onClick={() => toggleStat('numberOfNodes')}
+          value={visibleNodes.length}
         />
         <Stats.Stat
           id="latency"
           label="Latency ms"
-          value={latency}
-          onClick={() => toggleStat('latency')}
+          value={latency && latency.toFixed(1)}
         />
       </Stats>
       {!!selectedStat && (

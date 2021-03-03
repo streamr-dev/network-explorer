@@ -1,5 +1,6 @@
 import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
+import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
 import { getReversedGeocodedLocation } from './mapbox'
 
@@ -78,17 +79,83 @@ export const getNodes = async (url: string): Promise<Node[]> => {
   }))
 }
 
-export type Topology = Record<string, string[]>
+export type Latency = Record<string, number | undefined>
 
-export type Topologyresult = Record<string, Topology>
+export type Topology = Record<string, Latency>
+
+export type TopologyEntry = {
+  neighborId: string,
+  rtt: number | undefined,
+}
+
+export type TopologyResult = Record<string, TopologyEntry[]>
+
+export type StreamTopologyResult = Record<string, TopologyResult>
+
+export const getTopologyFromResponse = (response: TopologyResult): Topology => (
+  Object.keys(response || {}).reduce((topology: Topology, nodeId: string) => ({
+    ...topology,
+    [nodeId]: (response[nodeId] || []).reduce((latencies, { neighborId, rtt }) => ({
+      ...latencies,
+      [neighborId]: rtt,
+    }), {}),
+  }), {})
+)
+
+const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
+
+type MapValue = [target: number, weight: number]
+
+export const getIndexedNodes = (topology: Topology): GraphLink[] => {
+  const ret: GraphLink[] = []
+
+  const matrix:  Map<number, MapValue> = new Map<number, MapValue>()
+
+  // build a mapping from links with arbitrary node ids to links with integer ids,
+  // the integer id is based on the first occurence of the node in the data and
+  // convert links to integer format using the mapping created,
+  // ignoring NULL rtts
+  const nodeIds: {[nodeId: string]: number} = {}
+
+  Object.keys(topology || {}).forEach((nodeId) => {
+    if (!nodeIds[nodeId]) {
+      nodeIds[nodeId] = Object.keys(nodeIds).length
+    }
+
+    Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
+      if (!nodeIds[neighborId]) {
+        nodeIds[neighborId] = Object.keys(nodeIds).length
+      }
+
+      // only take into account one non-null measurement per connection
+      // interpret connections as two-way
+      if (isNumber(topology[nodeId][neighborId])) {
+        const a = nodeIds[nodeId]
+        const b = nodeIds[neighborId]
+
+        if (a < b) {
+          matrix.set(a, [b, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+        } else {
+          matrix.set(b, [a, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+        }
+      }
+    })
+  })
+
+  for (const [key, value] of  matrix.entries()) {
+    ret.push([key, value[0], value[1]])
+  }
+
+  return ret
+}
 
 export const getTopology = async ({ id }: { id: string }): Promise<Topology> => {
   const url = await getTrackerForStream({ id })
-  let result: Topologyresult = {}
+  let result: StreamTopologyResult = {}
 
   const encodedId = encodeURIComponent(id)
   try {
-    result = await get<Topologyresult>({
+    result = await get<StreamTopologyResult>({
       url: `${url}/topology/${encodedId}/`, // trailing slash needed
     })
   } catch (e) {
@@ -96,9 +163,9 @@ export const getTopology = async ({ id }: { id: string }): Promise<Topology> => 
     console.warn(`Failed to load topology from ${url}/topology/${encodedId}/`)
   }
 
-  const [topology] = Object.values(result || {})
+  const [topology] = Object.values(result)
 
-  return topology || {}
+  return getTopologyFromResponse(topology)
 }
 
 export const getNodeConnections = async (): Promise<Topology> => {
@@ -107,28 +174,42 @@ export const getNodeConnections = async (): Promise<Topology> => {
   let nodeConnections
 
   try {
-    const topologyPromises = trackerUrls.map((url) => get<Topology>({
+    const topologyPromises = trackerUrls.map((url) => get<TopologyResult>({
       url: `${url}/node-connections/`,
     }))
 
     const topologies = await Promise.all(topologyPromises)
 
-    nodeConnections = (topologies || []).reduce((combined, topology) => {
+    nodeConnections = (topologies || []).reduce((combined: Topology, response: TopologyResult) => {
+      const topology = getTopologyFromResponse(response)
       const nextCombined = {
         ...combined,
       }
 
       Object.keys(topology || {}).forEach((nodeId) => {
-        if (nextCombined[nodeId]) {
-          const connections = new Set([
-            ...nextCombined[nodeId],
-            ...topology[nodeId],
-          ])
-
-          nextCombined[nodeId] = [...connections]
-        } else {
-          nextCombined[nodeId] = [...topology[nodeId]]
+        if (!nextCombined[nodeId]) {
+          nextCombined[nodeId] = {}
         }
+
+        Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
+          let rtt
+
+          if (nextCombined[nodeId] &&
+            isNumber(nextCombined[nodeId][neighborId]) &&
+            isNumber(topology[nodeId][neighborId])) {
+            rtt = Math.max(
+              nextCombined[nodeId][neighborId] || 0,
+              topology[nodeId][neighborId] || 0,
+            )
+          } else if (isNumber(topology[nodeId][neighborId])) {
+            rtt = topology[nodeId][neighborId]
+          }
+
+          nextCombined[nodeId] = {
+            ...nextCombined[nodeId],
+            [neighborId]: rtt,
+          }
+        })
       })
 
       return nextCombined

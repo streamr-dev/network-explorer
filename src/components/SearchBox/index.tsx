@@ -7,6 +7,7 @@ import { useController } from '../../contexts/Controller'
 import StreamrClientProvider from '../StreamrClientProvider'
 
 import Search from './Search'
+import StreamStats from '../StreamStats'
 import NetworkStats from '../NetworkStats'
 
 const SearchBox = () => {
@@ -85,7 +86,12 @@ const SearchBox = () => {
           showMobileBackButton: activeView === ActiveView.List,
         }}
       />
-      <NetworkStats />
+      {!!hasStream && (
+        <StreamStats />
+      )}
+      {!hasStream && (
+        <NetworkStats />
+      )}
       {searchResults.length > 0 && (
         <Search.Results
           results={searchResults}

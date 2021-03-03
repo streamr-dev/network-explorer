@@ -58,8 +58,13 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
+interface ParamTypes {
+  nodeId: string,
+  streamId: string,
+}
+
 export default () => {
-  const { streamId: encodedStreamId, nodeId } = useParams()
+  const { streamId: encodedStreamId, nodeId } = useParams<ParamTypes>()
   const { nodes } = useStore()
 
   const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])

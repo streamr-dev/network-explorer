@@ -23,6 +23,8 @@ export enum ActiveView {
   List = 'list'
 }
 
+export type Topology = Record<string, string[]>
+
 type Store = {
   env: string | undefined,
   activeView: ActiveView,
@@ -30,7 +32,7 @@ type Store = {
   searchResults: Array<SearchResult>,
   nodes: string[],
   trackers: string[],
-  topology: trackerApi.Topology,
+  latencies: trackerApi.Topology,
   streamId: string | undefined,
   activeNodeId: string | undefined,
   activeLocationId: string | undefined,
@@ -51,7 +53,8 @@ type ContextProps = {
   addNodes: (nodes: trackerApi.Node[]) => void,
   trackers: string[],
   setTrackers: (trackers: string[]) => void,
-  topology: trackerApi.Topology,
+  topology: Topology,
+  latencies: trackerApi.Topology,
   setTopology: (topology: trackerApi.Topology) => void,
   setActiveNodeId: (activeNodeId?: string) => void,
   setActiveLocationId: (activeLocationId?: string) => void,
@@ -74,7 +77,7 @@ const getInitialState = (): Store => ({
   searchResults: [],
   nodes: [],
   trackers: [],
-  topology: {},
+  latencies: {},
   streamId: undefined,
   activeNodeId: undefined,
   activeLocationId: undefined,
@@ -89,7 +92,7 @@ type Action =
  | { type: 'setTrackers', trackers: string[] }
  | { type: 'addNodes', nodes: string[] }
  | { type: 'updateEntities', entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
- | { type: 'setTopology', topology: trackerApi.Topology }
+ | { type: 'setTopology', latencies: trackerApi.Topology, }
  | { type: 'setActiveNode', activeNodeId: string | undefined }
  | { type: 'setActiveLocation', activeLocationId: string | undefined }
  | { type: 'setStream', streamId: string | undefined }
@@ -132,7 +135,7 @@ const reducer = (state: Store, action: Action) => {
     case 'setTopology': {
       return {
         ...state,
-        topology: action.topology,
+        latencies: action.latencies,
       }
     }
 
@@ -230,10 +233,10 @@ function useStoreContext() {
     })
   }, [dispatch])
 
-  const setTopology = useCallback((topology: trackerApi.Topology) => {
+  const setTopology = useCallback((latencies: trackerApi.Topology) => {
     dispatch({
       type: 'setTopology',
-      topology,
+      latencies,
     })
   }, [dispatch])
 
@@ -323,7 +326,7 @@ function useStoreContext() {
     streamId,
     nodes: nodeIds,
     trackers,
-    topology,
+    latencies,
     entities,
   } = store
 
@@ -334,6 +337,13 @@ function useStoreContext() {
   const nodes = useMemo(() => (
     denormalize(nodeIds, nodesSchema, entitiesRef.current) || []
   ), [nodeIds])
+
+  const topology = useMemo(() => (
+    Object.keys(latencies || {}).reduce((flattened, nodeId) => ({
+      ...flattened,
+      [nodeId]: Object.keys(latencies[nodeId]),
+    }), {})
+  ), [latencies])
 
   const visibleNodes = useMemo(() => (
     denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || []
@@ -370,6 +380,7 @@ function useStoreContext() {
     trackers,
     setTrackers,
     topology,
+    latencies,
     setTopology,
     visibleNodes,
     activeNode,
@@ -396,6 +407,7 @@ function useStoreContext() {
     trackers,
     setTrackers,
     topology,
+    latencies,
     setTopology,
     visibleNodes,
     activeNode,
