@@ -150,7 +150,7 @@ export const Map = ({
     <ReactMapGL
       {...viewport}
       mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle='mapbox://styles/mattinnes/ckdtszq5m0iht19qk0zuz52oy'
+      mapStyle='mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t'
       onViewportChange={setViewport}
       ref={mapRef}
       onClick={onMapClick}
