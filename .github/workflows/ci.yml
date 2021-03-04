@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # run job only for master and tags
-    #if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
       - name: Set npm access token
