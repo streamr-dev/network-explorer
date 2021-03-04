@@ -1,13 +1,17 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const WriteFilePlugin = require('write-file-webpack-plugin')
 
+const isEqual = require("lodash/isEqual")
+
 module.exports = function override(config, env) {
   if (!config.plugins) {
     config.plugins = []
   }
 
-  config.module.rules[0] = { parser: { requireEnsure: true } }
-  console.log(config.module.rules)
+  const updatedRules = config.module.rules.filter(
+      (rule) => !isEqual(rule, { parser: { requireEnsure: false } })
+  )
+  config.module.rules = updatedRules;
 
   config.plugins.push(new CopyWebpackPlugin({
     patterns: [{
@@ -35,5 +39,5 @@ module.exports = function override(config, env) {
 
   config.output.futureEmitAssets = false
 
-  return config;
+  return config
 }
