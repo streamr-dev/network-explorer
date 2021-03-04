@@ -31,7 +31,7 @@
     "streamr-client-react": "^1.1.1",
     "styled-components": "^5.1.1",
     "supercluster": "^7.1.0",
-    "typescript": "^4.1.4",
+    "typescript": "^4.0.7",
     "use-supercluster": "^0.2.8"
   },
   "scripts": {
