@@ -1,8 +1,14 @@
-type EnvConfig = {
-  tracker: {
-    contractAddress: string,
-    jsonRpcProvider: string,
-  },
+type TrackerConfig = {
+  source: 'contract',
+  contractAddress: string,
+  jsonRpcProvider: string,
+} | {
+  source: 'http',
+  http: string,
+}
+
+export type EnvConfig = {
+  tracker: TrackerConfig,
   streamr: {
     http: string,
     ws: string,
@@ -12,8 +18,19 @@ type EnvConfig = {
 type Envs = Record<string, EnvConfig>
 
 const envs: Envs = {
+  'mock-api': {
+    tracker: {
+      source: 'http',
+      http: 'http://localhost:3001',
+    },
+    streamr: {
+      http: 'http://localhost:3001',
+      ws: 'http://localhost:3001',
+    },
+  },
   local: {
     tracker: {
+      source: 'contract',
       contractAddress: process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS || '',
       jsonRpcProvider: process.env.REACT_APP_TRACKER_REGISTRY_PROVIDER || '',
     },
@@ -24,6 +41,7 @@ const envs: Envs = {
   },
   production: {
     tracker: {
+      source: 'contract',
       contractAddress: '0xb21df4018dee577cd33f5b99f269ea7b23b8e6eb',
       jsonRpcProvider: 'https://mainnet.infura.io/v3/17c3985baecb4c4d94a1edc2c4d23206',
     },

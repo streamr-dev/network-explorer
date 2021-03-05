@@ -7,8 +7,25 @@ import { getReversedGeocodedLocation } from './mapbox'
 import { get } from '../request'
 import getConfig from '../config'
 
+const getTrackerRegistry = async () => {
+  const { tracker } = getConfig()
+
+  if (tracker.source === 'http') {
+    return {
+      getAllTrackers: () => ([{
+        http: tracker.http,
+      }]),
+      getTracker: () => ({
+        http: tracker.http,
+      }),
+    }
+  }
+
+  return Utils.getTrackerRegistryFromContract(tracker)
+}
+
 export const getTrackers = async (): Promise<string[]> => {
-  const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
+  const trackerRegistry = await getTrackerRegistry()
 
   const result: string[] = (trackerRegistry.getAllTrackers() || [])
     .map(({ http }: { http: string }) => http)
@@ -22,7 +39,7 @@ export const getTrackerForStream = async (options: { id: string, partition?: num
     ...({ id: undefined, partition: 0 }),
     ...options,
   }
-  const trackerRegistry = await Utils.getTrackerRegistryFromContract(getConfig().tracker)
+  const trackerRegistry = await getTrackerRegistry()
 
   const { http } = trackerRegistry.getTracker(id, partition)
 
