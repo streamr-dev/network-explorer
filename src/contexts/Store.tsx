@@ -25,6 +25,12 @@ export enum ActiveView {
 
 export type Topology = Record<string, string[]>
 
+export enum ConnectionsMode {
+  Auto = 'auto',
+  Always = 'always',
+  Off = 'off',
+}
+
 type Store = {
   env: string | undefined,
   activeView: ActiveView,
@@ -37,6 +43,7 @@ type Store = {
   activeNodeId: string | undefined,
   activeLocationId: string | undefined,
   entities: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
+  showConnections: ConnectionsMode,
 }
 
 type ContextProps = {
@@ -54,6 +61,8 @@ type ContextProps = {
   trackers: string[],
   setTrackers: (trackers: string[]) => void,
   topology: Topology,
+  showConnections: ConnectionsMode
+  toggleShowConnections: () => void,
   latencies: trackerApi.Topology,
   setTopology: (topology: trackerApi.Topology) => void,
   setActiveNodeId: (activeNodeId?: string) => void,
@@ -86,6 +95,7 @@ const getInitialState = (): Store => ({
     streams: {},
     searchResults: {},
   },
+  showConnections: ConnectionsMode.Auto,
 })
 
 type Action =
@@ -98,6 +108,7 @@ type Action =
  | { type: 'setStream', streamId: string | undefined }
  | { type: 'setActiveView', activeView: ActiveView }
  | { type: 'toggleActiveView' }
+ | { type: 'toggleShowConnections' }
  | { type: 'updateSearch', search: string }
  | { type: 'addSearchResults', ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
  | { type: 'resetSearchResults' }
@@ -164,6 +175,23 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         activeView: state.activeView === ActiveView.Map ? ActiveView.List : ActiveView.Map,
+      }
+    }
+
+    case 'toggleShowConnections': {
+      // handle initial special case
+      if (state.showConnections === ConnectionsMode.Auto) {
+        return {
+          ...state,
+          showConnections: state.streamId ? ConnectionsMode.Off : ConnectionsMode.Always,
+        }
+      }
+
+      return {
+        ...state,
+        showConnections: (state.showConnections !== ConnectionsMode.Off) ?
+          ConnectionsMode.Off :
+          ConnectionsMode.Always,
       }
     }
 
@@ -283,6 +311,12 @@ function useStoreContext() {
     })
   }, [])
 
+  const toggleShowConnections = useCallback(() => {
+    dispatch({
+      type: 'toggleShowConnections',
+    })
+  }, [])
+
   const resetStore = useCallback(() => {
     dispatch({
       type: 'reset',
@@ -328,6 +362,7 @@ function useStoreContext() {
     trackers,
     latencies,
     entities,
+    showConnections,
   } = store
 
   // Use ref to avoid unnecessary redraws when entities update
@@ -383,6 +418,8 @@ function useStoreContext() {
     latencies,
     setTopology,
     visibleNodes,
+    showConnections,
+    toggleShowConnections,
     activeNode,
     activeLocation,
     setActiveNodeId,
@@ -410,6 +447,8 @@ function useStoreContext() {
     latencies,
     setTopology,
     visibleNodes,
+    showConnections,
+    toggleShowConnections,
     activeNode,
     activeLocation,
     setActiveNodeId,

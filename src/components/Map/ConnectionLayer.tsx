@@ -54,21 +54,13 @@ const getNodeConnections = (
 type Props = {
   topology: Topology,
   nodes: Node[],
-}
-
-const layerStyle = {
-  id: 'node-connections-layer',
-  type: 'line',
-  paint: {
-    'line-width': 1,
-    'line-color': '#0324FF',
-    'line-dasharray': [5, 5],
-  },
+  visible?: boolean,
 }
 
 const ConnectionLayer = ({
   topology,
   nodes,
+  visible,
 }: Props) => {
   const geoJsonLines: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     const connections = getNodeConnections(topology, nodes)
@@ -90,7 +82,15 @@ const ConnectionLayer = ({
 
   return (
     <Source id="node-connections-source" type="geojson" data={geoJsonLines}>
-      <Layer {...layerStyle} />
+      <Layer
+        id="node-connections-layer"
+        type="line"
+        paint={{
+          'line-width': 1,
+          'line-color': '#0324FF',
+          'line-opacity': visible ? 1 : 0,
+        }}
+      />
     </Source>
   )
 }

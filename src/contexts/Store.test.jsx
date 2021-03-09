@@ -2,7 +2,7 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 
-import { Provider as StoreProvider, useStore } from './Store'
+import { Provider as StoreProvider, useStore, ConnectionsMode } from './Store'
 
 let container
 
@@ -243,6 +243,80 @@ describe('Store', () => {
       })
 
       expect(store.stream).toStrictEqual(undefined)
+    })
+  })
+
+  describe('showConnections', () => {
+    it('has auto mode by default', () => {
+      let store
+
+      function Test() {
+        store = useStore()
+
+        return null
+      }
+
+      render((
+        <StoreProvider>
+          <Test />
+        </StoreProvider>
+      ), container)
+
+      expect(store.showConnections).toStrictEqual(ConnectionsMode.Auto)
+    })
+
+    it('toggles connections on if no stream set', () => {
+      let store
+
+      function Test() {
+        store = useStore()
+
+        return null
+      }
+
+      render((
+        <StoreProvider>
+          <Test />
+        </StoreProvider>
+      ), container)
+
+      expect(store.showConnections).toStrictEqual(ConnectionsMode.Auto)
+
+      act(() => {
+        store.toggleShowConnections()
+      })
+
+      expect(store.showConnections).toStrictEqual(ConnectionsMode.Always)
+    })
+
+    it('toggles connections off if stream is set', () => {
+      let store
+
+      function Test() {
+        store = useStore()
+
+        return null
+      }
+
+      render((
+        <StoreProvider>
+          <Test />
+        </StoreProvider>
+      ), container)
+
+      expect(store.showConnections).toStrictEqual(ConnectionsMode.Auto)
+
+      act(() => {
+        act(() => {
+          store.setStream({
+            id: '0x123/test/stream',
+            description: 'My test stream',
+          })
+        })
+        store.toggleShowConnections()
+      })
+
+      expect(store.showConnections).toStrictEqual(ConnectionsMode.Off)
     })
   })
 })
