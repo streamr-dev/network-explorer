@@ -1,11 +1,13 @@
 import React from 'react'
 import { Marker, ViewportProps, FlyToInterpolator } from 'react-map-gl'
-import { SuperClusterType, ClusterPointFeature } from './types'
+import { PointFeature } from 'supercluster'
+import { SuperClusterType, ClusterPointFeature, NodeProperties } from './types'
 import { NodeMarker, ClusterMarker } from './Markers'
 
 type Props = {
   supercluster: SuperClusterType,
   clusters: Array<ClusterPointFeature>,
+  points: Array<PointFeature<NodeProperties>>,
   viewport: ViewportProps,
   setViewport: (v: ViewportProps) => void,
   activeNode?: string,
@@ -37,85 +39,20 @@ const getCirclePositions = (center: [number, number], count: number) => {
 const MarkerLayer = ({
   supercluster,
   clusters,
+  points,
   viewport,
   setViewport,
   activeNode,
   onNodeClick,
 }: Props) => (
   <>
-    {clusters.map((cluster) => {
+    {points.map((cluster) => {
       const [longitude, latitude] = cluster.geometry.coordinates
       const {
         cluster: isCluster,
         point_count: pointCount,
         nodeId,
       } = cluster.properties
-
-      if (isCluster) {
-        if (cluster.id == null ||
-          supercluster == null ||
-          typeof cluster.id !== 'number'
-        ) {
-          return null
-        }
-
-        // Check if we have overlapping markers
-        if (cluster.id && cluster) {
-          const child = supercluster.getChildren(cluster.id)
-
-          if (child.length > 1 && child.every((c) => arePointsOverlapped(c, child[0]))) {
-            const circle = getCirclePositions(
-              cluster.geometry.coordinates as [number, number],
-              child.length,
-            )
-
-            return child.map((point, index) => {
-              const id = point.properties.nodeId
-              const lat = circle[index].latitude
-              const lng = circle[index].longitude
-
-              return (
-                <Marker key={`expanded-cluster-${id}`} latitude={lat} longitude={lng}>
-                  <NodeMarker
-                    id={id}
-                    isActive={activeNode === id}
-                    onClick={() => onNodeClick && onNodeClick(id)}
-                  />
-                </Marker>
-              )
-            })
-          }
-        }
-
-        return (
-          <Marker key={`cluster-${cluster.id}`} latitude={latitude} longitude={longitude}>
-            <ClusterMarker
-              size={pointCount}
-              onClick={() => {
-                if (typeof cluster.id !== 'number') {
-                  return
-                }
-
-                const expansionZoom = Math.min(
-                  supercluster.getClusterExpansionZoom(cluster.id),
-                  viewport.maxZoom,
-                )
-
-                setViewport({
-                  ...viewport,
-                  latitude,
-                  longitude,
-                  zoom: expansionZoom,
-                  transitionInterpolator: new FlyToInterpolator({
-                    speed: 3,
-                  }),
-                  transitionDuration: 'auto',
-                })
-              }}
-            />
-          </Marker>
-        )
-      }
 
       return (
         <Marker key={`node-${nodeId}`} latitude={latitude} longitude={longitude}>

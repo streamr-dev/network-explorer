@@ -1,21 +1,7 @@
 import React from 'react'
 import styled, { css } from 'styled-components/macro'
-import Identicon from 'react-identicons'
 
 import { SANS } from '../../utils/styled'
-
-const NodeIconSvg = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path
-      d="M16 0C27.8241 0 32 4.19557 32 16C32 27.7598 27.7545 32 16 32C4.28014 32 0 27.7054 0 16C0 4.24975 4.21033 0 16 0Z"
-    />
-  </svg>
-)
-
-const NodeIcon = styled(NodeIconSvg)`
-  fill: white;
-  overflow: visible; // need this to render stroke without clipping
-`
 
 const ClusterContainer = styled.div`
   position: relative;
@@ -39,7 +25,6 @@ const ClusterContainer = styled.div`
 
 export const ClusterMarker = ({ size, onClick }: { size: number, onClick: () => void }) => (
   <ClusterContainer onClick={onClick}>
-    <NodeIcon />
     <span>{size}</span>
   </ClusterContainer>
 )
@@ -48,28 +33,42 @@ type NodeMarkerContainerProps = {
   active: boolean,
 }
 
+const InnerBlip = styled.div`
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: all 150ms ease-in-out;
+  width: 0;
+  height: 0;
+`
+
 const NodeMarkerContainer = styled.div<NodeMarkerContainerProps>`
   position: relative;
-  width: 24px;
-  height: 24px;
+  width: 8px;
+  height: 8px;
   transform: translate(-50%, -50%);
   cursor: pointer;
   transition: all 150ms ease-in-out;
+  background-color: #0324FF;
+  border-radius: 50%;
 
-  canvas {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+  ${({ active }) => !active && css`
+    :hover {
+      width: 12px;
+      height: 12px;
+    }
+  `}
 
   ${({ active }) => !!active && css`
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
 
-    path {
-      stroke: #0324FF;
-      stroke-width: 1px;
+    ${InnerBlip} {
+      width: 8px;
+      height: 8px;
     }
   `}
 `
@@ -82,10 +81,6 @@ type NodeMarkerProps = {
 
 export const NodeMarker = ({ id, isActive, onClick }: NodeMarkerProps) => (
   <NodeMarkerContainer onClick={onClick} active={!!isActive}>
-    <NodeIcon />
-    <Identicon
-      string={id}
-      size={16}
-    />
+    <InnerBlip />
   </NodeMarkerContainer>
 )

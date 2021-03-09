@@ -155,17 +155,18 @@ export const Map = ({
       ref={mapRef}
       onClick={onMapClick}
     >
-      {worldSupercluster != null && (
+      {/* worldSupercluster != null && (
         <ConnectionLayer
           supercluster={worldSupercluster}
           clusters={worldClusters}
           nodeConnections={connections}
         />
-      )}
+      ) */}
       {supercluster != null && (
         <MarkerLayer
           supercluster={supercluster}
           clusters={clusters}
+          points={points}
           viewport={viewport}
           setViewport={(...args) => setViewport(...args)}
           activeNode={activeNode && activeNode.id}
