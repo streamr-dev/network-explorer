@@ -1,34 +1,6 @@
 import React from 'react'
 import styled, { css } from 'styled-components/macro'
 
-import { SANS } from '../../utils/styled'
-
-const ClusterContainer = styled.div`
-  position: relative;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  font-family: ${SANS};
-  font-weight: bold;
-  font-size: 10px;
-  line-height: 24px;
-
-  span {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #0324FF;
-  }
-`
-
-export const ClusterMarker = ({ size, onClick }: { size: number, onClick: () => void }) => (
-  <ClusterContainer onClick={onClick}>
-    <span>{size}</span>
-  </ClusterContainer>
-)
-
 type NodeMarkerContainerProps = {
   active: boolean,
 }
