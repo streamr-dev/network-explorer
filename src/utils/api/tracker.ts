@@ -121,18 +121,16 @@ export const getTopologyFromResponse = (response: TopologyResult): Topology => (
 
 const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
 
-type MapValue = [target: number, weight: number]
-
 export const getIndexedNodes = (topology: Topology): GraphLink[] => {
   const ret: GraphLink[] = []
 
-  const matrix:  Map<number, MapValue> = new Map<number, MapValue>()
+  const matrix:  Map<string, number> = new Map<string, number>()
 
   // build a mapping from links with arbitrary node ids to links with integer ids,
   // the integer id is based on the first occurence of the node in the data and
   // convert links to integer format using the mapping created,
   // ignoring NULL rtts
-  const nodeIds: {[nodeId: string]: number} = {}
+  const nodeIds: { [nodeId: string]: number } = {}
 
   Object.keys(topology || {}).forEach((nodeId) => {
     if (!nodeIds[nodeId]) {
@@ -151,16 +149,17 @@ export const getIndexedNodes = (topology: Topology): GraphLink[] => {
         const b = nodeIds[neighborId]
 
         if (a < b) {
-          matrix.set(a, [b, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+          matrix.set(JSON.stringify([a, b]), Math.round((topology[nodeId][neighborId] || 0) / 2))
         } else {
-          matrix.set(b, [a, Math.round((topology[nodeId][neighborId] || 0) / 2)])
+          matrix.set(JSON.stringify([b, a]), Math.round((topology[nodeId][neighborId] || 0) / 2))
         }
       }
     })
   })
 
   for (const [key, value] of  matrix.entries()) {
-    ret.push([key, value[0], value[1]])
+    const [nodeIndex, neighborIndex] = JSON.parse(key)
+    ret.push([nodeIndex, neighborIndex, value])
   }
 
   return ret
