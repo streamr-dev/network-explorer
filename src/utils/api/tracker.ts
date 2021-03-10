@@ -133,12 +133,12 @@ export const getIndexedNodes = (topology: Topology): GraphLink[] => {
   const nodeIds: { [nodeId: string]: number } = {}
 
   Object.keys(topology || {}).forEach((nodeId) => {
-    if (!nodeIds[nodeId]) {
+    if (!isNumber(nodeIds[nodeId])) {
       nodeIds[nodeId] = Object.keys(nodeIds).length
     }
 
     Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
-      if (!nodeIds[neighborId]) {
+      if (!isNumber(nodeIds[neighborId])) {
         nodeIds[neighborId] = Object.keys(nodeIds).length
       }
 
@@ -148,11 +148,10 @@ export const getIndexedNodes = (topology: Topology): GraphLink[] => {
         const a = nodeIds[nodeId]
         const b = nodeIds[neighborId]
 
-        if (a < b) {
-          matrix.set(JSON.stringify([a, b]), Math.round((topology[nodeId][neighborId] || 0) / 2))
-        } else {
-          matrix.set(JSON.stringify([b, a]), Math.round((topology[nodeId][neighborId] || 0) / 2))
-        }
+        matrix.set(
+          JSON.stringify((a < b) ? [a, b] : [b, a]),
+          Math.round((topology[nodeId][neighborId] || 0) / 2),
+        )
       }
     })
   })
