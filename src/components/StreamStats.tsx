@@ -19,7 +19,7 @@ type StatsState = {
   latency?: number | undefined,
 }
 
-const NetworkStats = () => {
+const StreamStats = () => {
   const isMounted = useIsMounted()
   const [messagesPerSecond, setMessagesPerSecond] = useState<number | undefined>()
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
@@ -29,13 +29,18 @@ const NetworkStats = () => {
   useEffect(() => {
     if (!latencies || Object.keys(latencies).length <= 0) { return }
 
-    const indexedNodes = getIndexedNodes(latencies)
+    try {
+      const indexedNodes = getIndexedNodes(latencies)
 
-    calculateShortestPaths(indexedNodes, ({ averageDistance }: QuickDijkstraResult) => {
-      if (isMounted()) {
-        setLatency(averageDistance)
-      }
-    })
+      calculateShortestPaths(indexedNodes, ({ averageDistance }: QuickDijkstraResult) => {
+        if (isMounted()) {
+          setLatency(averageDistance)
+        }
+      })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(e)
+    }
   }, [latencies, isMounted])
 
   const toggleStat = useCallback((name) => {
@@ -85,4 +90,4 @@ const NetworkStats = () => {
   )
 }
 
-export default NetworkStats
+export default StreamStats
