@@ -10,14 +10,10 @@ import ReactMapGL, {
   ViewportProps,
   FlyToInterpolator,
   LinearInterpolator,
-  WebMercatorViewport,
 } from 'react-map-gl'
-import useSupercluster from 'use-supercluster'
-import { PointFeature } from 'supercluster'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useHistory } from 'react-router-dom'
 
-import { NodeProperties } from './types'
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
@@ -55,28 +51,6 @@ const defaultViewport = {
   minPitch: 0,
 }
 
-const padBounds = (bounds: number[], padding: number) => {
-  if (bounds != null) {
-    return [
-      bounds[0] - padding,
-      bounds[1] - padding,
-      bounds[2] + padding,
-      bounds[3] + padding,
-    ]
-  }
-  return bounds
-}
-
-const getBounds = (viewport: ViewportProps) => {
-  const vp = new WebMercatorViewport({
-    ...viewport,
-  })
-  const [north, west] = vp.unproject([0, 0])
-  const [east, south] = vp.unproject([viewport.width, viewport.height])
-  const bounds = [north, south, east, west]
-  return bounds
-}
-
 export const Map = ({
   nodes,
   topology,
@@ -91,61 +65,6 @@ export const Map = ({
 }: Props) => {
   const mapRef = useRef<InteractiveMap>(null)
 
-  // Convert topology to a list of node connection pairs
-  const connections = useMemo(() => (
-    Object.keys(topology || {}).flatMap((key) => {
-      const nodeList = topology[key]
-      return nodeList.map((n) => [key, n])
-    })
-  ), [topology])
-
-  const points: Array<PointFeature<NodeProperties>> = useMemo(() =>
-    (nodes || []).map((node) => ({
-      type: 'Feature',
-      properties: {
-        nodeId: node.id,
-        cluster: false,
-        point_count: 1,
-        point_count_abbreviated: '1',
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [node.longitude, node.latitude],
-      },
-    })), [nodes])
-
-  // Calculate map bounds for current viewport
-  const bounds = getBounds(viewport)
-
-  // Calculate clusters
-  const { clusters, supercluster } = useSupercluster({
-    points,
-    // Add a bit of safe margin to bounds so that supercluster will not filter
-    // markers on the edges of viewport so aggressively.
-    bounds: padBounds(bounds, 0.1) as [number, number, number, number],
-    zoom: viewport.zoom,
-    options: {
-      radius: 40,
-      minZoom: viewport.minZoom,
-      maxZoom: viewport.maxZoom,
-    },
-  })
-
-  // Calculate clusters separately for the whole world at current zoom level
-  // so that we can use it to draw connections even when nodes are out of
-  // current viewport.
-  const worldBounds = [-180, -90, 180, 90] as [number, number, number, number]
-  const { clusters: worldClusters, supercluster: worldSupercluster } = useSupercluster({
-    points,
-    bounds: worldBounds,
-    zoom: viewport.zoom,
-    options: {
-      radius: 40,
-      minZoom: viewport.minZoom,
-      maxZoom: viewport.maxZoom,
-    },
-  })
-
   return (
     <ReactMapGL
       {...viewport}
@@ -155,23 +74,15 @@ export const Map = ({
       ref={mapRef}
       onClick={onMapClick}
     >
-      {worldSupercluster != null && (
-        <ConnectionLayer
-          supercluster={worldSupercluster}
-          clusters={worldClusters}
-          nodeConnections={connections}
-        />
-      )}
-      {supercluster != null && (
-        <MarkerLayer
-          supercluster={supercluster}
-          clusters={clusters}
-          viewport={viewport}
-          setViewport={(...args) => setViewport(...args)}
-          activeNode={activeNode && activeNode.id}
-          onNodeClick={onNodeClick}
-        />
-      )}
+      <ConnectionLayer
+        topology={topology}
+        nodes={nodes}
+      />
+      <MarkerLayer
+        nodes={nodes}
+        activeNode={activeNode && activeNode.id}
+        onNodeClick={onNodeClick}
+      />
       <NavigationControl
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}
