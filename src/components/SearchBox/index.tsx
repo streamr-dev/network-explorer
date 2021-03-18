@@ -39,10 +39,6 @@ const SearchBox = () => {
     updateSearch({ search: value })
   }, [updateSearch])
 
-  const onBack = useCallback(() => {
-    setActiveView(ActiveView.Map)
-  }, [setActiveView])
-
   const onResultClick = useCallback(({ id, type }) => {
     switch (type) {
       case 'streams':
@@ -71,20 +67,17 @@ const SearchBox = () => {
       theme={{
         activeView,
         resultsActive: searchResults.length > 0,
+        hasStats: true,
       }}
       key={env}
     >
+      <Search.SlideHandle />
       <Search.Input
         value={search}
         onChange={onSearch}
         onClear={onClear}
         disabled={!!isDisabled}
         onFocus={() => setActiveView(ActiveView.List)}
-        onBack={onBack}
-        theme={{
-          searchActive: activeView === ActiveView.List,
-          showMobileBackButton: activeView === ActiveView.List,
-        }}
       />
       {!!hasStream && (
         <StreamStats />

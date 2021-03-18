@@ -6,7 +6,7 @@ import React, {
   useState,
   useEffect,
 } from 'react'
-import styled, { css } from 'styled-components/macro'
+import styled from 'styled-components/macro'
 import { Link } from 'react-router-dom'
 import { truncate } from '../../utils/text'
 
@@ -42,24 +42,6 @@ const IconButton = styled.button`
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-  }
-`
-
-const Back = styled.div`
-  width: 48px;
-  height: 64px;
-  position: relative;
-
-  ${IconButton} {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    svg {
-      width: 9px;
-      height: 14px;
-    }
   }
 `
 
@@ -161,26 +143,13 @@ const ClearIcon = () => (
   </svg>
 )
 
-const BackIcon = () => (
-  <svg viewBox="0 0 9 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M7.343 1.343L1.686 7l5.657 5.657" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-type SearchTheme = {
-  showMobileBackButton?: boolean,
-  searchActive?: boolean,
-}
-
 type Props = {
   value: string,
   onChange: (text: string) => void,
   onClear: () => void,
   onFocus?: Function,
   onBlur?: Function,
-  onBack?: Function,
   disabled?: boolean,
-  theme?: SearchTheme,
 }
 
 const UnstyledSearchInput = ({
@@ -189,9 +158,7 @@ const UnstyledSearchInput = ({
   onClear,
   onFocus: onFocusProp,
   onBlur: onBlurProp,
-  onBack: onBackProp,
   disabled = false,
-  theme,
   ...props
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -220,24 +187,11 @@ const UnstyledSearchInput = ({
     }
   }, [focused])
 
-  const onBack = useCallback(() => {
-    if (typeof onBackProp === 'function') {
-      onBackProp()
-    }
-  }, [onBackProp])
-
   return (
     <div
       {...props}
     >
       <Inner>
-        {!!theme && !!theme.showMobileBackButton && (
-          <Back>
-            <IconButton type="button" onClick={onBack}>
-              <BackIcon />
-            </IconButton>
-          </Back>
-        )}
         <Logo>
           <Link to="/">
             <StreamrIcon />
@@ -272,12 +226,6 @@ const UnstyledSearchInput = ({
 }
 
 const SearchInput = styled(UnstyledSearchInput)`
-  background: #FFFFFF;
-
-  ${Back} {
-    margin-right: -24px;
-  }
-
   ${Logo} {
     display: none;
   }
@@ -287,23 +235,11 @@ const SearchInput = styled(UnstyledSearchInput)`
     margin-left: 24px;
   }
 
-  ${({ theme }) => !!theme.searchActive && css`
-    @media(max-width: ${SM}px) {
-      padding: 16px;
-      border-radius: 0px;
-
-      ${Inner} {
-        border: 1px solid #EFEFEF;
-        border-radius: 4px;
-      }
-    }
-  `}
+  ${Inner} {
+    background: #FFFFFF;
+  }
 
   @media (min-width: ${SM}px) {
-    ${Back} {
-      display: none;
-    }
-
     ${Logo} {
       display: block;
     }
@@ -316,4 +252,8 @@ const SearchInput = styled(UnstyledSearchInput)`
   }
 `
 
-export default SearchInput
+export default Object.assign(SearchInput, {
+  Logo,
+  Input,
+  Inner,
+})

@@ -70,25 +70,6 @@ export const Basic = () => {
   )
 }
 
-export const BasicWithBackButton = () => {
-  const [search, setSearch] = useState('')
-
-  return (
-    <Wrapper>
-      <Search>
-        <Search.Input
-          value={search}
-          onChange={setSearch}
-          onClear={() => setSearch('')}
-          theme={{
-            showMobileBackButton: true,
-          }}
-        />
-      </Search>
-    </Wrapper>
-  )
-}
-
 export const Focused = () => {
   const [search, setSearch] = useState('')
   const [focused, setFocused] = useState(false)
@@ -98,7 +79,10 @@ export const Focused = () => {
       focused,
     }}
     >
-      <Search>
+      <Search theme={{
+        resultsActive: true,
+      }}
+      >
         <Search.Input
           value={search}
           onChange={setSearch}
@@ -106,12 +90,7 @@ export const Focused = () => {
             setSearch('')
             setFocused(false)
           }}
-          onBack={() => setFocused(false)}
           onFocus={() => setFocused(true)}
-          theme={{
-            searchActive: focused,
-            showMobileBackButton: focused,
-          }}
         />
         <Search.Results results={results} />
       </Search>
@@ -165,7 +144,10 @@ export const SearchWithStats = () => {
 
   return (
     <Wrapper>
-      <Search>
+      <Search theme={{
+        hasStats: true,
+      }}
+      >
         <Search.Input
           value={search}
           onChange={setSearch}
