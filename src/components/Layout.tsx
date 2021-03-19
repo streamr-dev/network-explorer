@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react'
 import styled, { css } from 'styled-components/macro'
 import useResizeObserver from 'use-resize-observer'
 
 import { SM } from '../utils/styled'
 import { useStore } from '../contexts/Store'
+import useIsMounted from '../hooks/useIsMounted'
 
 import ControlBox from './ControlBox'
 import NodeList from './NodeList'
@@ -21,8 +28,6 @@ const Backdrop = styled.div`
 
 const LayoutComponent = styled.div`
   position: absolute;
-  top: 32px;
-  left: 32px;
   width: 375px;
   z-index: 2;
 
@@ -32,6 +37,8 @@ const LayoutComponent = styled.div`
   }
 
   @media (min-width: ${SM}px) {
+    top: 32px !important;
+    left: 32px !important;
     div > ${ControlBox} + * {
       margin-top: 24px;
     }
@@ -39,7 +46,6 @@ const LayoutComponent = styled.div`
 
   @media (max-width: ${SM}px) {
     overflow: hidden;
-    top: ${({ theme }) => theme.top > 0 ? `${theme.top}px` : `calc(100vh - min(100vh - 40px, ${-theme.top}px))`};
     left: 0;
     width: 100%;
     bottom: 0;
@@ -81,17 +87,50 @@ const defaultTop = -170
 
 const Layout = ({ children, ...props }: Props) => {
   const { activeView, searchResults } = useStore()
-  const [top, setTop] = useState<number>(defaultTop)
+  const [top, setTopState] = useState<number>(defaultTop)
+  const ref = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<HTMLDivElement>(null)
+  const { height } = useResizeObserver({ ref })
+
+  const isMounted = useIsMounted()
+
+  const setTop = useCallback((y: number) => {
+    if (isMounted()) {
+      setTopState(-Math.max(y, 170))
+    }
+  }, [isMounted])
+
+  const onTouchStart = (startEvent: React.TouchEvent) => {
+    const { current: el } = dragRef
+    if (!el) { return }
+    const currentTop = el.offsetHeight
+
+    const y0 = startEvent.touches[0].clientY
+
+    const onMove = (moveEvent: TouchEvent) => {
+      setTop(currentTop + (y0 - moveEvent.touches[0].clientY))
+    }
+
+    const onUp = () => {
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onUp)
+    }
+
+    window.addEventListener('touchmove', onMove)
+    window.addEventListener('touchend', onUp)
+  }
 
   useEffect(() => {
-    setTop(activeView === 'list' ? 40 : defaultTop)
-  }, [activeView])
+    setTop(height || 0)
+  }, [height, setTop])
 
-  const { height, ref } = useResizeObserver()
+  const currentTop = useMemo(() => {
+    if (activeView === 'list') {
+      return '40px'
+    }
 
-  useEffect(() => {
-    setTop(-Math.max(height || 0, 170))
-  }, [height])
+    return top > 0 ? `${top}px` : `calc(100vh - min(100vh - 40px, ${-top}px))`
+  }, [activeView, top])
 
   return (
     <>
@@ -105,6 +144,11 @@ const Layout = ({ children, ...props }: Props) => {
           activeView,
           top,
           hasResults: !!(searchResults && searchResults.length),
+        }}
+        ref={dragRef}
+        onTouchStart={onTouchStart}
+        style={{
+          top: currentTop,
         }}
         {...props}
       >
