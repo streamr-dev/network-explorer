@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import styled, { css } from 'styled-components/macro'
+import useResizeObserver from 'use-resize-observer'
 
 import { SM } from '../utils/styled'
 import { useStore } from '../contexts/Store'
@@ -31,21 +32,25 @@ const LayoutComponent = styled.div`
   }
 
   @media (min-width: ${SM}px) {
-    > ${ControlBox} + * {
+    div > ${ControlBox} + * {
       margin-top: 24px;
     }
   }
 
   @media (max-width: ${SM}px) {
     overflow: hidden;
-    top: ${({ theme }) => theme.top};
+    top: ${({ theme }) => theme.top > 0 ? `${theme.top}px` : `calc(100vh - min(100vh - 40px, ${-theme.top}px))`};
     left: 0;
-    bottom: 0;
     width: 100%;
+    bottom: 0;
     background: #FCFCFC;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
     transition: all 300ms ease-in-out;
+
+    div > ${ControlBox} + * {
+      display: none;
+    }
 
     ${ControlBox} {
       border: 1px solid #E7E7E7;
@@ -60,6 +65,10 @@ const LayoutComponent = styled.div`
 
     ${({ theme }) => theme.activeView === 'list' && css`
       top: 40px;
+
+      div > ${ControlBox} + * {
+        display: block;
+      }
     `}
   }
 `
@@ -68,15 +77,21 @@ type Props = {
   children: React.ReactNode
 }
 
-const defaultTop = 'calc(100vh - 170px)'
+const defaultTop = -170
 
 const Layout = ({ children, ...props }: Props) => {
   const { activeView, searchResults } = useStore()
-  const [top, setTop] = useState<string>(defaultTop)
+  const [top, setTop] = useState<number>(defaultTop)
 
   useEffect(() => {
-    setTop(activeView === 'list' ? '40px' : defaultTop)
+    setTop(activeView === 'list' ? 40 : defaultTop)
   }, [activeView])
+
+  const { height, ref } = useResizeObserver()
+
+  useEffect(() => {
+    setTop(-Math.max(height || 0, 170))
+  }, [height])
 
   return (
     <>
@@ -87,12 +102,15 @@ const Layout = ({ children, ...props }: Props) => {
       />
       <LayoutComponent
         theme={{
+          activeView,
           top,
           hasResults: !!(searchResults && searchResults.length),
         }}
         {...props}
       >
-        {children}
+        <div ref={ref}>
+          {children}
+        </div>
       </LayoutComponent>
     </>
   )
