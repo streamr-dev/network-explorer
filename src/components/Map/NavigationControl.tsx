@@ -1,6 +1,8 @@
 import React from 'react'
 import styled from 'styled-components/macro'
 
+import { SM } from '../../utils/styled'
+
 const Button = styled.button`
   width: 40px;
   height: 40px;
@@ -75,8 +77,8 @@ const UnstyledNavigationControl = ({
 
 const NavigationControl = styled(UnstyledNavigationControl)`
   position: absolute;
-  right: 32px;
-  bottom: 32px;
+  right: 16px;
+  top: 16px;
   display: flex;
   flex-direction: column;
   background: #FFFFFF;
@@ -89,6 +91,12 @@ const NavigationControl = styled(UnstyledNavigationControl)`
 
   :empty {
     display: none;
+  }
+
+  @media (min-width: ${SM}px) {
+    top: auto;
+    right: 32px;
+    bottom: 32px;
   }
 `
 
