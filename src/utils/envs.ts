@@ -21,11 +21,11 @@ const envs: Envs = {
   'mock-api': {
     tracker: {
       source: 'http',
-      http: 'http://localhost:3001',
+      http: process.env.REACT_APP_MOCK_API_URL || '',
     },
     streamr: {
-      http: 'http://localhost:3001',
-      ws: 'http://localhost:3001',
+      http: process.env.REACT_APP_MOCK_API_URL || '',
+      ws: process.env.REACT_APP_MOCK_API_URL || '',
     },
   },
   local: {
