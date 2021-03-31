@@ -140,6 +140,49 @@ export const ZoomControls: Story = (args) => {
   )
 }
 
+export const NodeConnections: Story = (args) => {
+  const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
+  const [showConnections, setShowConnections] = useState<boolean>(true)
+
+  const onToggleConnections = useCallback(() => {
+    setShowConnections((wasShown) => !wasShown)
+  }, [])
+
+  const onZoomIn = useCallback(() => {
+    setViewport((prev) => ({
+      ...prev,
+      zoom: prev.zoom + 1,
+    }))
+  }, [setViewport])
+
+  const onZoomOut = useCallback(() => {
+    setViewport((prev) => ({
+      ...prev,
+      zoom: prev.zoom - 1,
+    }))
+  }, [setViewport])
+
+  const onZoomReset = useCallback(() => {
+    setViewport((prev) => ({
+      ...initialViewport,
+    }))
+  }, [setViewport])
+
+  return (
+    <Map
+      nodes={nodes}
+      topology={topology}
+      viewport={viewport}
+      setViewport={setViewport}
+      onZoomIn={onZoomIn}
+      onZoomOut={onZoomOut}
+      onZoomReset={onZoomReset}
+      showConnections={showConnections}
+      onToggleConnections={onToggleConnections}
+    />
+  )
+}
+
 export const OverlappingNodes: Story = (args) => {
   const [viewport, setViewport] = useState<ViewportProps>({
     width: 800,

@@ -34,6 +34,7 @@ type Props = {
   setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>,
   onNodeClick?: (v: string) => void,
   onMapClick?: () => void,
+  showConnections?: boolean,
 } & NavigationControlProps
 
 const defaultViewport = {
@@ -62,6 +63,8 @@ export const Map = ({
   onZoomIn,
   onZoomOut,
   onZoomReset,
+  onToggleConnections,
+  showConnections = false,
 }: Props) => {
   const mapRef = useRef<InteractiveMap>(null)
 
@@ -79,6 +82,7 @@ export const Map = ({
       <ConnectionLayer
         topology={topology}
         nodes={nodes}
+        visible={!!showConnections}
       />
       <MarkerLayer
         nodes={nodes}
@@ -89,6 +93,7 @@ export const Map = ({
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}
         onZoomReset={onZoomReset}
+        onToggleConnections={onToggleConnections}
       />
     </ReactMapGL>
   )
@@ -114,6 +119,8 @@ export const ConnectedMap = () => {
     activeLocation,
     streamId,
     setActiveView,
+    showConnections,
+    toggleShowConnections,
   } = useStore()
   const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
@@ -219,6 +226,8 @@ export const ConnectedMap = () => {
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onZoomReset={reset}
+        showConnections={(showConnections === 'auto' && !!streamId) || showConnections === 'always'}
+        onToggleConnections={toggleShowConnections}
       />
     </MapContainer>
   )
