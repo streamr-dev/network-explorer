@@ -13,12 +13,12 @@ import ReactMapGL, {
 } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useHistory } from 'react-router-dom'
+import styled from 'styled-components'
 
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
 
-import useWindowSize from '../../hooks/useWindowSize'
 import { useStore, ActiveView, Topology } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node } from '../../utils/api/tracker'
@@ -37,8 +37,8 @@ type Props = {
 } & NavigationControlProps
 
 const defaultViewport = {
-  width: 400,
-  height: 400,
+  width: 0,
+  height: 0,
   latitude: 60.16952,
   longitude: 24.93545,
   zoom: 10,
@@ -68,6 +68,8 @@ export const Map = ({
   return (
     <ReactMapGL
       {...viewport}
+      width="100%"
+      height="100%"
       mapboxApiAccessToken={MAPBOX_TOKEN}
       mapStyle='mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t'
       onViewportChange={setViewport}
@@ -97,6 +99,12 @@ const LINEAR_TRANSITION_PROPS = {
   transitionEasing: (t: number) => t,
   transitionInterpolator: new LinearInterpolator(),
 }
+
+const MapContainer = styled.div`
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+`
 
 export const ConnectedMap = () => {
   const {
@@ -147,16 +155,6 @@ export const ConnectedMap = () => {
       }
     })
   }, [debouncedSetViewport, visibleNodes])
-
-  const windowSize = useWindowSize()
-
-  useEffect(() => {
-    debouncedSetViewport((prev: ViewportProps) => ({
-      ...prev,
-      width: windowSize.width ?? prev.width,
-      height: windowSize.height ?? prev.height,
-    }))
-  }, [debouncedSetViewport, windowSize.width, windowSize.height])
 
   const onNodeClick = useCallback((nodeId: string) => {
     let path = '/'
@@ -209,18 +207,20 @@ export const ConnectedMap = () => {
   }), [reset]))
 
   return (
-    <Map
-      nodes={visibleNodes}
-      viewport={viewport}
-      topology={topology}
-      setViewport={setViewport}
-      activeNode={activeNode}
-      onNodeClick={onNodeClick}
-      onMapClick={onMapClick}
-      onZoomIn={zoomIn}
-      onZoomOut={zoomOut}
-      onZoomReset={reset}
-    />
+    <MapContainer>
+      <Map
+        nodes={visibleNodes}
+        viewport={viewport}
+        topology={topology}
+        setViewport={setViewport}
+        activeNode={activeNode}
+        onNodeClick={onNodeClick}
+        onMapClick={onMapClick}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onZoomReset={reset}
+      />
+    </MapContainer>
   )
 }
 

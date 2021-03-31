@@ -1,9 +1,15 @@
 import React, { useState, useCallback } from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 import { ViewportProps } from 'react-map-gl'
+import styled from 'styled-components'
 
 import { Map } from '.'
 import { Node } from '../../utils/api/tracker'
+
+const Wrapper = styled.div`
+  width: 800px;
+  height: 600px;
+`
 
 export default {
   title: 'Map',
@@ -11,6 +17,7 @@ export default {
   parameters: {
     layout: 'fullscreen',
   },
+  decorators: [(StoryComponent) => <Wrapper><StoryComponent /></Wrapper>],
 } as Meta
 
 const nodes = [
