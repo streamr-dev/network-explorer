@@ -7,9 +7,22 @@ import SearchInput from './SearchInput'
 import SearchResults from './SearchResults'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
+import Error from '../Error'
+
+const SlideHandle = styled.div`
+  position: absolute;
+  height: 4px;
+  width: 40px;
+  background: #E7E7E7;
+  border-radius: 2px;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+`
 
 const Search = styled(ControlBox)`
-  > *:first-child {
+  ${SearchInput} {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
   }
@@ -30,15 +43,47 @@ const Search = styled(ControlBox)`
       padding: 8px 16px;
     }
 
+    ${SlideHandle} {
+      display: block;
+    }
+
+    ${SearchInput} {
+      padding: 22px 16px 16px 16px;
+      border-radius: 0px;
+
+      ${SearchInput.Inner} {
+        border: 1px solid #EFEFEF;
+        border-radius: 4px;
+      }
+    }
+
+    ${SearchInput} + ${Stats} {
+      border: 1px solid #EFEFEF;
+      margin: 0 16px 16px 16px;
+      border-radius: 0 0 8px 8px;
+    }
+
     ${({ theme }) => theme.activeView === 'map' && css`
       ${SearchResults} {
         display: none;
       }
     `}
 
-    ${({ theme }) => theme.activeView === 'list' && css`
+    ${({ theme }) => !!theme.hasStats && !theme.resultsActive && css`
+      ${SearchInput} {
+        padding-bottom: 0;
+
+        ${SearchInput.Inner} {
+          border-bottom: 0;
+          border-radius: 8px 8px 0 0;
+        }
+      }
+    `}
+
+    ${({ theme }) => theme.activeView === 'list' && !!theme.resultsActive && css`
       ${Stats},
-      ${Graphs} {
+      ${Graphs},
+      ${Error} {
         display: none;
       }
     `}
@@ -49,7 +94,7 @@ const Search = styled(ControlBox)`
   }
 
   ${SearchResults} {
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 170px);
     overflow: hidden;
     overflow-y: scroll;
   }
@@ -73,4 +118,5 @@ const Search = styled(ControlBox)`
 export default Object.assign(Search, {
   Input: SearchInput,
   Results: SearchResults,
+  SlideHandle,
 })

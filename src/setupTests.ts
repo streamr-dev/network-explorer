@@ -4,3 +4,18 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom/extend-expect'
 import 'core-js'
+
+/* eslint-disable class-methods-use-this */
+class ResizeObserver {
+  observe() {
+    // do nothing
+  }
+
+  unobserve() {
+    // do nothing
+  }
+}
+/* eslint-enable class-methods-use-this */
+
+window.ResizeObserver = ResizeObserver
+export default ResizeObserver

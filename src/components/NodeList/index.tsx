@@ -6,7 +6,7 @@ import ControlBox from '../ControlBox'
 import NodeListItem from './NodeListItem'
 import { SANS, MEDIUM } from '../../utils/styled'
 
-const Wrapper = styled.div`
+const Inner = styled.div`
   padding: 16px;
   font-size: 12px;
 `
@@ -34,13 +34,14 @@ const Header = styled.div`
 
 const NodeList = ({ children }: Props) => (
   <ControlBox>
-    <Wrapper>
+    <Inner>
       {children}
-    </Wrapper>
+    </Inner>
   </ControlBox>
 )
 
 export default Object.assign(NodeList, {
+  Inner,
   Header,
   Node: NodeListItem,
 })
