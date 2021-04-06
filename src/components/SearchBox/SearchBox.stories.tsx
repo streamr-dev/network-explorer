@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import styled, { css } from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
-import { MemoryRouter } from 'react-router-dom'
 
 import { SearchResult } from '../../utils/api/streamr'
 import Stats from '../Stats'
@@ -14,7 +13,6 @@ import SearchBox from '.'
 export default {
   title: 'SearchBox',
   component: SearchBox,
-  decorators: [(Story) => <MemoryRouter><Story /></MemoryRouter>],
 } as Meta
 
 const Wrapper = styled.div`

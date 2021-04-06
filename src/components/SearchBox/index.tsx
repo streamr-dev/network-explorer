@@ -40,15 +40,14 @@ const SearchBox = () => {
   }, [updateSearch])
 
   const onResultClick = useCallback(({ id, type }) => {
+    setActiveView(ActiveView.Map)
     switch (type) {
       case 'streams':
-        updateSearchText(id)
         resetSearchResults()
         history.push(`/streams/${encodeURIComponent(id)}`)
         break
 
       case 'nodes':
-        updateSearchText('')
         resetSearchResults()
         history.push(`/nodes/${id}`)
         break
@@ -60,7 +59,7 @@ const SearchBox = () => {
       default:
         break
     }
-  }, [history, setActiveLocationId, updateSearchText, resetSearchResults])
+  }, [setActiveView, history, setActiveLocationId, resetSearchResults])
 
   return (
     <Search
