@@ -74,6 +74,14 @@ const NodeElement = styled.div`
     }
   `}
 `
+const PlacenameOrAddress = styled.div`
+  position: relative;
+  height: 16px;
+
+  * > div {
+    position: absolute;
+  }
+`
 
 const PlaceName = styled.div`
   font-size: 10px;
@@ -135,12 +143,19 @@ const NodeListItem = ({
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
-          {!isActive && (
-            <PlaceName>{placeName}</PlaceName>
-          )}
-          {!!isActive && (
-            <Address title={nodeId}>{truncate(nodeId)}</Address>
-          )}
+          <PlacenameOrAddress>
+            {transition((style, item) => (
+              item ? (
+                <animated.div style={style}>
+                  <Address title={nodeId}>{truncate(nodeId)}</Address>
+                </animated.div>
+              ) : (
+                <animated.div style={style}>
+                  <PlaceName>{placeName}</PlaceName>
+                </animated.div>
+              )
+            ))}
+          </PlacenameOrAddress>
         </Name>
       </TitleRow>
       <Content>
