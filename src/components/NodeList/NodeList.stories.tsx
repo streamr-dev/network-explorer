@@ -93,27 +93,25 @@ export const WithStats = () => {
           title={title}
           placeName={placeName}
           onClick={() => setActiveNode((prev) => prev !== id ? id : undefined)}
-          showAddress={activeNode === id}
+          isActive={activeNode === id}
         >
-          {activeNode === id && (
-            <Stats>
-              <Stats.Stat
-                id="messagesPerSecond"
-                label="Msgs/sec"
-                value={undefined}
-              />
-              <Stats.Stat
-                id="mbsPerSecond"
-                label="MB/S"
-                value={undefined}
-              />
-              <Stats.Stat
-                id="latency"
-                label="Latency ms"
-                value={undefined}
-              />
-            </Stats>
-          )}
+          <Stats>
+            <Stats.Stat
+              id="messagesPerSecond"
+              label="Msgs/sec"
+              value={undefined}
+            />
+            <Stats.Stat
+              id="mbsPerSecond"
+              label="MB/S"
+              value={undefined}
+            />
+            <Stats.Stat
+              id="latency"
+              label="Latency ms"
+              value={undefined}
+            />
+          </Stats>
         </NodeList.Node>
       ))}
     </NodeList>
@@ -164,36 +162,32 @@ export const WithStatsAndError = () => {
           title={title}
           placeName={placeName}
           onClick={() => onNodeClick(id !== activeNode ? id : undefined)}
-          showAddress={activeNode === id}
+          isActive={activeNode === id}
         >
-          {id === activeNode && (
-            <>
-              <Stats active={selectedStat}>
-                <Stats.Stat
-                  id="messagesPerSecond"
-                  label="Msgs/sec"
-                  value={undefined}
-                  onClick={() => onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
-                />
-                <Stats.Stat
-                  id="mbsPerSecond"
-                  label="MB/S"
-                  value={undefined}
-                  onClick={() => onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
-                />
-                <Stats.Stat
-                  id="latency"
-                  label="Latency ms"
-                  value={undefined}
-                  onClick={() => onStatClick(selectedStat !== 'latency' ? 'latency' : undefined)}
-                />
-              </Stats>
-              {!!error && (
-                <Error>
-                  {error}
-                </Error>
-              )}
-            </>
+          <Stats active={selectedStat}>
+            <Stats.Stat
+              id="messagesPerSecond"
+              label="Msgs/sec"
+              value={undefined}
+              onClick={() => onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
+            />
+            <Stats.Stat
+              id="mbsPerSecond"
+              label="MB/S"
+              value={undefined}
+              onClick={() => onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
+            />
+            <Stats.Stat
+              id="latency"
+              label="Latency ms"
+              value={undefined}
+              onClick={() => onStatClick(selectedStat !== 'latency' ? 'latency' : undefined)}
+            />
+          </Stats>
+          {!!error && (
+            <Error>
+              {error}
+            </Error>
           )}
         </NodeList.Node>
       ))}

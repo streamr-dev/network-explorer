@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import styled, { css } from 'styled-components/macro'
 import Identicon from 'react-identicons'
+import { useTransition, animated } from 'react-spring'
 
 import { MONO, MEDIUM } from '../../utils/styled'
 import { truncate } from '../../utils/text'
@@ -28,6 +29,11 @@ const TitleRow = styled.div`
 `
 
 const IconWrapper = styled.div``
+
+const Content = styled.div`
+  transition: max-height 300ms ease-in-out;
+  max-height: 0;
+`
 
 const NodeElement = styled.div`
   background: #FFFFFF;
@@ -61,6 +67,12 @@ const NodeElement = styled.div`
       }
     }
   `}
+
+  ${({ theme }) => !!theme.isActive && css`
+    ${Content} {
+      max-height: 100vh;
+    }
+  `}
 `
 
 const PlaceName = styled.div`
@@ -81,7 +93,7 @@ type Props = {
   title: string,
   placeName: string,
   onClick?: (id: string) => void,
-  showAddress?: boolean,
+  isActive?: boolean,
   children?: React.ReactNode,
 }
 
@@ -90,7 +102,7 @@ const NodeListItem = ({
   title,
   placeName,
   onClick: onClickProp,
-  showAddress,
+  isActive,
   children,
   ...props
 }: Props) => {
@@ -100,8 +112,20 @@ const NodeListItem = ({
     }
   }, [onClickProp, nodeId])
 
+  const transition = useTransition(isActive, {
+    from: { opacity: 0 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0 },
+  })
+
   return (
-    <NodeElement {...props} theme={{ clickable: typeof onClickProp === 'function' }}>
+    <NodeElement
+      {...props}
+      theme={{
+        clickable: typeof onClickProp === 'function',
+        isActive,
+      }}
+    >
       <TitleRow onClick={onClick}>
         <IconWrapper>
           <Identicon
@@ -111,15 +135,23 @@ const NodeListItem = ({
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
-          {!showAddress && (
+          {!isActive && (
             <PlaceName>{placeName}</PlaceName>
           )}
-          {!!showAddress && (
+          {!!isActive && (
             <Address title={nodeId}>{truncate(nodeId)}</Address>
           )}
         </Name>
       </TitleRow>
-      {children || null}
+      <Content>
+        {transition((style, item) => (
+          !!item && (
+            <animated.div style={style}>
+              {children || null}
+            </animated.div>
+          )
+        ))}
+      </Content>
     </NodeElement>
   )
 }

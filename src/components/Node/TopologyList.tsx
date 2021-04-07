@@ -22,7 +22,7 @@ const TopologyList = ({ id }: Props) => {
           nodeId={currentNode.id}
           title={currentNode.title}
           placeName={currentNode.placeName}
-          showAddress
+          isActive
         >
           <NodeStats key={currentNode.id} id={currentNode.id} />
         </NodeList.Node>
