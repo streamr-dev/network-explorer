@@ -51,11 +51,9 @@ const TopologyList = ({ id }: Props) => {
             title={title}
             placeName={placeName}
             onClick={toggleNode}
-            showAddress={activeNodeId === nodeId}
+            isActive={activeNodeId === nodeId}
           >
-            {activeNodeId === nodeId && (
-              <NodeStats id={nodeId} />
-            )}
+            <NodeStats id={nodeId} />
           </NodeList.Node>
         ))}
       </NodeList>
