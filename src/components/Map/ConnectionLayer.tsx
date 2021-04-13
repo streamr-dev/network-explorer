@@ -88,7 +88,7 @@ const ConnectionLayer = ({
         paint={{
           'line-width': 1,
           'line-color': '#0324FF',
-          'line-opacity': visible ? 1 : 0,
+          'line-opacity': visible ? 0.5 : 0,
         }}
       />
     </Source>

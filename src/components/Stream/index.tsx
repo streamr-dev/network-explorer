@@ -10,12 +10,20 @@ type StreamProps = {
   id: string,
 }
 
-const TopologyLoader = ({ id }: StreamProps) => {
-  const { loadTopology, resetTopology } = useController()
+const SearchTextSetter = ({ id }: StreamProps) => {
   const { updateSearch } = useStore()
 
   useEffect(() => {
     updateSearch(id)
+  }, [updateSearch, id])
+
+  return null
+}
+
+const TopologyLoader = ({ id }: StreamProps) => {
+  const { loadTopology, resetTopology } = useController()
+
+  useEffect(() => {
     loadTopology({
       streamId: id,
     })
@@ -23,7 +31,7 @@ const TopologyLoader = ({ id }: StreamProps) => {
     return () => {
       resetTopology()
     }
-  }, [loadTopology, resetTopology, updateSearch, id])
+  }, [loadTopology, resetTopology, id])
 
   return null
 }
@@ -75,6 +83,7 @@ export default () => {
 
   return (
     <>
+      <SearchTextSetter id={streamId} />
       <TopologyLoader id={streamId} />
       <StreamLoader id={streamId} />
       <ActiveNodeSetter id={nodeId} />

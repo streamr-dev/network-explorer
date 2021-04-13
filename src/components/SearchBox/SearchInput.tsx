@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from 'react'
 import styled from 'styled-components/macro'
-import { Link } from 'react-router-dom'
 import { truncate } from '../../utils/text'
 
 import { SM, MD, SANS } from '../../utils/styled'
@@ -56,13 +55,19 @@ const Logo = styled.div`
     display: block;
   }
 
-  svg {
+  button {
     position: absolute;
     width: 32px;
     height: 32px;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    appearance: none;
+    border: none;
+    background: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
   }
 `
 
@@ -193,9 +198,9 @@ const UnstyledSearchInput = ({
     >
       <Inner>
         <Logo>
-          <Link to="/">
+          <button type="button" onClick={onClear}>
             <StreamrIcon />
-          </Link>
+          </button>
         </Logo>
         <Input
           id="input"

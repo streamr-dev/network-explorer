@@ -10,6 +10,7 @@ import ReactMapGL, {
   ViewportProps,
   FlyToInterpolator,
   LinearInterpolator,
+  ExtraState,
 } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useHistory } from 'react-router-dom'
@@ -52,6 +53,14 @@ const defaultViewport = {
   minPitch: 0,
 }
 
+function getCursor({ isHovering, isDragging }: ExtraState) {
+  if (isDragging) {
+    return 'all-scroll'
+  }
+
+  return isHovering ? 'pointer' : 'default'
+}
+
 export const Map = ({
   nodes,
   topology,
@@ -76,6 +85,7 @@ export const Map = ({
       mapboxApiAccessToken={MAPBOX_TOKEN}
       mapStyle='mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t'
       onViewportChange={setViewport}
+      getCursor={getCursor}
       ref={mapRef}
       onClick={onMapClick}
     >
@@ -163,22 +173,35 @@ export const ConnectedMap = () => {
     })
   }, [debouncedSetViewport, visibleNodes])
 
-  const onNodeClick = useCallback((nodeId: string) => {
+  const { id: activeNodeId } = activeNode || {}
+
+  const showNode = useCallback((nodeId?: string) => {
     let path = '/'
 
     if (streamId) {
       path += `streams/${encodeURIComponent(streamId)}/`
     }
 
-    path += `nodes/${nodeId}`
+    if (nodeId) {
+      path += `nodes/${nodeId}`
+    }
 
     history.replace(path)
   }, [streamId, history])
 
+  const onNodeClick = useCallback((nodeId: string) => {
+    setActiveView(ActiveView.Map)
+
+    showNode(nodeId !== activeNodeId ? nodeId : undefined)
+  }, [setActiveView, showNode, activeNodeId])
+
   // reset search view when clicking on map
   const onMapClick = useCallback(() => {
     setActiveView(ActiveView.Map)
-  }, [setActiveView])
+
+    // unselect active node
+    showNode(undefined)
+  }, [setActiveView, showNode])
 
   const zoomIn = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => ({

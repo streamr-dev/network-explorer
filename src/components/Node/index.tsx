@@ -23,6 +23,21 @@ type NodeProps = {
   id: string,
 }
 
+const SearchTextSetter = () => {
+  const {
+    updateSearch: updateSearchText,
+    activeNode,
+  } = useStore()
+
+  const activeNodeTitle = activeNode && activeNode.title
+
+  useEffect(() => {
+    updateSearchText(activeNodeTitle || '')
+  }, [updateSearchText, activeNodeTitle])
+
+  return null
+}
+
 const ActiveNodeSetter = ({ id }: NodeProps) => {
   const { setActiveNodeId } = useStore()
 
@@ -49,6 +64,7 @@ export default () => {
 
   return (
     <>
+      <SearchTextSetter />
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
       {!!nodeId && (
