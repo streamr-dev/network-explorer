@@ -110,14 +110,14 @@ export const ZoomControls: Story = (args) => {
   const onZoomIn = useCallback(() => {
     setViewport((prev) => ({
       ...prev,
-      zoom: prev.zoom + 1,
+      zoom: (prev.zoom || 0) + 1,
     }))
   }, [setViewport])
 
   const onZoomOut = useCallback(() => {
     setViewport((prev) => ({
       ...prev,
-      zoom: prev.zoom - 1,
+      zoom: (prev.zoom || 0) - 1,
     }))
   }, [setViewport])
 
@@ -151,14 +151,14 @@ export const NodeConnections: Story = (args) => {
   const onZoomIn = useCallback(() => {
     setViewport((prev) => ({
       ...prev,
-      zoom: prev.zoom + 1,
+      zoom: (prev.zoom || 0) + 1,
     }))
   }, [setViewport])
 
   const onZoomOut = useCallback(() => {
     setViewport((prev) => ({
       ...prev,
-      zoom: prev.zoom - 1,
+      zoom: (prev.zoom || 0) - 1,
     }))
   }, [setViewport])
 
