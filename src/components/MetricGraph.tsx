@@ -61,6 +61,13 @@ const getResendOptionsForInterval = (interval: Interval) => {
         },
       }
 
+    case 'all':
+      return {
+        from: {
+          timestamp: new Date(2021, 1, 1).getTime(),
+        },
+      }
+
     default:
       break
   }
