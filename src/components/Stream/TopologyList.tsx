@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-import StreamrClientProvider from '../StreamrClientProvider'
 
 import { useStore } from '../../contexts/Store'
 import { truncate } from '../../utils/text'
@@ -33,31 +32,29 @@ const TopologyList = ({ id }: Props) => {
   const streamTitle = stream && stream.name || id
 
   return (
-    <StreamrClientProvider>
-      <NodeList>
-        <NodeList.Header>
-          Showing
-          {' '}
-          <strong>{visibleNodes.length}</strong>
-          {' '}
-          nodes carrying the stream
-          {' '}
-          <strong title={id}>{truncate(streamTitle)}</strong>
-        </NodeList.Header>
-        {visibleNodes.map(({ id: nodeId, title, placeName }) => (
-          <NodeList.Node
-            key={nodeId}
-            nodeId={nodeId}
-            title={title}
-            placeName={placeName}
-            onClick={toggleNode}
-            isActive={activeNodeId === nodeId}
-          >
-            <NodeStats id={nodeId} />
-          </NodeList.Node>
-        ))}
-      </NodeList>
-    </StreamrClientProvider>
+    <NodeList>
+      <NodeList.Header>
+        Showing
+        {' '}
+        <strong>{visibleNodes.length}</strong>
+        {' '}
+        nodes carrying the stream
+        {' '}
+        <strong title={id}>{truncate(streamTitle)}</strong>
+      </NodeList.Header>
+      {visibleNodes.map(({ id: nodeId, title, placeName }) => (
+        <NodeList.Node
+          key={nodeId}
+          nodeId={nodeId}
+          title={title}
+          placeName={placeName}
+          onClick={toggleNode}
+          isActive={activeNodeId === nodeId}
+        >
+          <NodeStats id={nodeId} />
+        </NodeList.Node>
+      ))}
+    </NodeList>
   )
 }
 

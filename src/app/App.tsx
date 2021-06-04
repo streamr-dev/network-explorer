@@ -15,6 +15,7 @@ import Debug from '../components/Debug'
 import UnstyledLoadingIndicator from '../components/LoadingIndicator'
 import Layout from '../components/Layout'
 import ErrorBoundary from '../components/ErrorBoundary'
+import StreamrClientProvider from '../components/StreamrClientProvider'
 
 import { Provider as StoreProvider, useStore } from '../contexts/Store'
 import { Provider as ControllerProvider, useController } from '../contexts/Controller'
@@ -75,26 +76,28 @@ const LoadingBar = () => {
 const App = () => (
   <BrowserRouter basename={process.env.PUBLIC_URL}>
     <Pendingrovider>
-      <StoreProvider>
-        <ControllerProvider>
-          <ConnectedMap />
-          <LoadingBar />
-          <Layout>
-            <ErrorBoundary>
-              <TrackerLoader />
-              <SearchTextResetter />
-              <Debug />
-              <SearchBox />
-              <Switch>
-                <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
-                <Route exact path="/streams/:streamId" component={Stream} />
-                <Route exact path="/nodes/:nodeId" component={Node} />
-                <Route exact path="/" component={Node} />
-              </Switch>
-            </ErrorBoundary>
-          </Layout>
-        </ControllerProvider>
-      </StoreProvider>
+      <StreamrClientProvider>
+        <StoreProvider>
+          <ControllerProvider>
+            <ConnectedMap />
+            <LoadingBar />
+            <Layout>
+              <ErrorBoundary>
+                <TrackerLoader />
+                <SearchTextResetter />
+                <Debug />
+                <SearchBox />
+                <Switch>
+                  <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
+                  <Route exact path="/streams/:streamId" component={Stream} />
+                  <Route exact path="/nodes/:nodeId" component={Node} />
+                  <Route exact path="/" component={Node} />
+                </Switch>
+              </ErrorBoundary>
+            </Layout>
+          </ControllerProvider>
+        </StoreProvider>
+      </StreamrClientProvider>
     </Pendingrovider>
   </BrowserRouter>
 )
