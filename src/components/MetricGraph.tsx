@@ -75,6 +75,15 @@ const getResendOptionsForInterval = (interval: Interval) => {
   return undefined
 }
 
+const formatMetricValue = (value: number, metric: MetricType): string => {
+  switch (metric) {
+    case 'bytesPerSecond':
+      return (value / 1024 / 1024).toPrecision(4)
+  }
+
+  return `${+Number(value).toPrecision(4)}`
+}
+
 type RawValue = {
   timestamp: number,
   messagesPerSecond: number,
@@ -135,6 +144,10 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 
   const resend = useMemo(() => getResendOptionsForInterval(interval), [interval])
 
+  const labelFormat = useCallback((value: number): string => {
+    return formatMetricValue(value, metric)
+  }, [metric])
+
   useSubscription({
     stream: streamId,
     resend,
@@ -147,6 +160,7 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
       ratio="1:2"
       showCrosshair
       dateDisplay={interval === '24hours' ? 'hour' : 'day'}
+      labelFormat={labelFormat}
     />
   )
 }

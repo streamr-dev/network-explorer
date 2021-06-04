@@ -66,6 +66,7 @@ export type Props = {
   dateDisplay?: DateDisplay,
   height?: string,
   ratio?: string,
+  labelFormat?: (value: number) => string,
 }
 
 const curveColors = ['#B4BFF8', '#FF5C00']
@@ -94,6 +95,7 @@ const UnstyledTimeSeriesGraph = ({
   dateDisplay,
   height,
   ratio,
+  labelFormat,
   ...props
 }: Props) => {
   const [hoveredValue, setHoveredValue] = useState<XY | null>(null)
@@ -181,7 +183,9 @@ const UnstyledTimeSeriesGraph = ({
               }}
             >
               <CrosshairValue>
-                {hoveredValue.y} ({formatDate(hoveredValue.x, dateDisplay)})
+                {typeof labelFormat === 'function' ? labelFormat(hoveredValue.y) : hoveredValue.y}
+                {' '}
+                ({formatDate(hoveredValue.x, dateDisplay)})
               </CrosshairValue>
             </StyledCrosshair>
           )}

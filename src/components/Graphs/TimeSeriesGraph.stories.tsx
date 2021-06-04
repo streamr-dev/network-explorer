@@ -75,3 +75,10 @@ WithCrosshair.args = {
   graphData: { data1 },
   showCrosshair: true,
 }
+
+export const WithLabelFormat = Template.bind({})
+WithLabelFormat.args = {
+  graphData: { data1 },
+  showCrosshair: true,
+  labelFormat: (value) => `Formatted value: ${value}`,
+}
