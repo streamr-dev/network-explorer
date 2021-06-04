@@ -61,6 +61,13 @@ const getResendOptionsForInterval = (interval: Interval) => {
         },
       }
 
+    case 'all':
+      return {
+        from: {
+          timestamp: new Date(2021, 1, 1).getTime(),
+        },
+      }
+
     default:
       break
   }
@@ -88,18 +95,16 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 
   const onMessage = useCallback(({ broker, trackers, network }, { messageId }) => {
     if (isMounted()) {
-      if (isMounted()) {
-        dataRef.current = [
-          ...dataRef.current,
-          {
-            timestamp: messageId.timestamp,
-            messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
-            numberOfNodes: trackers && trackers.totalNumberOfNodes || 0,
-            bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
-            latency: Math.round(network.avgLatencyMs),
-          },
-        ]
-      }
+      dataRef.current = [
+        ...dataRef.current,
+        {
+          timestamp: messageId.timestamp,
+          messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
+          numberOfNodes: trackers && trackers.totalNumberOfNodes || 0,
+          bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
+          latency: Math.round(network.avgLatencyMs),
+        },
+      ]
     }
   }, [isMounted])
 

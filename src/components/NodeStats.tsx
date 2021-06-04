@@ -52,8 +52,7 @@ const NodeStats = ({ id }: Props) => {
   }, [isMounted])
 
   useSubscription({
-    // TODO: use network metric for now, replace with real value
-    stream: 'streamr.eth/metrics/network/sec',
+    stream: `${id}/streamr/node/metrics/sec`,
     resend: {
       last: 1,
     },

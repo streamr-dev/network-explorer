@@ -6,11 +6,11 @@ import React, {
   useCallback,
 } from 'react'
 import ReactMapGL, {
-  InteractiveMap,
   ViewportProps,
   FlyToInterpolator,
   LinearInterpolator,
-  ExtraState,
+  MapRef,
+  TRANSITION_EVENTS,
 } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useHistory } from 'react-router-dom'
@@ -53,7 +53,10 @@ const defaultViewport = {
   minPitch: 0,
 }
 
-function getCursor({ isHovering, isDragging }: ExtraState) {
+// react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
+const INERTIA = 300
+
+function getCursor({ isHovering, isDragging }: { isHovering: boolean, isDragging: boolean }) {
   if (isDragging) {
     return 'all-scroll'
   }
@@ -75,7 +78,7 @@ export const Map = ({
   onToggleConnections,
   showConnections = false,
 }: Props) => {
-  const mapRef = useRef<InteractiveMap>(null)
+  const mapRef = useRef<MapRef>(null)
 
   return (
     <ReactMapGL
@@ -88,6 +91,18 @@ export const Map = ({
       getCursor={getCursor}
       ref={mapRef}
       onClick={onMapClick}
+      dragPan={{
+        inertia: INERTIA,
+      }}
+      dragRotate={{
+        inertia: INERTIA,
+      }}
+      touchZoom={{
+        inertia: INERTIA,
+      }}
+      touchRotate={{
+        inertia: INERTIA,
+      }}
     >
       <ConnectionLayer
         topology={topology}
@@ -113,6 +128,7 @@ const LINEAR_TRANSITION_PROPS = {
   transitionDuration: 300,
   transitionEasing: (t: number) => t,
   transitionInterpolator: new LinearInterpolator(),
+  transitionInterruption: TRANSITION_EVENTS.BREAK,
 }
 
 const MapContainer = styled.div`
@@ -138,7 +154,7 @@ export const ConnectedMap = () => {
     transitionInterpolator: new FlyToInterpolator({
       speed: 3,
     }),
-    transitionDuration: 'auto',
+    transitionDuration: 2000,
   })
 
   const debouncedSetViewport = useDebounced(
@@ -165,7 +181,7 @@ export const ConnectedMap = () => {
     if (visibleNodes.length <= 0) { return }
 
     debouncedSetViewport((prev: ViewportProps) => {
-      const vp = getCenteredViewport(visibleNodes, prev.width, prev.height)
+      const vp = getCenteredViewport(visibleNodes, prev.width || 0, prev.height || 0)
       return {
         ...prev,
         ...vp,
@@ -206,7 +222,7 @@ export const ConnectedMap = () => {
   const zoomIn = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => ({
       ...prev,
-      zoom: prev.zoom + 1,
+      zoom: (prev.zoom || 0) + 1,
       LINEAR_TRANSITION_PROPS,
     }))
   }, [debouncedSetViewport])
@@ -214,14 +230,14 @@ export const ConnectedMap = () => {
   const zoomOut = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => ({
       ...prev,
-      zoom: prev.zoom - 1,
+      zoom: (prev.zoom || 0) - 1,
       LINEAR_TRANSITION_PROPS,
     }))
   }, [debouncedSetViewport])
 
   const reset = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => {
-      const nextViewport = getCenteredViewport(visibleNodes, prev.width, prev.height)
+      const nextViewport = getCenteredViewport(visibleNodes, prev.width || 0, prev.height || 0)
       return {
         ...prev,
         ...nextViewport,
