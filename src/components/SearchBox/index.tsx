@@ -4,7 +4,6 @@ import { useHistory } from 'react-router-dom'
 import { useStore, ActiveView } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
 import { useController } from '../../contexts/Controller'
-import StreamrClientProvider from '../StreamrClientProvider'
 
 import Search from './Search'
 import StreamStats from '../StreamStats'
@@ -95,8 +94,4 @@ const SearchBox = () => {
   )
 }
 
-export default () => (
-  <StreamrClientProvider>
-    <SearchBox />
-  </StreamrClientProvider>
-)
+export default SearchBox
