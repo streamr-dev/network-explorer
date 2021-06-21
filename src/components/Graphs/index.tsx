@@ -6,6 +6,7 @@ import { SANS } from '../../utils/styled'
 import { Provider as GraphProvider, Interval } from './Graphs'
 import Intervals from './Intervals'
 import TimeSeries from './TimeSeries'
+import Placeholder from './Placeholder'
 import Loading from './Loading'
 
 type Props = {
@@ -31,5 +32,6 @@ const Graphs = styled(UnstyledGraphs)`
 export default Object.assign(Graphs, {
   Intervals,
   TimeSeries,
+  Placeholder,
   Loading,
 })

@@ -59,6 +59,30 @@ export const WithDisabledInterval = () => {
   )
 }
 
+export const WithEmptyPlaceholder = () => {
+  return (
+    <Graphs>
+      <Graphs.Placeholder />
+      <Graphs.Intervals
+        options={['24hours', '1month', '3months', 'all']}
+        disabled
+      />
+    </Graphs>
+  )
+}
+
+export const WithImagePlaceholder = () => {
+  return (
+    <Graphs>
+      <Graphs.Placeholder showImage />
+      <Graphs.Intervals
+        options={['24hours', '1month', '3months', 'all']}
+        disabled
+      />
+    </Graphs>
+  )
+}
+
 export const WithLoadingIndicator = () => {
   return (
     <Graphs>
