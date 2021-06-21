@@ -88,6 +88,36 @@ const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
   return `${monthName} ${date.getDate()}`
 }
 
+const getAxisDomain = (graphData: GraphData, axis: keyof XY) => {
+  const dataValues = Object.keys(graphData || {}).flatMap((key) => {
+    const graph = graphData[key]
+    return graph.map((d) => d[axis])
+  })
+
+  let { min, max } = dataValues.reduce(
+    (res, value) => ({
+      max: Math.max(res.max, value),
+      min: Math.min(res.min, value),
+    }),
+    { max: -Infinity, min: Infinity },
+  )
+
+  if (!Number.isFinite(min)) {
+    min = 0
+  }
+  if (!Number.isFinite(max)) {
+    max = 1
+  }
+
+  // If we provide a domain with same min and max, react-vis
+  // shows seemingly random scale for y-axis
+  if (max === min) {
+    min -= 2
+    max += 2
+  }
+  return [min, max]
+}
+
 const UnstyledTimeSeriesGraph = ({
   graphData,
   onHoveredValueChanged,
@@ -106,35 +136,10 @@ const UnstyledTimeSeriesGraph = ({
     }
   }, [hoveredValue, onHoveredValueChanged])
 
-  const dataDomain = useMemo(() => {
-    const dataValues = Object.keys(graphData || {}).flatMap((key) => {
-      const graph = graphData[key]
-      return graph.map((d) => d.y)
-    })
-
-    let { min, max } = dataValues.reduce(
-      (res, value) => ({
-        max: Math.max(res.max, value),
-        min: Math.min(res.min, value),
-      }),
-      { max: -Infinity, min: Infinity },
-    )
-
-    if (!Number.isFinite(min)) {
-      min = 0
-    }
-    if (!Number.isFinite(max)) {
-      max = 1
-    }
-
-    // If we provide a domain with same min and max, react-vis
-    // shows seemingly random scale for y-axis
-    if (max === min) {
-      min -= 2
-      max += 2
-    }
-    return [min, max]
-  }, [graphData])
+  const [xDomain, yDomain] = useMemo(() => ([
+    getAxisDomain(graphData, 'x'),
+    getAxisDomain(graphData, 'y'),
+  ]), [graphData])
 
   const margin = useMemo(() => showCrosshair ? {
     top: 32,
@@ -155,8 +160,9 @@ const UnstyledTimeSeriesGraph = ({
           xType="time"
           /* Margin is needed for crosshair value to be fitted on screen */
           margin={margin}
-          yDomain={dataDomain}
-          yBaseValue={dataDomain[0]}
+          yDomain={yDomain}
+          yBaseValue={yDomain[0]}
+          xDomain={xDomain}
         >
           {Object.keys(graphData || {}).map((graphKey, index) => (
             <LineSeries
