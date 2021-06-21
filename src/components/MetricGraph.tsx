@@ -5,31 +5,16 @@ import React, {
   useEffect,
   useRef,
 } from 'react'
-import styled from 'styled-components'
 import { useSubscription } from 'streamr-client-react'
 
 import { getStream } from '../utils/api/streamr'
 import useIsMounted from '../hooks/useIsMounted'
-import {
-  SANS,
-  MEDIUM,
-} from '../utils/styled'
 
 import Graphs from './Graphs'
 import { Interval } from './Graphs/Graphs'
 import Error from './Error'
 
 export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond'
-
-const GraphPlaceholder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #A3A3A3;
-  font-family: ${SANS};
-  font-weight: ${MEDIUM};
-  text-transform: uppercase;
-`
 
 type MetricGraphProps = {
   streamId: string,
@@ -222,11 +207,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
       <Graphs defaultInterval="24hours">
         {(!hasLoaded || !!error) && (
           <>
-            <GraphPlaceholder>
-              {!!error && (
-                <span>{error}</span>
-              )}
-            </GraphPlaceholder>
+            <Graphs.Placeholder showImage={!!error} />
             <Graphs.Loading loading={!error} row={2} />
           </>
         )}
