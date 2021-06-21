@@ -114,10 +114,15 @@ const InfinityIcon = () => (
 )
 
 const ButtonGrid = styled.div`
-  display: grid;
-  grid-auto-flow: column;
+  display: flex;
+  flex-direction: row;
   padding-top: 12px;
   font-family: ${SANS};
+
+  > ${Stat} {
+      flex-grow: 1;
+      flex-basis: 0;
+  }
 `
 
 const Underline = styled.div`
