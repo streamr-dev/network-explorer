@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useContext } from 'react'
 
-export type Interval = '24hours' | '1month' | '3months' | 'all'
+export type Interval = 'realtime' | '24hours' | '1month' | '3months' | 'all'
 
 type ContextProps = {
   interval: Interval | undefined,
