@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import styled from 'styled-components/macro'
+import styled, { css } from 'styled-components/macro'
 
 import { useGraphContext, Interval } from './Graphs'
 
@@ -9,11 +9,19 @@ const IntervalChoice = styled.div`
   line-height: 32px;
   color: ${({ theme }) => theme.active ? '#323232' : '#A3A3A3'};
   background-color: ${({ theme }) => theme.active ? '#F8F8F8' : 'transparent'};
-  padding: 0 13.5px;
+  padding: 0;
   border-radius: 4px;
   user-select: none;
   cursor: ${({ theme }) => !theme.disabled ? 'pointer' : 'not-allowed'};
   opacity: ${({ theme }) => !theme.disabled ? '1' : '0.5'};
+  white-space: nowrap;
+  min-width: 56px;
+  box-sizing: border-box;
+  text-align: center;
+
+  ${({ theme }) => !!theme.letterSpacing && css`
+    letter-spacing: 0.04rem;
+  `}
 `
 
 type IntervalsProps = {
@@ -23,10 +31,11 @@ type IntervalsProps = {
 }
 
 const labels = {
-  '24hours': '24 Hours',
-  '1month': '1 Month',
-  '3months': '3 Months',
-  'all': 'All data',
+  'realtime': 'LIVE',
+  '24hours': '24H',
+  '1month': '1M',
+  '3months': '3M',
+  'all': 'ALL',
 }
 
 const UnstyledIntervals = ({
@@ -56,6 +65,7 @@ const UnstyledIntervals = ({
           theme={{
             active: interval === option,
             disabled: !!disabled,
+            letterSpacing: ['realtime', 'all'].includes(option),
           }}
         >
           {labels[option] || option}
@@ -69,8 +79,9 @@ const Intervals = styled(UnstyledIntervals)`
   border-top: 1px solid #EFEFEF;
   display: grid;
   grid-auto-flow: column;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-content: center;
+  padding: 0 1rem;
 `
 
 export default Intervals

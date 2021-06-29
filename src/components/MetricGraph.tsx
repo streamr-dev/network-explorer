@@ -22,27 +22,37 @@ type MetricGraphProps = {
   metric: MetricType,
 }
 
+const HOUR = 60 * 60 * 1000
+const REALTIME_WINDOW = HOUR / 6
+
 const getResendOptionsForInterval = (interval: Interval) => {
   switch (interval) {
+    case 'realtime':
+      return {
+        from: {
+          timestamp: Date.now() - REALTIME_WINDOW,
+        },
+      }
+
     case '24hours':
       return {
         // last: 100,
         from: {
-          timestamp: Date.now() - 24 * 60 * 60 * 1000,
+          timestamp: Date.now() - 24 * HOUR,
         },
       }
 
     case '1month':
       return {
         from: {
-          timestamp: Date.now() - 30 * 24 * 60 * 60 * 1000,
+          timestamp: Date.now() - 30 * 24 * HOUR,
         },
       }
 
     case '3months':
       return {
         from: {
-          timestamp: Date.now() - 3 * 30 * 24 * 60 * 60 * 1000,
+          timestamp: Date.now() - 3 * 30 * 24 * HOUR,
         },
       }
 
@@ -104,22 +114,36 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 
   // Poll graph data
   const graphPollTimeout = useRef<number | undefined>()
-  const graphPoll = useCallback((nextMetric: MetricType) => {
+  const graphPoll = useCallback((nextMetric: MetricType, nextInterval: Interval) => {
     clearTimeout(graphPollTimeout.current)
 
-    const nextValues = (dataRef.current || []).map(({ timestamp, ...rawValue }) => ({
-      x: timestamp,
-      y: rawValue[nextMetric],
-    }))
+    const now = Date.now()
+
+    const nextValues = (dataRef.current || [])
+      .filter(({ timestamp }) => {
+        switch (nextInterval) {
+          case 'realtime':
+            return (now - timestamp) <= REALTIME_WINDOW
+
+          default:
+            break
+        }
+
+        return true
+      })
+      .map(({ timestamp, ...rawValue }) => ({
+        x: timestamp,
+        y: rawValue[nextMetric],
+      }))
     setValues(nextValues)
 
     graphPollTimeout.current = setTimeout(() => {
-      graphPoll(nextMetric)
-    }, 200)
+      graphPoll(nextMetric, nextInterval)
+    }, 500)
   }, [])
 
   useEffect(() => {
-    graphPoll(metric)
+    graphPoll(metric, interval)
 
     return () => {
       clearTimeout(graphPollTimeout.current)
@@ -144,7 +168,7 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
       height="200px"
       ratio="1:2"
       showCrosshair
-      dateDisplay={interval === '24hours' ? 'hour' : 'day'}
+      dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
       labelFormat={labelFormat}
     />
   )
@@ -158,6 +182,9 @@ type Props = {
 
 const getStreamFragmentForInterval = (interval: Interval) => {
   switch (interval) {
+    case 'realtime':
+      return 'sec'
+
     case '24hours':
       return 'min'
 
@@ -172,7 +199,7 @@ const getStreamFragmentForInterval = (interval: Interval) => {
 const MetricGraphLoader = ({ type, metric, id }: Props) => {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
-  const [interval, setInterval] = useState<Interval>('24hours')
+  const [interval, setInterval] = useState<Interval>('realtime')
   const isMounted = useIsMounted()
 
   const metricStreamId = useMemo(() => {
@@ -204,7 +231,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
 
   return (
     <>
-      <Graphs defaultInterval="24hours">
+      <Graphs defaultInterval="realtime">
         {(!hasLoaded || !!error) && (
           <>
             <Graphs.Placeholder showImage={!!error} />
@@ -219,7 +246,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
           />
         )}
         <Graphs.Intervals
-          options={['24hours', '1month', '3months', 'all']}
+          options={['realtime', '24hours', '1month', '3months', 'all']}
           onChange={setInterval}
         />
       </Graphs>
