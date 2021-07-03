@@ -143,7 +143,7 @@ const UnstyledTimeSeriesGraph = ({
           >
             <Tooltip
               viewBox={{ width: 100 }}
-              position={{ y: 25 }}
+              position={{ y: 22 }}
               offset={-40}
               active={true}
               content={(data) => {
@@ -163,8 +163,8 @@ const UnstyledTimeSeriesGraph = ({
             <Line
               type="monotone"
               dataKey="y"
-              strokeWidth="3px"
-              stroke="#FF5C00"
+              strokeWidth="2px"
+              stroke={curveColors[1]}
               dot={false}
               isAnimationActive={false}
               activeDot={{
