@@ -1,12 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import styled from 'styled-components/macro'
-import {
-  FlexibleXYPlot,
-  LineSeries,
-  Crosshair,
-  CustomSVGSeries,
-} from 'react-vis'
-import 'react-vis/dist/style.css'
+import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
+// import 'react-vis/dist/style.css'
 import Rect from '../Rect'
 import { SANS, MEDIUM } from '../../utils/styled'
 
@@ -33,23 +28,6 @@ const CrosshairValue = styled.span`
   position: relative;
   top: -16px;
 `
-
-const StyledCrosshair = styled(Crosshair)`
-  .rv-crosshair__inner {
-    transform: translate(-50%, 0);
-    top: -8px;
-  }
-
-  .rv-crosshair__inner--left {
-    left: unset;
-    right: unset;
-  }
-`
-
-const StyledCustomSVGSeries = styled(CustomSVGSeries)`
-  border: 1px solid red;
-`
-
 type XY = {
   x: number,
   y: number,
@@ -59,14 +37,14 @@ type GraphData = Record<string, Array<XY>>
 type DateDisplay = 'day' | 'hour'
 
 export type Props = {
-  graphData: GraphData,
-  onHoveredValueChanged?: (value: XY | null) => void,
-  className?: string,
-  showCrosshair?: boolean,
-  dateDisplay?: DateDisplay,
-  height?: string,
-  ratio?: string,
-  labelFormat?: (value: number) => string,
+  graphData: GraphData
+  onHoveredValueChanged?: (value: XY | null) => void
+  className?: string
+  showCrosshair?: boolean
+  dateDisplay?: DateDisplay
+  height?: string
+  ratio?: string
+  labelFormat?: (value: number) => string
 }
 
 const curveColors = ['#B4BFF8', '#FF5C00']
@@ -136,77 +114,69 @@ const UnstyledTimeSeriesGraph = ({
     return [min, max]
   }, [graphData])
 
-  const margin = useMemo(() => showCrosshair ? {
-    top: 32,
-    left: 40,
-    right: 40,
-    bottom: 8,
-  } : {
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  }, [showCrosshair])
+  const margin = useMemo(
+    () =>
+      showCrosshair
+        ? {
+          top: 32,
+          left: 40,
+          right: 40,
+          bottom: 8,
+        }
+        : {
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        },
+    [showCrosshair],
+  )
 
   return (
     <Container {...props}>
       <PlotContainer>
-        <FlexibleXYPlot
-          xType="time"
-          /* Margin is needed for crosshair value to be fitted on screen */
-          margin={margin}
-          yDomain={dataDomain}
-          yBaseValue={dataDomain[0]}
-        >
-          {Object.keys(graphData || {}).map((graphKey, index) => (
-            <LineSeries
-              key={graphKey}
-              curve="curveMonotoneX"
-              color={curveColors[(index + 1) % curveColors.length]}
-              opacity={1}
-              strokeStyle="solid"
-              style={{
-                strokeWidth: '2px',
+        <ResponsiveContainer width='100%' height='100%'>
+          <LineChart
+            data={graphData.data}
+            /* Margin is needed for crosshair value to be fitted on screen */
+            margin={margin}
+          >
+            <Tooltip
+              viewBox={{ width: 100 }}
+              position={{ y: 25 }}
+              offset={-40}
+              active={true}
+              content={(data) => {
+                if (data.payload != null && data.payload[0] != null) {
+                  return (
+                    <CrosshairValue>
+                      {typeof labelFormat === 'function' ? labelFormat(data.payload[0].payload.y) : data.payload[0].payload.y}
+                      {' '}
+                      ({formatDate(data.payload[0].payload.x, dateDisplay)})
+                    </CrosshairValue>
+                  )
+                }
+                return <></>
               }}
-              data={graphData[graphKey]}
-              onNearestX={(datapoint, meta) => !!showCrosshair && setHoveredValue(datapoint)}
+              isAnimationActive={false}
             />
-          ))}
-          {!!showCrosshair && hoveredValue != null && (
-            <StyledCrosshair
-              values={[hoveredValue]}
-              orientation='left'
-              style={{
-                line: {
-                  background: '#CDCDCD',
-                },
+            <Line
+              type="monotone"
+              dataKey="y"
+              strokeWidth="3px"
+              stroke="#FF5C00"
+              dot={false}
+              isAnimationActive={false}
+              activeDot={{
+                fill: 'blue',
+                stroke: '#b4bff8',
+                strokeWidth: 3,
+                r: 5,
               }}
-            >
-              <CrosshairValue>
-                {typeof labelFormat === 'function' ? labelFormat(hoveredValue.y) : hoveredValue.y}
-                {' '}
-                ({formatDate(hoveredValue.x, dateDisplay)})
-              </CrosshairValue>
-            </StyledCrosshair>
-          )}
-          {!!showCrosshair && hoveredValue != null && (
-            <StyledCustomSVGSeries
-              data={[
-                {
-                  ...hoveredValue,
-                  customComponent: () => {
-                    return (
-                      <g>
-                        <circle cx="0" cy="0" r="8" fill="#B4BFF8" fillOpacity="0.8" />
-                        <circle cx="0" cy="0" r="4" fill="#0324FF" />
-                      </g>
-                    )
-                  },
-                },
-              ]}
             />
-          )}
-        </FlexibleXYPlot>
+            <YAxis hide={true} type="number" domain={dataDomain} />
+          </LineChart>
+        </ResponsiveContainer>
       </PlotContainer>
       {/* This here is how we dictate the size of the container. */}
       <Rect ratio={ratio} height={height} />
