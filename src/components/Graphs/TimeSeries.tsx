@@ -119,8 +119,8 @@ const UnstyledTimeSeriesGraph = ({
       showCrosshair
         ? {
           top: 32,
-          left: 40,
-          right: 40,
+          left: 45,
+          right: 45,
           bottom: 8,
         }
         : {
@@ -142,9 +142,9 @@ const UnstyledTimeSeriesGraph = ({
             margin={margin}
           >
             <Tooltip
-              viewBox={{ width: 100 }}
+              allowEscapeViewBox={{ x: true }}
               position={{ y: 22 }}
-              offset={-40}
+              offset={-35}
               active={true}
               content={(data) => {
                 if (data.payload != null && data.payload[0] != null) {
