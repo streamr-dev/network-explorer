@@ -58,7 +58,9 @@ const StreamStats = () => {
     resend: {
       last: 1,
     },
-  }, onMessage)
+  }, {
+    onMessage,
+  })
 
   return (
     <>
