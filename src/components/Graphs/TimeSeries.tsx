@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import styled from 'styled-components/macro'
-import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-// import 'react-vis/dist/style.css'
+import {
+  Line, LineChart, ResponsiveContainer, Tooltip, YAxis,
+} from 'recharts'
 import Rect from '../Rect'
 import { SANS, MEDIUM } from '../../utils/styled'
 
@@ -73,7 +74,7 @@ const UnstyledTimeSeriesGraph = ({
   labelFormat,
   ...props
 }: Props) => {
-  const [hoveredValue, setHoveredValue] = useState<XY | null>(null)
+  const [hoveredValue] = useState<XY | null>(null)
 
   useEffect(() => {
     if (typeof onHoveredValueChanged === 'function') {
@@ -138,7 +139,7 @@ const UnstyledTimeSeriesGraph = ({
             /* Margin is needed for crosshair value to be fitted on screen */
             margin={margin}
           >
-            <Tooltip
+            { showCrosshair && <Tooltip
               allowEscapeViewBox={{ x: true }}
               position={{ y: 5 }}
               offset={-35}
@@ -155,7 +156,7 @@ const UnstyledTimeSeriesGraph = ({
                 return <></>
               }}
               isAnimationActive={false}
-            />
+            /> }
             <Line
               type="monotone"
               dataKey="y"
