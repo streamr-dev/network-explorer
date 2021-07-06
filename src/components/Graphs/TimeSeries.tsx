@@ -36,7 +36,6 @@ type DateDisplay = 'day' | 'hour'
 
 export type Props = {
   graphData: GraphData
-  onHoveredValueChanged?: (value: XY | null) => void
   className?: string
   showCrosshair?: boolean
   dateDisplay?: DateDisplay
@@ -66,7 +65,6 @@ const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
 
 const UnstyledTimeSeriesGraph = ({
   graphData,
-  onHoveredValueChanged,
   showCrosshair,
   dateDisplay,
   height,
@@ -74,14 +72,6 @@ const UnstyledTimeSeriesGraph = ({
   labelFormat,
   ...props
 }: Props) => {
-  const [hoveredValue] = useState<XY | null>(null)
-
-  useEffect(() => {
-    if (typeof onHoveredValueChanged === 'function') {
-      onHoveredValueChanged(hoveredValue)
-    }
-  }, [hoveredValue, onHoveredValueChanged])
-
   const dataDomain = useMemo(() => {
     const dataValues = Object.keys(graphData || {}).flatMap((key) => {
       const graph = graphData[key]
