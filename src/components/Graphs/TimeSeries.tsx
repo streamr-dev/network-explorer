@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components/macro'
 import {
   Line, LineChart, ResponsiveContainer, Tooltip, YAxis,
