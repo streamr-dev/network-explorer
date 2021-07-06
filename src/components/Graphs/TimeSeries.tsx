@@ -24,9 +24,6 @@ const CrosshairValue = styled.span`
   line-height: 16px;
   text-transform: uppercase;
   color: #A3A3A3;
-  white-space: nowrap;
-  position: relative;
-  top: -16px;
 `
 type XY = {
   x: number,
@@ -143,9 +140,8 @@ const UnstyledTimeSeriesGraph = ({
           >
             <Tooltip
               allowEscapeViewBox={{ x: true }}
-              position={{ y: 22 }}
+              position={{ y: 5 }}
               offset={-35}
-              active={true}
               content={(data) => {
                 if (data.payload != null && data.payload[0] != null) {
                   return (
