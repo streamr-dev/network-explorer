@@ -9,11 +9,9 @@ export default {
 } as Meta
 
 const Template: Story<{
-  search: string,
+  search: string
 }> = ({ search }) => (
-  <Highlight search={search}>
-    The quick brown fox jumps over the lazy dog
-  </Highlight>
+  <Highlight search={search}>The quick brown fox jumps over the lazy dog</Highlight>
 )
 
 export const Basic = Template.bind({})

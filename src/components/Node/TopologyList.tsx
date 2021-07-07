@@ -6,7 +6,7 @@ import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
 
 type Props = {
-  id?: string,
+  id?: string
 }
 
 const TopologyList = ({ id }: Props) => {

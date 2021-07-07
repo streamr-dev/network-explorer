@@ -7,10 +7,7 @@ import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import envs from '../../utils/envs'
 import {
-  MONO,
-  SANS,
-  MEDIUM,
-  MD,
+  MONO, SANS, MEDIUM, MD,
 } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 
@@ -18,11 +15,13 @@ export const APP_DEBUG_MODE_KEY = 'network-eplorer.debug'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getDebugMode() {
-  return (!!storage && JSON.parse(storage.getItem(APP_DEBUG_MODE_KEY) || 'false'))
+  return !!storage && JSON.parse(storage.getItem(APP_DEBUG_MODE_KEY) || 'false')
 }
 
 export function setDebugMode(value: boolean) {
-  if (!storage) { return }
+  if (!storage) {
+    return
+  }
   storage.setItem(APP_DEBUG_MODE_KEY, JSON.stringify(value))
 }
 
@@ -83,11 +82,22 @@ const Variables = styled.pre`
   font-family: ${MONO};
   border-radius: 4px;
 
-  .key { font-weight: strong; color: lightblue; }
-  .boolean { color: cyan; }
-  .string { color: #ffcc00; }
-  .number { color: lightgreen; }
-  a { color: pink; }
+  .key {
+    font-weight: strong;
+    color: lightblue;
+  }
+  .boolean {
+    color: cyan;
+  }
+  .string {
+    color: #ffcc00;
+  }
+  .number {
+    color: lightgreen;
+  }
+  a {
+    color: pink;
+  }
 `
 
 const EnvSelect = styled.label`
@@ -121,7 +131,7 @@ const OpenView = styled.div`
     strong {
       text-transform: uppercase;
       font-weight: ${MEDIUM};
-      color: #FAFAD2;
+      color: #fafad2;
     }
   }
 
@@ -148,7 +158,9 @@ const Debug = () => {
     <DebugContainer theme={open ? openTheme : closeTheme}>
       {!open && (
         <OpenView>
-          <span>using <strong>{selectedEnv}</strong> data</span>
+          <span>
+            using <strong>{selectedEnv}</strong> data
+          </span>
           <button type="button" onClick={toggleDebugMode}>
             &#8505;
           </button>
@@ -169,13 +181,16 @@ const Debug = () => {
                 </option>
               ))}
             </select>
-            <button type="button" onClick={toggleDebugMode}>&#x2715;</button>
+            <button type="button" onClick={toggleDebugMode}>
+              &#x2715;
+            </button>
           </EnvSelect>
           <Variables>
-            <JsonView json={{
-              pending,
-              store,
-            }}
+            <JsonView
+              json={{
+                pending,
+                store,
+              }}
             />
           </Variables>
         </Wrapper>

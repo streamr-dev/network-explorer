@@ -2,7 +2,7 @@ import React from 'react'
 import styled, { css } from 'styled-components/macro'
 
 type NodeMarkerContainerProps = {
-  active: boolean,
+  active: boolean
 }
 
 const InnerBlip = styled.div`
@@ -24,31 +24,35 @@ const NodeMarkerContainer = styled.div<NodeMarkerContainerProps>`
   transform: translate(-50%, -50%);
   cursor: pointer;
   transition: all 150ms ease-in-out;
-  background-color: #0324FF;
+  background-color: #0324ff;
   border-radius: 50%;
 
-  ${({ active }) => !active && css`
-    :hover {
-      width: 12px;
-      height: 12px;
-    }
-  `}
+  ${({ active }) =>
+    !active &&
+    css`
+      :hover {
+        width: 12px;
+        height: 12px;
+      }
+    `}
 
-  ${({ active }) => !!active && css`
-    width: 24px;
-    height: 24px;
+  ${({ active }) =>
+    !!active &&
+    css`
+      width: 24px;
+      height: 24px;
 
-    ${InnerBlip} {
-      width: 8px;
-      height: 8px;
-    }
-  `}
+      ${InnerBlip} {
+        width: 8px;
+        height: 8px;
+      }
+    `}
 `
 
 type NodeMarkerProps = {
-  id: string,
-  isActive?: boolean,
-  onClick: () => void,
+  id: string
+  isActive?: boolean
+  onClick: () => void
 }
 
 export const NodeMarker = ({ id, isActive, onClick }: NodeMarkerProps) => (

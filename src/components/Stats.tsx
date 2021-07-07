@@ -1,19 +1,16 @@
 import React, {
-  useCallback,
-  useMemo,
-  useState,
-  useEffect,
+  useCallback, useMemo, useState, useEffect,
 } from 'react'
 import styled, { css } from 'styled-components/macro'
 
 import { SANS } from '../utils/styled'
 
 type StatProps = {
-  id: string,
-  label: string,
-  value: number | string | undefined,
-  onClick?: () => void,
-  disabled?: boolean,
+  id: string
+  label: string
+  value: number | string | undefined
+  onClick?: () => void
+  disabled?: boolean
   theme?: Record<string, number | string | boolean>
 }
 
@@ -32,17 +29,11 @@ const UnstyledStat = ({
   }, [onClickProp])
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      {...props}
-    >
+    <button type="button" onClick={onClick} {...props}>
       <StatName>{label}</StatName>
       <StatValue>
         {value !== undefined && value}
-        {value === undefined && (
-          <InfinityIcon />
-        )}
+        {value === undefined && <InfinityIcon />}
       </StatValue>
     </button>
   )
@@ -53,7 +44,7 @@ const StatName = styled.div`
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0.05em;
-  color: #ADADAD;
+  color: #adadad;
   text-transform: uppercase;
 `
 
@@ -66,7 +57,7 @@ const StatValue = styled.div`
   svg {
     width: 13px;
     height: 13px;
-    color: #ADADAD;
+    color: #adadad;
   }
 `
 
@@ -88,20 +79,26 @@ const Stat = styled(UnstyledStat)`
     transition: color 300ms ease-in-out;
   }
 
-  ${({ theme }) => !!theme.clickable && !theme.disabled && !theme.active && css`
-    &:hover {
-      cursor: pointer;
+  ${({ theme }) =>
+    !!theme.clickable &&
+    !theme.disabled &&
+    !theme.active &&
+    css`
+      &:hover {
+        cursor: pointer;
 
-      ${StatName} {
-        color: #0324FF;
+        ${StatName} {
+          color: #0324ff;
+        }
       }
-    }
-  `}
+    `}
 
-  ${({ theme }) => !!theme.disabled && css`
-    cursor: not-allowed;
-    opacity: 0.5;
-  `}
+  ${({ theme }) =>
+    !!theme.disabled &&
+    css`
+      cursor: not-allowed;
+      opacity: 0.5;
+    `}
 `
 
 const InfinityIcon = () => (
@@ -120,13 +117,13 @@ const ButtonGrid = styled.div`
   font-family: ${SANS};
 
   > ${Stat} {
-      flex-grow: 1;
-      flex-basis: 0;
+    flex-grow: 1;
+    flex-basis: 0;
   }
 `
 
 const Underline = styled.div`
-  border-bottom: 1.5px solid #0324FF;
+  border-bottom: 1.5px solid #0324ff;
   width: 32px;
   z-index: 1;
 `
@@ -138,30 +135,32 @@ const UnderlineContainer = styled.div`
   position: absolute;
   bottom: -1px;
   opacity: 0;
-  width: ${({ theme }) => (100 / Math.max(1, theme.childCount))}%;
+  width: ${({ theme }) => 100 / Math.max(1, theme.childCount)}%;
 
-  ${({ theme }) => theme.active !== undefined && css`
-    left: ${theme.active * (100 / Math.max(1, theme.childCount))}%;
-  `}
+  ${({ theme }) =>
+    theme.active !== undefined &&
+    css`
+      left: ${theme.active * (100 / Math.max(1, theme.childCount))}%;
+    `}
 
-  ${({ theme }) => !!theme.visible && css`
-    opacity: 1;
-  `}
+  ${({ theme }) =>
+    !!theme.visible &&
+    css`
+      opacity: 1;
+    `}
 `
 
 type StatsProps = {
-  children: React.ReactNode,
-  active?: string | number,
+  children: React.ReactNode
+  active?: string | number
 }
 
 type ChildProps = {
-  props: React.Props<StatProps>,
+  props: React.Props<StatProps>
 }
 
 const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
-  const childrenArray = useMemo(() => (
-    React.Children.toArray(children)
-  ), [children])
+  const childrenArray = useMemo(() => React.Children.toArray(children), [children])
   const [prevActiveIndex, setPrevActiveIndex] = useState<number | undefined>(undefined)
 
   const activeIndex = useMemo(() => {
@@ -207,11 +206,12 @@ const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
           return null
         })}
       </ButtonGrid>
-      <UnderlineContainer theme={{
-        childCount: childrenArray.length,
-        active: prevActiveIndex,
-        visible: active !== undefined,
-      }}
+      <UnderlineContainer
+        theme={{
+          childCount: childrenArray.length,
+          active: prevActiveIndex,
+          visible: active !== undefined,
+        }}
       >
         <Underline />
       </UnderlineContainer>

@@ -1,9 +1,5 @@
 import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
+  useState, useEffect, useRef, useMemo, useCallback,
 } from 'react'
 import ReactMapGL, {
   ViewportProps,
@@ -28,14 +24,14 @@ import { getCenteredViewport } from './utils'
 import useKeyDown from '../../hooks/useKeyDown'
 
 type Props = {
-  nodes: Node[],
-  topology: Topology,
-  activeNode?: Node,
-  viewport: ViewportProps,
-  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>,
-  onNodeClick?: (v: string) => void,
-  onMapClick?: () => void,
-  showConnections?: boolean,
+  nodes: Node[]
+  topology: Topology
+  activeNode?: Node
+  viewport: ViewportProps
+  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>
+  onNodeClick?: (v: string) => void
+  onMapClick?: () => void
+  showConnections?: boolean
 } & NavigationControlProps
 
 const defaultViewport = {
@@ -56,7 +52,7 @@ const defaultViewport = {
 // react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
 const INERTIA = 300
 
-function getCursor({ isHovering, isDragging }: { isHovering: boolean, isDragging: boolean }) {
+function getCursor({ isHovering, isDragging }: { isHovering: boolean; isDragging: boolean }) {
   if (isDragging) {
     return 'all-scroll'
   }
@@ -86,7 +82,7 @@ export const Map = ({
       width="100%"
       height="100%"
       mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle='mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t'
+      mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
       onViewportChange={setViewport}
       getCursor={getCursor}
       ref={mapRef}
@@ -104,11 +100,7 @@ export const Map = ({
         inertia: INERTIA,
       }}
     >
-      <ConnectionLayer
-        topology={topology}
-        nodes={nodes}
-        visible={!!showConnections}
-      />
+      <ConnectionLayer topology={topology} nodes={nodes} visible={!!showConnections} />
       <MarkerLayer
         nodes={nodes}
         activeNode={activeNode && activeNode.id}
@@ -158,9 +150,7 @@ export const ConnectedMap = () => {
   })
 
   const debouncedSetViewport = useDebounced(
-    useCallback(async (viewPort: ViewportProps) => (
-      setViewport(viewPort)
-    ), []),
+    useCallback(async (viewPort: ViewportProps) => setViewport(viewPort), []),
     250,
   )
 
@@ -178,7 +168,9 @@ export const ConnectedMap = () => {
 
   // zoom topology into view
   useEffect(() => {
-    if (visibleNodes.length <= 0) { return }
+    if (visibleNodes.length <= 0) {
+      return
+    }
 
     debouncedSetViewport((prev: ViewportProps) => {
       const vp = getCenteredViewport(visibleNodes, prev.width || 0, prev.height || 0)
@@ -191,25 +183,31 @@ export const ConnectedMap = () => {
 
   const { id: activeNodeId } = activeNode || {}
 
-  const showNode = useCallback((nodeId?: string) => {
-    let path = '/'
+  const showNode = useCallback(
+    (nodeId?: string) => {
+      let path = '/'
 
-    if (streamId) {
-      path += `streams/${encodeURIComponent(streamId)}/`
-    }
+      if (streamId) {
+        path += `streams/${encodeURIComponent(streamId)}/`
+      }
 
-    if (nodeId) {
-      path += `nodes/${nodeId}`
-    }
+      if (nodeId) {
+        path += `nodes/${nodeId}`
+      }
 
-    history.replace(path)
-  }, [streamId, history])
+      history.replace(path)
+    },
+    [streamId, history],
+  )
 
-  const onNodeClick = useCallback((nodeId: string) => {
-    setActiveView(ActiveView.Map)
+  const onNodeClick = useCallback(
+    (nodeId: string) => {
+      setActiveView(ActiveView.Map)
 
-    showNode(nodeId !== activeNodeId ? nodeId : undefined)
-  }, [setActiveView, showNode, activeNodeId])
+      showNode(nodeId !== activeNodeId ? nodeId : undefined)
+    },
+    [setActiveView, showNode, activeNodeId],
+  )
 
   // reset search view when clicking on map
   const onMapClick = useCallback(() => {
@@ -246,11 +244,16 @@ export const ConnectedMap = () => {
     })
   }, [debouncedSetViewport, visibleNodes])
 
-  useKeyDown(useMemo(() => ({
-    '0': () => {
-      reset()
-    },
-  }), [reset]))
+  useKeyDown(
+    useMemo(
+      () => ({
+        '0': () => {
+          reset()
+        },
+      }),
+      [reset],
+    ),
+  )
 
   return (
     <MapContainer>

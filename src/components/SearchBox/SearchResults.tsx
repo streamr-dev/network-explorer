@@ -38,24 +38,24 @@ const Row = styled.div`
   grid-template-columns: 64px 1fr;
   height: 64px;
   cursor: pointer;
-  color: #CDCDCD;
-  background-color: #FFFFFF;
+  color: #cdcdcd;
+  background-color: #ffffff;
   font-family: ${SANS};
 
   ${Icon} {
-    background-color: #F5F5F5;
+    background-color: #f5f5f5;
   }
 
   &:hover {
-    background-color: #F5F5F5;
+    background-color: #f5f5f5;
 
     ${Icon} {
-      background-color: #EFEFEF;
+      background-color: #efefef;
     }
   }
 
   &:active {
-    background-color: #F5F5F5;
+    background-color: #f5f5f5;
   }
 
   @media (min-width: ${SM}px) {
@@ -84,8 +84,7 @@ const PathFragment = styled.span`
   flex-shrink: 0;
 `
 
-const Description = styled.div`
-`
+const Description = styled.div``
 
 const Item = styled.div`
   align-self: center;
@@ -128,13 +127,13 @@ const List = styled.div`
 `
 
 type Props = {
-  results: Array<SearchResult>,
-  onClick?: (result: SearchResult) => void,
-  highlight?: string,
+  results: Array<SearchResult>
+  onClick?: (result: SearchResult) => void
+  highlight?: string
 }
 
 type ResultIconProps = {
-  type: SearchResult['type'],
+  type: SearchResult['type']
 }
 
 const ResultIcon = ({ type }: ResultIconProps) => {
@@ -154,16 +153,13 @@ const ResultIcon = ({ type }: ResultIconProps) => {
 }
 
 const resultTypes = {
-  'streams': 'Stream',
-  'locations': 'Place',
-  'nodes': 'Node',
+  streams: 'Stream',
+  locations: 'Place',
+  nodes: 'Node',
 }
 
 const UnstyledSearchResults = ({
-  results,
-  onClick,
-  highlight,
-  ...props
+  results, onClick, highlight, ...props
 }: Props) => (
   <div {...props}>
     <List>
@@ -174,8 +170,8 @@ const UnstyledSearchResults = ({
         // Preserve last path fragment & allow the path before it to be truncated
         const lastSlashPos = fullname.lastIndexOf('/')
 
-        const truncatedPath = (lastSlashPos >= 0) ? fullname.slice(0, lastSlashPos) : fullname
-        const pathFragment = (lastSlashPos >= 0) ? fullname.slice(lastSlashPos + 1) : undefined
+        const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
+        const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
 
         return (
           <Row key={result.id} onClick={() => typeof onClick === 'function' && onClick(result)}>
@@ -187,22 +183,17 @@ const UnstyledSearchResults = ({
             <Item>
               <Name>
                 <TruncatedPath>
-                  <Highlight search={search}>
-                    {truncatedPath}
-                  </Highlight>
+                  <Highlight search={search}>{truncatedPath}</Highlight>
                 </TruncatedPath>
                 {!!pathFragment && (
                   <PathFragment>
-                    /
-                    <Highlight search={search}>
-                      {pathFragment}
-                    </Highlight>
+                    /<Highlight search={search}>{pathFragment}</Highlight>
                   </PathFragment>
                 )}
               </Name>
               <Description>
-                {result.type === 'streams' && (result.description || ('No description'))}
-                {result.type !== 'streams' && (resultTypes[result.type] || (''))}
+                {result.type === 'streams' && (result.description || 'No description')}
+                {result.type !== 'streams' && (resultTypes[result.type] || '')}
               </Description>
             </Item>
           </Row>
@@ -219,13 +210,13 @@ const SearchResults = styled(UnstyledSearchResults)`
     }
 
     ${Row} {
-      border: 1px solid #EFEFEF;
+      border: 1px solid #efefef;
       border-radius: 4px;
     }
   }
 
   @media (min-width: ${SM}px) {
-    background-color: #FFFFFF;
+    background-color: #ffffff;
   }
 `
 

@@ -1,6 +1,4 @@
-import React, {
-  useMemo, useCallback, useState,
-} from 'react'
+import React, { useMemo, useCallback, useState } from 'react'
 import styled from 'styled-components/macro'
 import {
   Line, LineChart, ResponsiveContainer, Tooltip, YAxis,
@@ -76,7 +74,7 @@ const UnstyledTimeSeriesGraph = ({
 }: Props) => {
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
-  const tooltipRef = useCallback(node => {
+  const tooltipRef = useCallback((node) => {
     if (node !== null) {
       setTooltipWidth(node.offsetWidth)
     }
@@ -113,7 +111,6 @@ const UnstyledTimeSeriesGraph = ({
   }, [graphData])
 
   const margin = useMemo(
-
     () =>
       showCrosshair
         ? {

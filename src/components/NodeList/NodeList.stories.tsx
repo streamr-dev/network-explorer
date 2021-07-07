@@ -15,7 +15,13 @@ const Wrapper = styled.div`
 export default {
   title: 'NodeList',
   component: NodeList,
-  decorators: [(Story) => <Wrapper><Story /></Wrapper>],
+  decorators: [
+    (Story) => (
+      <Wrapper>
+        <Story />
+      </Wrapper>
+    ),
+  ],
 } as Meta
 
 const nodes = [
@@ -25,7 +31,8 @@ const nodes = [
     latitude: 60.16952,
     longitude: 24.93545,
     placeName: 'Helsinki',
-  }, {
+  },
+  {
     id: '0x13581255eE2D20e780B0cD3D07fac018241B5E03',
     title: 'Warm Fiery Octagon',
     latitude: 60.14952,
@@ -51,12 +58,7 @@ const nodes = [
 export const Basic = () => (
   <NodeList>
     {nodes.map(({ id, title, placeName }) => (
-      <NodeList.Node
-        key={id}
-        nodeId={id}
-        title={title}
-        placeName={placeName}
-      />
+      <NodeList.Node key={id} nodeId={id} title={title} placeName={placeName} />
     ))}
   </NodeList>
 )
@@ -64,19 +66,10 @@ export const Basic = () => (
 export const WithHeader = () => (
   <NodeList>
     <NodeList.Header>
-      Showing all
-      {' '}
-      <strong>{nodes.length}</strong>
-      {' '}
-      nodes
+      Showing all <strong>{nodes.length}</strong> nodes
     </NodeList.Header>
     {nodes.map(({ id, title, placeName }) => (
-      <NodeList.Node
-        key={id}
-        nodeId={id}
-        title={title}
-        placeName={placeName}
-      />
+      <NodeList.Node key={id} nodeId={id} title={title} placeName={placeName} />
     ))}
   </NodeList>
 )
@@ -92,25 +85,13 @@ export const WithStats = () => {
           nodeId={id}
           title={title}
           placeName={placeName}
-          onClick={() => setActiveNode((prev) => prev !== id ? id : undefined)}
+          onClick={() => setActiveNode((prev) => (prev !== id ? id : undefined))}
           isActive={activeNode === id}
         >
           <Stats>
-            <Stats.Stat
-              id="messagesPerSecond"
-              label="Msgs/sec"
-              value={undefined}
-            />
-            <Stats.Stat
-              id="mbsPerSecond"
-              label="MB/S"
-              value={undefined}
-            />
-            <Stats.Stat
-              id="latency"
-              label="Latency ms"
-              value={undefined}
-            />
+            <Stats.Stat id="messagesPerSecond" label="Msgs/sec" value={undefined} />
+            <Stats.Stat id="mbsPerSecond" label="MB/S" value={undefined} />
+            <Stats.Stat id="latency" label="Latency ms" value={undefined} />
           </Stats>
         </NodeList.Node>
       ))}
@@ -119,39 +100,44 @@ export const WithStats = () => {
 }
 
 type Store = {
-  activeNode?: string | undefined,
-  selectedStat?: string | undefined,
-  error?: string | undefined,
+  activeNode?: string | undefined
+  selectedStat?: string | undefined
+  error?: string | undefined
 }
 
 export const WithStatsAndError = () => {
-  const [{
-    activeNode,
-    selectedStat,
-    error,
-  }, update] = useReducer((prevState: Store, nextState: Store) => ({
-    ...(prevState || {}),
-    ...nextState,
-  }), {
-    activeNode: undefined,
-    selectedStat: undefined,
-    error: undefined,
-  })
-
-  const onNodeClick = useCallback((id) => {
-    update({
-      activeNode: id,
+  const [{ activeNode, selectedStat, error }, update] = useReducer(
+    (prevState: Store, nextState: Store) => ({
+      ...(prevState || {}),
+      ...nextState,
+    }),
+    {
+      activeNode: undefined,
       selectedStat: undefined,
       error: undefined,
-    })
-  }, [update])
+    },
+  )
 
-  const onStatClick = useCallback((id) => {
-    update({
-      selectedStat: id,
-      error: id && `Failed to load ${id}`,
-    })
-  }, [update])
+  const onNodeClick = useCallback(
+    (id) => {
+      update({
+        activeNode: id,
+        selectedStat: undefined,
+        error: undefined,
+      })
+    },
+    [update],
+  )
+
+  const onStatClick = useCallback(
+    (id) => {
+      update({
+        selectedStat: id,
+        error: id && `Failed to load ${id}`,
+      })
+    },
+    [update],
+  )
 
   return (
     <NodeList>
@@ -169,13 +155,15 @@ export const WithStatsAndError = () => {
               id="messagesPerSecond"
               label="Msgs/sec"
               value={undefined}
-              onClick={() => onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
+              onClick={() =>
+                onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
             />
             <Stats.Stat
               id="mbsPerSecond"
               label="MB/S"
               value={undefined}
-              onClick={() => onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
+              onClick={() =>
+                onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
             />
             <Stats.Stat
               id="latency"
@@ -184,11 +172,7 @@ export const WithStatsAndError = () => {
               onClick={() => onStatClick(selectedStat !== 'latency' ? 'latency' : undefined)}
             />
           </Stats>
-          {!!error && (
-            <Error>
-              {error}
-            </Error>
-          )}
+          {!!error && <Error>{error}</Error>}
         </NodeList.Node>
       ))}
     </NodeList>

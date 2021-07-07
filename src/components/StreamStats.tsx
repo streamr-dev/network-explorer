@@ -1,8 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-} from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { useSubscription } from 'streamr-client-react'
 import { calculateShortestPaths, QuickDijkstraResult } from '@streamr/quick-dijkstra-wasm'
 
@@ -14,9 +10,9 @@ import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
 
 type StatsState = {
-  messagesPerSecond?: number | undefined,
-  numberOfNodes?: number | undefined,
-  latency?: number | undefined,
+  messagesPerSecond?: number | undefined
+  numberOfNodes?: number | undefined
+  latency?: number | undefined
 }
 
 const StreamStats = () => {
@@ -27,7 +23,9 @@ const StreamStats = () => {
   const [latency, setLatency] = useState<number | undefined>(undefined)
 
   useEffect(() => {
-    if (!latencies || Object.keys(latencies).length <= 0) { return }
+    if (!latencies || Object.keys(latencies).length <= 0) {
+      return
+    }
 
     try {
       const indexedNodes = getIndexedNodes(latencies)
@@ -44,21 +42,27 @@ const StreamStats = () => {
   }, [latencies, isMounted])
 
   const toggleStat = useCallback((name) => {
-    setSelectedStat((prev) => prev !== name ? name : undefined)
+    setSelectedStat((prev) => (prev !== name ? name : undefined))
   }, [])
 
-  const onMessage = useCallback(({ broker }) => {
-    if (isMounted() && broker) {
-      setMessagesPerSecond(Math.round(broker.messagesToNetworkPerSec))
-    }
-  }, [isMounted])
-
-  useSubscription({
-    stream: 'streamr.eth/metrics/network/sec',
-    resend: {
-      last: 1,
+  const onMessage = useCallback(
+    ({ broker }) => {
+      if (isMounted() && broker) {
+        setMessagesPerSecond(Math.round(broker.messagesToNetworkPerSec))
+      }
     },
-  }, onMessage)
+    [isMounted],
+  )
+
+  useSubscription(
+    {
+      stream: 'streamr.eth/metrics/network/sec',
+      resend: {
+        last: 1,
+      },
+    },
+    onMessage,
+  )
 
   return (
     <>
@@ -69,23 +73,10 @@ const StreamStats = () => {
           value={messagesPerSecond}
           onClick={() => toggleStat('messagesPerSecond')}
         />
-        <Stats.Stat
-          id="numberOfNodes"
-          label="Nodes"
-          value={visibleNodes.length}
-        />
-        <Stats.Stat
-          id="latency"
-          label="Latency ms"
-          value={latency && latency.toFixed(1)}
-        />
+        <Stats.Stat id="numberOfNodes" label="Nodes" value={visibleNodes.length} />
+        <Stats.Stat id="latency" label="Latency ms" value={latency && latency.toFixed(1)} />
       </Stats>
-      {!!selectedStat && (
-        <MetricGraph
-          type="network"
-          metric={selectedStat}
-        />
-      )}
+      {!!selectedStat && <MetricGraph type="network" metric={selectedStat} />}
     </>
   )
 }

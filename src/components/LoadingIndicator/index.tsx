@@ -25,17 +25,17 @@ const animation = keyframes`
 
 const LoadingBar = styled.div`
   width: 100%;
-  height: ${({ theme }) => theme.large ? '4' : '1'}px;
+  height: ${({ theme }) => (theme.large ? '4' : '1')}px;
   background-color: transparent;
   will-change: opacity;
   transition: opacity 0.3s ease-out;
-  opacity: ${({ theme }) => theme.loading ? '1' : '0'};
+  opacity: ${({ theme }) => (theme.loading ? '1' : '0')};
 
   ::after {
     content: '';
     display: block;
-    height: ${({ theme }) => theme.large ? '4' : '1'}px;
-    background: #0424FF;
+    height: ${({ theme }) => (theme.large ? '4' : '1')}px;
+    background: #0424ff;
     position: absolute;
     left: 0;
     right: 100%;
@@ -46,8 +46,8 @@ const LoadingBar = styled.div`
 `
 
 type Props = {
-  loading?: boolean,
-  large?: boolean,
+  loading?: boolean
+  large?: boolean
 }
 
 const LoadingIndicator = ({ loading, large, ...props }: Props) => (

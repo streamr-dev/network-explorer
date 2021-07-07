@@ -1,12 +1,12 @@
 interface Storage {
-  setItem: Function,
-  removeItem: Function,
-  length: number,
+  setItem: Function
+  removeItem: Function
+  length: number
 }
 
 interface Window {
-  localStorage: Storage,
-  sessionStorage: Storage,
+  localStorage: Storage
+  sessionStorage: Storage
 }
 
 declare const window: Window
@@ -21,18 +21,21 @@ const storageAvailable = (type: 'localStorage' | 'sessionStorage'): boolean => {
     storage.removeItem(x)
     return true
   } catch (e) {
-    return e instanceof DOMException && (
+    return (
+      e instanceof DOMException &&
       // everything except Firefox
-      e.code === 22 ||
-      // Firefox
-      e.code === 1014 ||
-      // test name field too, because code might not be present
-      // everything except Firefox
-      e.name === 'QuotaExceededError' ||
-      // Firefox
-      e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+      (e.code === 22 ||
+        // Firefox
+        e.code === 1014 ||
+        // test name field too, because code might not be present
+        // everything except Firefox
+        e.name === 'QuotaExceededError' ||
+        // Firefox
+        e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
       // acknowledge QuotaExceededError only if there's something already stored
-      !!storage && storage.length !== 0
+      !!storage &&
+      storage.length !== 0
+    )
   }
 }
 

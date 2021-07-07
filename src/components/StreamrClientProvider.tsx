@@ -9,14 +9,12 @@ const clientConfig = {
   verifySignatures: 'never',
 }
 
-interface Props  {
+interface Props {
   children: React.ReactNode
 }
 
 const StreamrClientProvider = ({ children }: Props) => (
-  <Provider {...clientConfig}>
-    {children}
-  </Provider>
+  <Provider {...clientConfig}>{children}</Provider>
 )
 
 export default StreamrClientProvider

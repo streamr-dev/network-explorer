@@ -36,8 +36,8 @@ const Content = styled.div`
 `
 
 const NodeElement = styled.div`
-  background: #FFFFFF;
-  border: 1px solid #F5F5F5;
+  background: #ffffff;
+  border: 1px solid #f5f5f5;
   border-radius: 4px;
 
   & + & {
@@ -55,24 +55,28 @@ const NodeElement = styled.div`
   ${Stats},
   ${Graphs},
   ${Error} {
-    border-top: 1px solid #F5F5F5;
+    border-top: 1px solid #f5f5f5;
   }
 
-  ${({ theme }) => !!theme.clickable && css`
-    ${TitleRow} {
-      cursor: pointer;
+  ${({ theme }) =>
+    !!theme.clickable &&
+    css`
+      ${TitleRow} {
+        cursor: pointer;
 
-      :hover {
-        background: #F8F8F8;
+        :hover {
+          background: #f8f8f8;
+        }
       }
-    }
-  `}
+    `}
 
-  ${({ theme }) => !!theme.isActive && css`
-    ${Content} {
-      max-height: 100vh;
-    }
-  `}
+  ${({ theme }) =>
+    !!theme.isActive &&
+    css`
+      ${Content} {
+        max-height: 100vh;
+      }
+    `}
 `
 const PlacenameOrAddress = styled.div`
   position: relative;
@@ -86,7 +90,7 @@ const PlacenameOrAddress = styled.div`
 const PlaceName = styled.div`
   font-size: 10px;
   align-items: center;
-  color: #ADADAD;
+  color: #adadad;
   margin-top: 2px;
   font-weight: ${MEDIUM};
 `
@@ -97,12 +101,12 @@ const Address = styled(PlaceName)`
 `
 
 type Props = {
-  nodeId: string,
-  title: string,
-  placeName: string,
-  onClick?: (id: string) => void,
-  isActive?: boolean,
-  children?: React.ReactNode,
+  nodeId: string
+  title: string
+  placeName: string
+  onClick?: (id: string) => void
+  isActive?: boolean
+  children?: React.ReactNode
 }
 
 const NodeListItem = ({
@@ -136,15 +140,12 @@ const NodeListItem = ({
     >
       <TitleRow onClick={onClick}>
         <IconWrapper>
-          <Identicon
-            string={nodeId}
-            size={20}
-          />
+          <Identicon string={nodeId} size={20} />
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
           <PlacenameOrAddress>
-            {transition((style, item) => (
+            {transition((style, item) =>
               item ? (
                 <animated.div style={style}>
                   <Address title={nodeId}>{truncate(nodeId)}</Address>
@@ -153,19 +154,15 @@ const NodeListItem = ({
                 <animated.div style={style}>
                   <PlaceName>{placeName}</PlaceName>
                 </animated.div>
-              )
-            ))}
+              ),
+            )}
           </PlacenameOrAddress>
         </Name>
       </TitleRow>
       <Content>
-        {transition((style, item) => (
-          !!item && (
-            <animated.div style={style}>
-              {children || null}
-            </animated.div>
-          )
-        ))}
+        {transition(
+          (style, item) => !!item && <animated.div style={style}>{children || null}</animated.div>,
+        )}
       </Content>
     </NodeElement>
   )

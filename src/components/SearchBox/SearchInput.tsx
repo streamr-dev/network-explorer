@@ -1,10 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, {
-  useCallback,
-  useRef,
-  useMemo,
-  useState,
-  useEffect,
+  useCallback, useRef, useMemo, useState, useEffect,
 } from 'react'
 import styled from 'styled-components/macro'
 import { truncate } from '../../utils/text'
@@ -31,7 +27,7 @@ const IconButton = styled.button`
 
   :focus {
     outline: none;
-    background-color: #F5F5F5;
+    background-color: #f5f5f5;
   }
 
   svg {
@@ -83,10 +79,11 @@ const Input = styled.input`
   font-size: 14px;
 
   &::placeholder {
-    color: #CDCDCD;
+    color: #cdcdcd;
   }
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     outline: none;
   }
 
@@ -136,25 +133,42 @@ const StreamrIcon = () => (
 
 const SearchIcon = () => (
   <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10.6412 13.4832C13.371 12.3231 14.6435 9.1696 13.4833 6.43976C12.3232 3.70993 9.16972 2.43745 6.43988 3.5976C3.71004 4.75775 2.43756 7.91121 3.59771 10.6411C4.75787 13.3709 7.91133 14.6434 10.6412 13.4832Z" stroke="#B8B8B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M12.3379 12.3379L16.5032 16.5038" stroke="#B8B8B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M10.6412 13.4832C13.371 12.3231 14.6435 9.1696 13.4833 6.43976C12.3232 3.70993 9.16972 2.43745 6.43988 3.5976C3.71004 4.75775 2.43756 7.91121 3.59771 10.6411C4.75787 13.3709 7.91133 14.6434 10.6412 13.4832Z"
+      stroke="#B8B8B8"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12.3379 12.3379L16.5032 16.5038"
+      stroke="#B8B8B8"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )
 
 const ClearIcon = () => (
   <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8 16A8 8 0 108 0a8 8 0 000 16z" fill="#CDCDCD" />
-    <path d="M5.455 5.454l5.09 5.091M10.545 5.454l-5 5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M5.455 5.454l5.09 5.091M10.545 5.454l-5 5"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 )
 
 type Props = {
-  value: string,
-  onChange: (text: string) => void,
-  onClear: () => void,
-  onFocus?: Function,
-  onBlur?: Function,
-  disabled?: boolean,
+  value: string
+  onChange: (text: string) => void
+  onClear: () => void
+  onFocus?: Function
+  onBlur?: Function
+  disabled?: boolean
 }
 
 const UnstyledSearchInput = ({
@@ -193,9 +207,7 @@ const UnstyledSearchInput = ({
   }, [focused])
 
   return (
-    <div
-      {...props}
-    >
+    <div {...props}>
       <Inner>
         <Logo>
           <button type="button" onClick={onClear}>
@@ -241,7 +253,7 @@ const SearchInput = styled(UnstyledSearchInput)`
   }
 
   ${Inner} {
-    background: #FFFFFF;
+    background: #ffffff;
   }
 
   @media (min-width: ${SM}px) {
@@ -250,7 +262,7 @@ const SearchInput = styled(UnstyledSearchInput)`
     }
 
     ${Logo} + ${Input} {
-      border-left: 1px solid #EFEFEF;
+      border-left: 1px solid #efefef;
       margin-left: 0;
       padding-left: 24px;
     }
