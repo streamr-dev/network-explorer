@@ -24,11 +24,11 @@ const CrosshairValue = styled.span`
   font-size: 10px;
   line-height: 16px;
   text-transform: uppercase;
-  color: #A3A3A3;
+  color: #a3a3a3;
 `
 type XY = {
-  x: number,
-  y: number,
+  x: number
+  y: number
 }
 
 type GraphData = Record<string, Array<XY>>
@@ -123,44 +123,50 @@ const UnstyledTimeSeriesGraph = ({
   return (
     <Container {...props}>
       <PlotContainer>
-        <ResponsiveContainer width='100%' height='100%'>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={graphData.data}
             /* Margin is needed for crosshair value to be fitted on screen */
             margin={margin}
           >
-            { showCrosshair && <Tooltip
-              allowEscapeViewBox={{ x: true }}
-              position={{ y: 5 }}
-              offset={-35}
-              content={(data) => {
-                if (data.payload != null && data.payload[0] != null) {
-                  return (
-                    <CrosshairValue>
-                      {typeof labelFormat === 'function' ? labelFormat(data.payload[0].payload.y) : data.payload[0].payload.y}
-                      {' '}
-                      ({formatDate(data.payload[0].payload.x, dateDisplay)})
-                    </CrosshairValue>
-                  )
-                }
-                return <></>
-              }}
-              isAnimationActive={false}
-            /> }
-            <Line
-              type="monotone"
-              dataKey="y"
-              strokeWidth="2px"
-              stroke={curveColors[1]}
-              dot={false}
-              isAnimationActive={false}
-              activeDot={{
-                fill: 'blue',
-                stroke: '#b4bff8',
-                strokeWidth: 3,
-                r: 5,
-              }}
-            />
+            {showCrosshair && (
+              <Tooltip
+                allowEscapeViewBox={{ x: true }}
+                position={{ y: 5 }}
+                offset={-35}
+                content={(data) => {
+                  if (data.payload != null && data.payload[0] != null) {
+                    return (
+                      <CrosshairValue>
+                        {typeof labelFormat === 'function'
+                          ? labelFormat(data.payload[0].payload.y)
+                          : data.payload[0].payload.y}{' '}
+                        ({formatDate(data.payload[0].payload.x, dateDisplay)})
+                      </CrosshairValue>
+                    )
+                  }
+                  return <></>
+                }}
+                isAnimationActive={false}
+              />
+            )}
+            {Object.keys(graphData || {}).map((graphKey, index) => (
+              <Line
+                key={graphKey}
+                type="monotone"
+                data={graphData[graphKey]}
+                dataKey="y"
+                strokeWidth="2px"
+                stroke={curveColors[1]}
+                dot={false}
+                isAnimationActive={false}
+                activeDot={{
+                  fill: 'blue',
+                  stroke: '#b4bff8',
+                  strokeWidth: 3,
+                  r: 5,
+                }}
+              />
+            ))}
             <YAxis hide={true} type="number" domain={dataDomain} />
           </LineChart>
         </ResponsiveContainer>
