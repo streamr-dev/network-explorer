@@ -27,7 +27,11 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "react-spring": "^9.0.0",
+<<<<<<< HEAD
     "recharts": "^2.0.9",
+=======
+    "react-vis": "^1.11.7",
+>>>>>>> d50ef08b090a6c0e11ca696792461fc9ed058037
     "streamr-client": "^4.1.3",
     "streamr-client-protocol": "^7.0.0",
     "streamr-client-react": "^1.1.1",
