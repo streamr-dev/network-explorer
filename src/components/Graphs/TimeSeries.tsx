@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react'
+import React, {
+  useMemo, useCallback, useState,
+} from 'react'
 import styled from 'styled-components/macro'
 import {
   Line, LineChart, ResponsiveContainer, Tooltip, YAxis,
@@ -72,6 +74,14 @@ const UnstyledTimeSeriesGraph = ({
   labelFormat,
   ...props
 }: Props) => {
+  const [tooltipWidth, setTooltipWidth] = useState(0)
+
+  const tooltipRef = useCallback(node => {
+    if (node !== null) {
+      setTooltipWidth(node.offsetWidth)
+    }
+  }, [])
+
   const dataDomain = useMemo(() => {
     const dataValues = Object.keys(graphData || {}).flatMap((key) => {
       const graph = graphData[key]
@@ -103,6 +113,7 @@ const UnstyledTimeSeriesGraph = ({
   }, [graphData])
 
   const margin = useMemo(
+
     () =>
       showCrosshair
         ? {
@@ -132,11 +143,11 @@ const UnstyledTimeSeriesGraph = ({
               <Tooltip
                 allowEscapeViewBox={{ x: true }}
                 position={{ y: 5 }}
-                offset={-35}
+                offset={-1 * tooltipWidth + tooltipWidth / 2}
                 content={(data) => {
                   if (data.payload != null && data.payload[0] != null) {
                     return (
-                      <CrosshairValue>
+                      <CrosshairValue ref={tooltipRef}>
                         {typeof labelFormat === 'function'
                           ? labelFormat(data.payload[0].payload.y)
                           : data.payload[0].payload.y}{' '}
