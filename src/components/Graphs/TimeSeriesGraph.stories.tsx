@@ -48,6 +48,7 @@ const data2 = [
     y: 9,
   },
 ]
+
 const Template: Story<Props> = (args) => <TimeSeries {...args} />
 
 export const WithHeightDefined = Template.bind({})
