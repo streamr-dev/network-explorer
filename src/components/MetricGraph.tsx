@@ -135,6 +135,8 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
         x: timestamp,
         y: rawValue[nextMetric],
       }))
+      .sort(({ x: prev }, { x: current }) => (prev - current))
+
     setValues(nextValues)
 
     graphPollTimeout.current = setTimeout(() => {
