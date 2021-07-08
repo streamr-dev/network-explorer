@@ -20,14 +20,11 @@ const NodeConnectionsLoader = () => {
 }
 
 type NodeProps = {
-  id: string,
+  id: string
 }
 
 const SearchTextSetter = () => {
-  const {
-    updateSearch: updateSearchText,
-    activeNode,
-  } = useStore()
+  const { updateSearch: updateSearchText, activeNode } = useStore()
 
   const activeNodeTitle = activeNode && activeNode.title
 
@@ -51,7 +48,7 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
 }
 
 interface ParamTypes {
-  nodeId: string,
+  nodeId: string
 }
 
 export default () => {
@@ -67,9 +64,7 @@ export default () => {
       <SearchTextSetter />
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
-      {!!nodeId && (
-        <TopologyList id={nodeId} />
-      )}
+      {!!nodeId && <TopologyList id={nodeId} />}
     </>
   )
 }

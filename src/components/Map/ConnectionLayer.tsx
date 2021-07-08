@@ -4,25 +4,22 @@ import { Node } from '../../utils/api/tracker'
 import { Topology } from '../../contexts/Store'
 
 type NodeConnection = {
-  sourceId: string | number | undefined,
-  targetId: string | number | undefined,
-  source: [number, number],
-  target: [number, number],
+  sourceId: string | number | undefined
+  targetId: string | number | undefined
+  source: [number, number]
+  target: [number, number]
 }
 
 type UniqueConnection = Record<string, NodeConnection>
 
-const getNodeConnections = (
-  topology: Topology,
-  nodes: Node[],
-): Array<NodeConnection> => {
+const getNodeConnections = (topology: Topology, nodes: Node[]): Array<NodeConnection> => {
   // Convert topology to a list of node connection pairs
   const nodeConnections = Object.keys(topology || {}).flatMap((key) => {
     const nodeList = topology[key]
     return nodeList.map((n) => [key, n])
   })
 
-  const uniqueConnections = (
+  const uniqueConnections =
     // reduce connection pairs to unique lines between nodes
     nodeConnections.reduce((result: UniqueConnection, [sourceId, targetId]) => {
       const uniqueId = [sourceId, targetId].sort().join()
@@ -46,37 +43,30 @@ const getNodeConnections = (
 
       return result
     }, {})
-  )
 
   return Object.values(uniqueConnections)
 }
 
 type Props = {
-  topology: Topology,
-  nodes: Node[],
-  visible?: boolean,
+  topology: Topology
+  nodes: Node[]
+  visible?: boolean
 }
 
-const ConnectionLayer = ({
-  topology,
-  nodes,
-  visible,
-}: Props) => {
+const ConnectionLayer = ({ topology, nodes, visible }: Props) => {
   const geoJsonLines: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     const connections = getNodeConnections(topology, nodes)
 
     return {
       type: 'FeatureCollection',
-      features: connections.map(({ source, target }) => (
-        {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [source, target],
-          },
-          properties: {},
-        }
-      )),
+      features: connections.map(({ source, target }) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [source, target],
+        },
+        properties: {},
+      })),
     }
   }, [topology, nodes])
 

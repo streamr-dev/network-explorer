@@ -17,7 +17,13 @@ export default {
   parameters: {
     layout: 'fullscreen',
   },
-  decorators: [(StoryComponent) => <Wrapper><StoryComponent /></Wrapper>],
+  decorators: [
+    (StoryComponent) => (
+      <Wrapper>
+        <StoryComponent />
+      </Wrapper>
+    ),
+  ],
 } as Meta
 
 const nodes = [
@@ -27,7 +33,8 @@ const nodes = [
     latitude: 60.16952,
     longitude: 24.93545,
     placeName: 'Helsinki',
-  }, {
+  },
+  {
     id: '2',
     title: 'Node 2',
     latitude: 60.14952,
@@ -74,14 +81,7 @@ const initialViewport = {
 export const Nodes: Story = (args) => {
   const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
 
-  return (
-    <Map
-      nodes={nodes}
-      topology={topology}
-      viewport={viewport}
-      setViewport={setViewport}
-    />
-  )
+  return <Map nodes={nodes} topology={topology} viewport={viewport} setViewport={setViewport} />
 }
 
 export const ActiveNode: Story = (args) => {

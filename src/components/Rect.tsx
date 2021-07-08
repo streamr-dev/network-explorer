@@ -2,8 +2,8 @@ import React from 'react'
 import styled from 'styled-components/macro'
 
 type Props = {
-  ratio?: string,
-  height?: string,
+  ratio?: string
+  height?: string
 }
 
 const UnstyledRect = ({ ratio = '3:2', height, ...props }: Props) => (

@@ -4,16 +4,12 @@ import { NodeMarker } from './Markers'
 import { Node } from '../../utils/api/tracker'
 
 type Props = {
-  nodes: Node[],
-  activeNode?: string,
-  onNodeClick?: (v: string) => void,
+  nodes: Node[]
+  activeNode?: string
+  onNodeClick?: (v: string) => void
 }
 
-const MarkerLayer = ({
-  nodes,
-  activeNode,
-  onNodeClick,
-}: Props) => (
+const MarkerLayer = ({ nodes, activeNode, onNodeClick }: Props) => (
   <>
     {nodes.map(({ id, longitude, latitude }) => (
       <Marker key={`node-${id}`} latitude={latitude} longitude={longitude}>

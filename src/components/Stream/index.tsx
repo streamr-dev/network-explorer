@@ -7,7 +7,7 @@ import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 
 type StreamProps = {
-  id: string,
+  id: string
 }
 
 const SearchTextSetter = ({ id }: StreamProps) => {
@@ -51,7 +51,7 @@ const StreamLoader = ({ id }: StreamProps) => {
 }
 
 type NodeProps = {
-  id: string,
+  id: string
 }
 
 const ActiveNodeSetter = ({ id }: NodeProps) => {
@@ -67,8 +67,8 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
 }
 
 interface ParamTypes {
-  nodeId: string,
-  streamId: string,
+  nodeId: string
+  streamId: string
 }
 
 export default () => {

@@ -5,19 +5,23 @@ export const APP_ENV_KEY = 'network-eplorer.env'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getEnvironment() {
-  return (!!storage && JSON.parse(storage.getItem(APP_ENV_KEY) || 'false')) || process.env.DEFAULT_ENV
+  return (
+    (!!storage && JSON.parse(storage.getItem(APP_ENV_KEY) || 'false')) || process.env.DEFAULT_ENV
+  )
 }
 
 export function setEnvironment(value: string) {
-  if (!storage) { return }
+  if (!storage) {
+    return
+  }
   storage.setItem(APP_ENV_KEY, JSON.stringify(value))
 }
 
 function getConfig(options = {}): EnvConfig {
   const { env } = {
-    ...({
+    ...{
       env: getEnvironment() || 'local',
-    }),
+    },
     ...(options || {}),
   }
 

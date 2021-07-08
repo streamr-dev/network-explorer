@@ -33,11 +33,7 @@ const data = [
 export const WithIntervalSelect = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries
-        graphData={{ data }}
-        height="200px"
-        ratio="1:2"
-      />
+      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
       <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
     </Graphs>
   )
@@ -46,15 +42,8 @@ export const WithIntervalSelect = () => {
 export const WithDisabledInterval = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries
-        graphData={{ data }}
-        height="200px"
-        ratio="1:2"
-      />
-      <Graphs.Intervals
-        options={['24hours', '1month', '3months', 'all']}
-        disabled
-      />
+      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
+      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -63,10 +52,7 @@ export const WithEmptyPlaceholder = () => {
   return (
     <Graphs>
       <Graphs.Placeholder />
-      <Graphs.Intervals
-        options={['24hours', '1month', '3months', 'all']}
-        disabled
-      />
+      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -75,10 +61,7 @@ export const WithImagePlaceholder = () => {
   return (
     <Graphs>
       <Graphs.Placeholder showImage />
-      <Graphs.Intervals
-        options={['24hours', '1month', '3months', 'all']}
-        disabled
-      />
+      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -86,11 +69,7 @@ export const WithImagePlaceholder = () => {
 export const WithLoadingIndicator = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries
-        graphData={{ data }}
-        height="200px"
-        ratio="1:2"
-      />
+      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
       <Graphs.Loading loading row={2} />
       <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
     </Graphs>

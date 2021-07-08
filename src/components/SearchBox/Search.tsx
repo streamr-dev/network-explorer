@@ -13,7 +13,7 @@ const SlideHandle = styled.div`
   position: absolute;
   height: 4px;
   width: 40px;
-  background: #E7E7E7;
+  background: #e7e7e7;
   border-radius: 2px;
   top: 10px;
   left: 50%;
@@ -33,7 +33,7 @@ const Search = styled(ControlBox)`
   }
 
   > * + * {
-    border-top: 1px solid #EFEFEF;
+    border-top: 1px solid #efefef;
   }
 
   @media (max-width: ${SM}px) {
@@ -52,45 +52,53 @@ const Search = styled(ControlBox)`
       border-radius: 0px;
 
       ${SearchInput.Inner} {
-        border: 1px solid #EFEFEF;
+        border: 1px solid #efefef;
         border-radius: 4px;
       }
     }
 
     ${SearchInput} + ${Stats} {
-      border: 1px solid #EFEFEF;
+      border: 1px solid #efefef;
       margin: 0 16px 16px 16px;
       border-radius: 0 0 8px 8px;
     }
 
-    ${({ theme }) => theme.activeView === 'map' && css`
-      ${SearchResults} {
-        display: none;
-      }
-    `}
-
-    ${({ theme }) => !!theme.hasStats && !theme.resultsActive && css`
-      ${SearchInput} {
-        padding-bottom: 0;
-
-        ${SearchInput.Inner} {
-          border-bottom: 0;
-          border-radius: 8px 8px 0 0;
+    ${({ theme }) =>
+    theme.activeView === 'map' &&
+      css`
+        ${SearchResults} {
+          display: none;
         }
-      }
-    `}
+      `}
 
-    ${({ theme }) => theme.activeView === 'list' && !!theme.resultsActive && css`
-      ${Stats},
-      ${Graphs},
+    ${({ theme }) =>
+    !!theme.hasStats &&
+      !theme.resultsActive &&
+      css`
+        ${SearchInput} {
+          padding-bottom: 0;
+
+          ${SearchInput.Inner} {
+            border-bottom: 0;
+            border-radius: 8px 8px 0 0;
+          }
+        }
+      `}
+
+    ${({ theme }) =>
+    theme.activeView === 'list' &&
+      !!theme.resultsActive &&
+      css`
+        ${Stats},
+        ${Graphs},
       ${Error} {
-        display: none;
-      }
-    `}
+          display: none;
+        }
+      `}
   }
 
   ${Stats} {
-    background-color: #FFFFFF;
+    background-color: #ffffff;
   }
 
   ${SearchResults} {
@@ -100,11 +108,13 @@ const Search = styled(ControlBox)`
   }
 
   @media (min-width: ${SM}px) {
-    ${({ theme }) => theme.resultsActive && css`
-      ${Graphs} {
-        display: none;
-      }
-    `}
+    ${({ theme }) =>
+    theme.resultsActive &&
+      css`
+        ${Graphs} {
+          display: none;
+        }
+      `}
 
     ${SearchResults} {
       max-height: 280px;

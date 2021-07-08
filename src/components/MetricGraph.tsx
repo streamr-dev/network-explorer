@@ -1,9 +1,5 @@
 import React, {
-  useMemo,
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
+  useMemo, useCallback, useState, useEffect, useRef,
 } from 'react'
 import { useSubscription } from 'streamr-client-react'
 
@@ -17,9 +13,9 @@ import Error from './Error'
 export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond'
 
 type MetricGraphProps = {
-  streamId: string,
-  interval: Interval,
-  metric: MetricType,
+  streamId: string
+  interval: Interval
+  metric: MetricType
 }
 
 const HOUR = 60 * 60 * 1000
@@ -80,16 +76,16 @@ const formatMetricValue = (value: number, metric: MetricType): string => {
 }
 
 type RawValue = {
-  timestamp: number,
-  messagesPerSecond: number,
-  numberOfNodes: number,
-  bytesPerSecond: number,
-  latency: number,
+  timestamp: number
+  messagesPerSecond: number
+  numberOfNodes: number
+  bytesPerSecond: number
+  latency: number
 }
 
 type DataPoint = {
-  x: number,
-  y: number,
+  x: number
+  y: number
 }
 
 const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
@@ -97,20 +93,23 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
   const dataRef = useRef<RawValue[]>([])
   const [values, setValues] = useState<DataPoint[]>([])
 
-  const onMessage = useCallback(({ broker, trackers, network }, { messageId }) => {
-    if (isMounted()) {
-      dataRef.current = [
-        ...dataRef.current,
-        {
-          timestamp: messageId.timestamp,
-          messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
-          numberOfNodes: trackers && trackers.totalNumberOfNodes || 0,
-          bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
-          latency: Math.round(network.avgLatencyMs),
-        },
-      ]
-    }
-  }, [isMounted])
+  const onMessage = useCallback(
+    ({ broker, trackers, network }, { messageId }) => {
+      if (isMounted()) {
+        dataRef.current = [
+          ...dataRef.current,
+          {
+            timestamp: messageId.timestamp,
+            messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
+            numberOfNodes: (trackers && trackers.totalNumberOfNodes) || 0,
+            bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
+            latency: Math.round(network.avgLatencyMs),
+          },
+        ]
+      }
+    },
+    [isMounted],
+  )
 
   // Poll graph data
   const graphPollTimeout = useRef<number | undefined>()
@@ -123,7 +122,7 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
       .filter(({ timestamp }) => {
         switch (nextInterval) {
           case 'realtime':
-            return (now - timestamp) <= REALTIME_WINDOW
+            return now - timestamp <= REALTIME_WINDOW
 
           default:
             break
@@ -155,14 +154,20 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 
   const resend = useMemo(() => getResendOptionsForInterval(interval), [interval])
 
-  const labelFormat = useCallback((value: number): string => {
-    return formatMetricValue(value, metric)
-  }, [metric])
+  const labelFormat = useCallback(
+    (value: number): string => {
+      return formatMetricValue(value, metric)
+    },
+    [metric],
+  )
 
-  useSubscription({
-    stream: streamId,
-    resend,
-  }, onMessage)
+  useSubscription(
+    {
+      stream: streamId,
+      resend,
+    },
+    onMessage,
+  )
 
   return (
     <Graphs.TimeSeries
@@ -177,9 +182,9 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 }
 
 type Props = {
-  type: 'network' | 'node',
-  metric: MetricType,
-  id?: string,
+  type: 'network' | 'node'
+  metric: MetricType
+  id?: string
 }
 
 const getStreamFragmentForInterval = (interval: Interval) => {
@@ -212,20 +217,23 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
     return `${id}/streamr/node/metrics/${getStreamFragmentForInterval(interval)}`
   }, [type, id, interval])
 
-  const loadStream = useCallback(async (nodeId) => {
-    setHasLoaded(false)
-    setError(undefined)
+  const loadStream = useCallback(
+    async (nodeId) => {
+      setHasLoaded(false)
+      setError(undefined)
 
-    try {
-      await getStream({ id: nodeId })
-    } catch (e) {
-      setError('Metric data not available')
-    } finally {
-      if (isMounted()) {
-        setHasLoaded(true)
+      try {
+        await getStream({ id: nodeId })
+      } catch (e) {
+        setError('Metric data not available')
+      } finally {
+        if (isMounted()) {
+          setHasLoaded(true)
+        }
       }
-    }
-  }, [isMounted])
+    },
+    [isMounted],
+  )
 
   useEffect(() => {
     loadStream(metricStreamId)
@@ -241,22 +249,14 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
           </>
         )}
         {!!hasLoaded && !error && (
-          <MetricGraph
-            streamId={metricStreamId}
-            interval={interval}
-            metric={metric}
-          />
+          <MetricGraph streamId={metricStreamId} interval={interval} metric={metric} />
         )}
         <Graphs.Intervals
           options={['realtime', '24hours', '1month', '3months', 'all']}
           onChange={setInterval}
         />
       </Graphs>
-      {!!error && (
-        <Error>
-          {error}
-        </Error>
-      )}
+      {!!error && <Error>{error}</Error>}
     </>
   )
 }

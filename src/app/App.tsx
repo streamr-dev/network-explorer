@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react'
 import {
-  BrowserRouter,
-  Route,
-  Switch,
-  useLocation,
+  BrowserRouter, Route, Switch, useLocation,
 } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -35,10 +32,7 @@ const TrackerLoader = () => {
 }
 
 function useResetSearchTextEffect() {
-  const {
-    updateSearch: updateSearchText,
-    resetSearchResults,
-  } = useStore()
+  const { updateSearch: updateSearchText, resetSearchResults } = useStore()
   const { pathname } = useLocation()
 
   useEffect(() => {
@@ -68,9 +62,7 @@ const LoadingBar = () => {
 
   const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
 
-  return (
-    <LoadingIndicator large loading={isLoading} />
-  )
+  return <LoadingIndicator large loading={isLoading} />
 }
 
 const App = () => (

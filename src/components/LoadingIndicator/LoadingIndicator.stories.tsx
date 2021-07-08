@@ -11,6 +11,4 @@ export default {
   },
 } as Meta
 
-export const Loading: Story = (args) => (
-  <LoadingIndicator loading />
-)
+export const Loading: Story = (args) => <LoadingIndicator loading />

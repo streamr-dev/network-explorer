@@ -1,1 +1,1 @@
-declare module 'streamr-client-protocol';
+declare module 'streamr-client-protocol'

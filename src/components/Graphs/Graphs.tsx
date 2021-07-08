@@ -3,15 +3,15 @@ import React, { useState, useMemo, useContext } from 'react'
 export type Interval = 'realtime' | '24hours' | '1month' | '3months' | 'all'
 
 type ContextProps = {
-  interval: Interval | undefined,
-  setInterval: (interval: Interval | undefined) => void,
+  interval: Interval | undefined
+  setInterval: (interval: Interval | undefined) => void
 }
 
 const GraphContext = React.createContext<ContextProps | undefined>(undefined)
 
 type Props = {
-  children: React.ReactNode,
-  defaultInterval?: Interval,
+  children: React.ReactNode
+  defaultInterval?: Interval
 }
 
 const GraphProvider = ({ children, defaultInterval }: Props) => {
@@ -22,16 +22,9 @@ const GraphProvider = ({ children, defaultInterval }: Props) => {
       interval,
       setInterval,
     }
-  }, [
-    interval,
-    setInterval,
-  ])
+  }, [interval, setInterval])
 
-  return (
-    <GraphContext.Provider value={value}>
-      {children || null}
-    </GraphContext.Provider>
-  )
+  return <GraphContext.Provider value={value}>{children || null}</GraphContext.Provider>
 }
 
 const useGraphContext = () => {
@@ -44,8 +37,4 @@ const useGraphContext = () => {
   return context
 }
 
-export {
-  GraphProvider as Provider,
-  GraphContext as Context,
-  useGraphContext,
-}
+export { GraphProvider as Provider, GraphContext as Context, useGraphContext }

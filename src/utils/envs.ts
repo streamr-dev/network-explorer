@@ -1,18 +1,20 @@
-type TrackerConfig = {
-  source: 'contract',
-  contractAddress: string,
-  jsonRpcProvider: string,
-} | {
-  source: 'http',
-  http: string,
-}
+type TrackerConfig =
+  | {
+    source: 'contract'
+    contractAddress: string
+    jsonRpcProvider: string
+  }
+  | {
+    source: 'http'
+    http: string
+  }
 
 export type EnvConfig = {
-  tracker: TrackerConfig,
+  tracker: TrackerConfig
   streamr: {
-    http: string,
-    ws: string,
-  },
+    http: string
+    ws: string
+  }
 }
 
 type Envs = Record<string, EnvConfig>
