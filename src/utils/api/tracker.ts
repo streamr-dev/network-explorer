@@ -71,6 +71,16 @@ export const generateMnemonic = (id: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 
+export const getAddress = (id: string) => {
+  const hashPos = id.indexOf('#')
+
+  if (hashPos < 0) {
+    return id
+  }
+
+  return id.slice(0, hashPos)
+}
+
 export const getNodes = async (url: string): Promise<Node[]> => {
   let result: NodeResultList = {}
 
@@ -87,12 +97,20 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     Object.keys(result || []).map(async (id: string) => {
       const { latitude, longitude, country } = result[id] || {}
       const { region } = await getReversedGeocodedLocation({ latitude, longitude })
+      let title = getAddress(id)
+
+      try {
+        title = generateMnemonic(title)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(e)
+      }
 
       return {
         id,
         latitude,
         longitude,
-        title: generateMnemonic(id),
+        title,
         placeName: region || country,
       }
     }),
