@@ -51,7 +51,7 @@ const NodeStats = ({ id }: Props) => {
 
   useSubscription(
     {
-      stream: `${id}/streamr/node/metrics/sec`,
+      stream: `${encodeURIComponent(id)}/streamr/node/metrics/sec`,
       resend: {
         last: 1,
       },

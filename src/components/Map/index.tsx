@@ -192,7 +192,7 @@ export const ConnectedMap = () => {
       }
 
       if (nodeId) {
-        path += `nodes/${nodeId}`
+        path += `nodes/${encodeURIComponent(nodeId)}`
       }
 
       history.replace(path)

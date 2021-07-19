@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
@@ -52,7 +52,8 @@ interface ParamTypes {
 }
 
 export default () => {
-  const { nodeId } = useParams<ParamTypes>()
+  const { nodeId: encodedNodeId } = useParams<ParamTypes>()
+  const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
   const { nodes } = useStore()
 
   if (!nodes || nodes.length < 1) {

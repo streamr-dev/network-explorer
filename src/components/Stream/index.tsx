@@ -72,10 +72,11 @@ interface ParamTypes {
 }
 
 export default () => {
-  const { streamId: encodedStreamId, nodeId } = useParams<ParamTypes>()
+  const { streamId: encodedStreamId, nodeId: encodedNodeId } = useParams<ParamTypes>()
   const { nodes } = useStore()
 
   const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])
+  const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
   if (!streamId || !nodes || nodes.length < 1) {
     return null
