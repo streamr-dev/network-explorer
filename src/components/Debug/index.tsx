@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useHistory } from 'react-router-dom'
 import styled from 'styled-components/macro'
 import JsonView from 'react-pretty-json'
 
 import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
-import { useController } from '../../contexts/Controller'
 import envs from '../../utils/envs'
 import {
   MONO, SANS, MEDIUM, MD,
@@ -143,7 +143,7 @@ const OpenView = styled.div`
 const Debug = () => {
   const { pending } = useAllPending()
   const { env: selectedEnv, store } = useStore()
-  const { changeEnv } = useController()
+  const history = useHistory()
   const [open, setOpen] = useState<boolean>(getDebugMode())
 
   const toggleDebugMode = useCallback(() => {
@@ -153,6 +153,10 @@ const Debug = () => {
   useEffect(() => {
     setDebugMode(open)
   }, [open])
+
+  const changeEnv = useCallback((env: string) => {
+    history.push(`/?network=${env}`)
+  }, [history])
 
   return (
     <DebugContainer theme={open ? openTheme : closeTheme}>

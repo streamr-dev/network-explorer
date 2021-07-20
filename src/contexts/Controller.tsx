@@ -1,7 +1,6 @@
 import React, {
   useMemo, useContext, useCallback, useEffect, useState,
 } from 'react'
-import { useHistory } from 'react-router-dom'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
@@ -45,7 +44,6 @@ function useControllerContext() {
   const { start: startSearch, end: endSearch } = usePending('search')
   const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
-  const history = useHistory()
 
   const loadTrackers = useCallback(
     () =>
@@ -171,10 +169,8 @@ function useControllerContext() {
       setEnvironment(env)
       resetStore()
       setHasLoaded(false)
-      history.push('/')
-      loadTrackers()
     },
-    [resetStore, loadTrackers, history],
+    [resetStore],
   )
 
   const searchNodes = useCallback(
