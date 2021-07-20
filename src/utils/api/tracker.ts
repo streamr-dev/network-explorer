@@ -51,6 +51,7 @@ export const getTrackerForStream = async (options: { id: string; partition?: num
 export type Node = {
   id: string
   title: string
+  address: string,
   latitude: number
   longitude: number
   placeName: string
@@ -97,10 +98,11 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     Object.keys(result || []).map(async (id: string) => {
       const { latitude, longitude, country } = result[id] || {}
       const { region } = await getReversedGeocodedLocation({ latitude, longitude })
-      let title = getAddress(id)
+      const address = getAddress(id)
+      let title
 
       try {
-        title = generateMnemonic(title)
+        title = generateMnemonic(address)
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn(e)
@@ -110,7 +112,8 @@ export const getNodes = async (url: string): Promise<Node[]> => {
         id,
         latitude,
         longitude,
-        title,
+        address,
+        title: title || address,
         placeName: region || country,
       }
     }),

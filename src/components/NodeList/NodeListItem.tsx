@@ -103,6 +103,7 @@ const Address = styled(PlaceName)`
 type Props = {
   nodeId: string
   title: string
+  address: string,
   placeName: string
   onClick?: (id: string) => void
   isActive?: boolean
@@ -112,6 +113,7 @@ type Props = {
 const NodeListItem = ({
   nodeId,
   title,
+  address,
   placeName,
   onClick: onClickProp,
   isActive,
@@ -140,7 +142,7 @@ const NodeListItem = ({
     >
       <TitleRow onClick={onClick}>
         <IconWrapper>
-          <Identicon string={nodeId} size={20} />
+          <Identicon string={address} size={20} />
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
@@ -148,7 +150,7 @@ const NodeListItem = ({
             {transition((style, item) =>
               item ? (
                 <animated.div style={style}>
-                  <Address title={nodeId}>{truncate(nodeId)}</Address>
+                  <Address title={address}>{truncate(address)}</Address>
                 </animated.div>
               ) : (
                 <animated.div style={style}>

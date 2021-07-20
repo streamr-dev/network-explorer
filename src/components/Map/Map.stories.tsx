@@ -30,6 +30,7 @@ const nodes = [
   {
     id: '1',
     title: 'Node 1',
+    address: '0x123abc',
     latitude: 60.16952,
     longitude: 24.93545,
     placeName: 'Helsinki',
@@ -37,6 +38,7 @@ const nodes = [
   {
     id: '2',
     title: 'Node 2',
+    address: '0x456def',
     latitude: 60.14952,
     longitude: 24.92545,
     placeName: 'Helsinki',
@@ -44,6 +46,7 @@ const nodes = [
   {
     id: '3',
     title: 'Node 3',
+    address: '0x789ghi',
     latitude: 52.51667,
     longitude: 13.38333,
     placeName: 'Berlin',
@@ -51,6 +54,7 @@ const nodes = [
   {
     id: '4',
     title: 'Node 4',
+    address: '0x101jkl',
     latitude: 47.49833,
     longitude: 19.04083,
     placeName: 'Budapest',

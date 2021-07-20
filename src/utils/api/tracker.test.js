@@ -114,18 +114,21 @@ describe('tracker API', () => {
       })
       expect(result).toStrictEqual([{
         id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
         latitude: 51,
         longitude: 17,
         title: 'Strong Wooden Table',
         placeName: '51-17',
       }, {
         id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         latitude: 41,
         longitude: 2,
         title: 'Fierce Concrete Spoon',
         placeName: '41-2',
       }, {
         id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
         latitude: 60,
         longitude: 24,
         title: 'Mild Sunny Building',
@@ -133,7 +136,7 @@ describe('tracker API', () => {
       }])
     })
 
-    it('uses id as title if mnemonic cannot be generated', async () => {
+    it('uses address as title if mnemonic cannot be generated', async () => {
       const getMock = jest.fn().mockResolvedValue(locations)
       request.get.mockImplementation(getMock)
 
@@ -155,18 +158,21 @@ describe('tracker API', () => {
       })
       expect(result).toStrictEqual([{
         id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
         latitude: 51,
         longitude: 17,
         title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
         placeName: '51-17',
       }, {
         id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         latitude: 41,
         longitude: 2,
         title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         placeName: '41-2',
       }, {
         id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
         latitude: 60,
         longitude: 24,
         title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
@@ -196,18 +202,21 @@ describe('tracker API', () => {
       })
       expect(result).toStrictEqual([{
         id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
         latitude: 51,
         longitude: 17,
         title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
         placeName: 'Poland',
       }, {
         id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         latitude: 41,
         longitude: 2,
         title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         placeName: 'Spain',
       }, {
         id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
         latitude: 60,
         longitude: 24,
         title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
