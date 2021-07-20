@@ -19,10 +19,11 @@ const TopologyList = ({ id }: Props) => {
       <NodeList.Node
         nodeId={currentNode.id}
         title={currentNode.title}
+        address={currentNode.address}
         placeName={currentNode.placeName}
         isActive
       >
-        <NodeStats key={currentNode.id} id={currentNode.id} />
+        <NodeStats key={currentNode.id} id={currentNode.address} />
       </NodeList.Node>
     </NodeList>
   ) : null

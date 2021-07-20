@@ -52,7 +52,7 @@ const SearchBox = () => {
 
         case 'nodes':
           resetSearchResults()
-          history.push(`/nodes/${id}`)
+          history.push(`/nodes/${encodeURIComponent(id)}`)
           break
 
         case 'locations':

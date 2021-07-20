@@ -214,7 +214,13 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
       return `streamr.eth/metrics/network/${getStreamFragmentForInterval(interval)}`
     }
 
-    return `${id}/streamr/node/metrics/${getStreamFragmentForInterval(interval)}`
+    if (!id ) {
+      // no idea what typescript wants here
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+      throw new (Error as any)('No node selected!')
+    }
+
+    return `${encodeURIComponent(id)}/streamr/node/metrics/${getStreamFragmentForInterval(interval)}`
   }, [type, id, interval])
 
   const loadStream = useCallback(
@@ -236,7 +242,12 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
   )
 
   useEffect(() => {
-    loadStream(metricStreamId)
+    try {
+      loadStream(metricStreamId)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(e)
+    }
   }, [loadStream, metricStreamId])
 
   return (

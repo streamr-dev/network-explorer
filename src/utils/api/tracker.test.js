@@ -3,16 +3,52 @@ import * as trackerUtils from 'streamr-client-protocol'
 
 import * as all from './tracker'
 import * as request from '../request'
+import * as mapbox from './mapbox'
 
 jest.mock('bip39')
 jest.mock('streamr-client-protocol')
 jest.mock('../request')
+jest.mock('./mapbox')
+
+const locations = {
+  '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe': {
+    country: 'Poland',
+    city: 'Wroclaw',
+    latitude: 51,
+    longitude: 17,
+  },
+  '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa': {
+    country: 'Spain',
+    city: 'Barcelona',
+    latitude: 41,
+    longitude: 2,
+  },
+  '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990': {
+    country: 'Finland',
+    city: 'Helsinki',
+    latitude: 60,
+    longitude: 24,
+  },
+}
 
 describe('tracker API', () => {
+  beforeAll(() => {
+    // don't show warnigns when console.warn is called
+    jest.spyOn(console, 'warn')
+    // eslint-disable-next-line no-console
+    console.warn.mockImplementation((...args) => {})
+  })
+
   afterEach(() => {
     bip39.entropyToMnemonic.mockClear()
     trackerUtils.Utils.getTrackerRegistryFromContract.mockClear()
     request.get.mockClear()
+    mapbox.getReversedGeocodedLocation.mockClear()
+  })
+
+  afterAll(() => {
+    // eslint-disable-next-line no-console
+    console.warn.mockRestore()
   })
 
   describe('generateMnemonic', () => {
@@ -30,6 +66,162 @@ describe('tracker API', () => {
       expect(entropyToMnemonicMock).toBeCalledWith('123', wordlist)
       expect(result).toStrictEqual('Solid Wooden Table')
       bip39.wordlists = oldWordlist
+    })
+  })
+
+  describe('getAddress', () => {
+    it('strips hash and returns the address', () => {
+      expect(all.getAddress('0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe'))
+        .toBe('0xC983de43c5d22186F1e051c6da419c5a17F19544')
+    })
+
+    it('returns address as is', () => {
+      expect(all.getAddress('0xC983de43c5d22186F1e051c6da419c5a17F19544'))
+        .toBe('0xC983de43c5d22186F1e051c6da419c5a17F19544')
+    })
+  })
+
+  describe('getNodes', () => {
+    it('gets list of nodes from a tracker', async () => {
+      const getMock = jest.fn().mockResolvedValue(locations)
+      request.get.mockImplementation(getMock)
+
+      const entropyToMnemonicMock = jest.fn((id, list) => {
+        const mnemonics = {
+          'C983de43c5d22186F1e051c6da419c5a17F19544': 'strong wooden table',
+          'c3075C2556A1FD30c67530F1ac5ddAE618762CAa': 'fierce concrete spoon',
+          'e61611feb4a4Bd058E2b7f23E53786da530AdA7d': 'mild sunny building',
+        }
+
+        if (!mnemonics[id]) {
+          throw new Error('Mnemonic failed!')
+        }
+
+        return mnemonics[id]
+      })
+      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
+
+      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
+        region: `${latitude}-${longitude}`,
+      }))
+      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
+
+      const http = 'http://testurl'
+      const result = await all.getNodes(http)
+
+      expect(getMock).toBeCalledWith({
+        url: `${http}/location/`,
+      })
+      expect(result).toStrictEqual([{
+        id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
+        latitude: 51,
+        longitude: 17,
+        title: 'Strong Wooden Table',
+        placeName: '51-17',
+      }, {
+        id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        latitude: 41,
+        longitude: 2,
+        title: 'Fierce Concrete Spoon',
+        placeName: '41-2',
+      }, {
+        id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
+        latitude: 60,
+        longitude: 24,
+        title: 'Mild Sunny Building',
+        placeName: '60-24',
+      }])
+    })
+
+    it('uses address as title if mnemonic cannot be generated', async () => {
+      const getMock = jest.fn().mockResolvedValue(locations)
+      request.get.mockImplementation(getMock)
+
+      const entropyToMnemonicMock = jest.fn((id, list) => {
+        throw new Error('Mnemonic failed!')
+      })
+      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
+
+      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
+        region: `${latitude}-${longitude}`,
+      }))
+      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
+
+      const http = 'http://testurl'
+      const result = await all.getNodes(http)
+
+      expect(getMock).toBeCalledWith({
+        url: `${http}/location/`,
+      })
+      expect(result).toStrictEqual([{
+        id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
+        latitude: 51,
+        longitude: 17,
+        title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
+        placeName: '51-17',
+      }, {
+        id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        latitude: 41,
+        longitude: 2,
+        title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        placeName: '41-2',
+      }, {
+        id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
+        latitude: 60,
+        longitude: 24,
+        title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
+        placeName: '60-24',
+      }])
+    })
+
+    it('uses country from response if reverse geocoding fails', async () => {
+      const getMock = jest.fn().mockResolvedValue(locations)
+      request.get.mockImplementation(getMock)
+
+      const entropyToMnemonicMock = jest.fn((id, list) => {
+        throw new Error('Mnemonic failed!')
+      })
+      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
+
+      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
+        region: undefined,
+      }))
+      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
+
+      const http = 'http://testurl'
+      const result = await all.getNodes(http)
+
+      expect(getMock).toBeCalledWith({
+        url: `${http}/location/`,
+      })
+      expect(result).toStrictEqual([{
+        id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
+        latitude: 51,
+        longitude: 17,
+        title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
+        placeName: 'Poland',
+      }, {
+        id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        latitude: 41,
+        longitude: 2,
+        title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+        placeName: 'Spain',
+      }, {
+        id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
+        latitude: 60,
+        longitude: 24,
+        title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
+        placeName: 'Finland',
+      }])
     })
   })
 
