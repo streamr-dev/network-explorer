@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useHistory, useLocation } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
+import envs from '../../utils/envs'
 
 const NodeConnectionsLoader = () => {
   const { loadTopology, resetTopology } = useController()
@@ -47,6 +48,28 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
+const envSet = new Set((Object.keys(envs)))
+
+type EnvProps = {
+  env: string
+}
+
+const NetworkSetter = ({ env: nextEnv }: EnvProps) => {
+  const { env } = useStore()
+  const { changeEnv } = useController()
+  const history = useHistory()
+
+  useEffect(() => {
+    if (!!nextEnv && nextEnv !== env && envSet.has(nextEnv)) {
+      changeEnv(nextEnv)
+    }
+
+    history.replace('/')
+  }, [nextEnv, env, history, changeEnv])
+
+  return null
+}
+
 interface ParamTypes {
   nodeId: string
 }
@@ -55,6 +78,16 @@ export default () => {
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
   const { nodes } = useStore()
+
+  const { search } = useLocation()
+  const queryParams = new URLSearchParams(search)
+  const nextEnv = queryParams.get('network')
+
+  if (nextEnv) {
+    return (
+      <NetworkSetter env={nextEnv} />
+    )
+  }
 
   if (!nodes || nodes.length < 1) {
     return null
