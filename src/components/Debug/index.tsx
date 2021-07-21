@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { useHistory } from 'react-router-dom'
+import React from 'react'
 import styled from 'styled-components/macro'
 import JsonView from 'react-pretty-json'
 
 import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
-import envs from '../../utils/envs'
 import {
-  MONO, SANS, MEDIUM, MD,
+  MONO, SANS, MD,
 } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 
@@ -25,23 +23,15 @@ export function setDebugMode(value: boolean) {
   storage.setItem(APP_DEBUG_MODE_KEY, JSON.stringify(value))
 }
 
-const openTheme = {
-  background: 'rgba(0, 0, 0, 0.3)',
-}
-
-const closeTheme = {
-  background: 'transparent',
-}
-
 const DebugContainer = styled.div`
   position: fixed;
-  top: 24px;
-  right: 24px;
+  bottom: 218px;
+  right: 32px;
   border-radius: 4px;
   color: white;
   font-family: ${SANS};
   font-size: 12px;
-  background-color: ${({ theme }) => theme.background};
+  background-color: rgba(0, 0, 0, 0.3);
   padding: 8px;
 
   button {
@@ -100,105 +90,29 @@ const Variables = styled.pre`
   }
 `
 
-const EnvSelect = styled.label`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 8px;
-
-  span {
-    flex-grow: 1;
-  }
-
-  select {
-    flex-grow: 1;
-    margin-left: 16px;
-    height: 20px;
-  }
-
-  button {
-    margin-left: 8px;
-    font-size: 12px;
-  }
-`
-
-const OpenView = styled.div`
-  span {
-    user-select: none;
-    pointer-events: none;
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-
-    strong {
-      text-transform: uppercase;
-      font-weight: ${MEDIUM};
-      color: #fafad2;
-    }
-  }
-
-  button {
-    margin-left: 8px;
-  }
-`
+const isDebugEnabled = getDebugMode()
 
 const Debug = () => {
   const { pending } = useAllPending()
-  const { env: selectedEnv, store } = useStore()
-  const history = useHistory()
-  const [open, setOpen] = useState<boolean>(getDebugMode())
+  const { store } = useStore()
 
-  const toggleDebugMode = useCallback(() => {
-    setOpen((wasOpen) => !wasOpen)
-  }, [])
-
-  useEffect(() => {
-    setDebugMode(open)
-  }, [open])
-
-  const changeEnv = useCallback((env: string) => {
-    history.push(`/?network=${env}`)
-  }, [history])
+  // Hide debug view if not enabled in local storage
+  if (!isDebugEnabled) {
+    return null
+  }
 
   return (
-    <DebugContainer theme={open ? openTheme : closeTheme}>
-      {!open && (
-        <OpenView>
-          <span>
-            using <strong>{selectedEnv}</strong> data
-          </span>
-          <button type="button" onClick={toggleDebugMode}>
-            &#8505;
-          </button>
-        </OpenView>
-      )}
-      {!!open && (
-        <Wrapper>
-          <EnvSelect htmlFor="env">
-            <span>Selected env:</span>
-            <select
-              name="env"
-              value={selectedEnv}
-              onChange={(e) => changeEnv(e.currentTarget.value)}
-            >
-              {Object.keys(envs).map((env) => (
-                <option key={env} value={env}>
-                  {env}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={toggleDebugMode}>
-              &#x2715;
-            </button>
-          </EnvSelect>
-          <Variables>
-            <JsonView
-              json={{
-                pending,
-                store,
-              }}
-            />
-          </Variables>
-        </Wrapper>
-      )}
+    <DebugContainer>
+      <Wrapper>
+        <Variables>
+          <JsonView
+            json={{
+              pending,
+              store,
+            }}
+          />
+        </Variables>
+      </Wrapper>
     </DebugContainer>
   )
 }

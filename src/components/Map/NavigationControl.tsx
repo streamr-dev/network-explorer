@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components/macro'
 
-import Tooltip from './Tooltip'
+import Tooltip from '../Tooltip'
 import { SM } from '../../utils/styled'
 
 const Button = styled.button`

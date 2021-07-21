@@ -10,12 +10,12 @@ describe('config', () => {
   let defaultEnv
 
   beforeEach(() => {
-    defaultEnv = process.env.DEFAULT_ENV
+    defaultEnv = process.env.REACT_APP_DEFAULT_ENV
     global.localStorage.clear()
   })
 
   afterEach(() => {
-    process.env.DEFAULT_ENV = defaultEnv
+    process.env.REACT_APP_DEFAULT_ENV = defaultEnv
   })
 
   afterAll(() => {
@@ -24,13 +24,13 @@ describe('config', () => {
 
   describe('getEnvironment', () => {
     it('returns default environment if localstorage not set', () => {
-      process.env.DEFAULT_ENV = 'staging'
+      process.env.REACT_APP_DEFAULT_ENV = 'staging'
 
       expect(getEnvironment()).toStrictEqual('staging')
     })
 
     it('returns value from localstorage', () => {
-      process.env.DEFAULT_ENV = 'staging'
+      process.env.REACT_APP_DEFAULT_ENV = 'staging'
       global.localStorage.setItem(APP_ENV_KEY, JSON.stringify('someOtherValue'))
 
       expect(getEnvironment()).toStrictEqual('someOtherValue')
@@ -47,26 +47,26 @@ describe('config', () => {
 
   describe('getConfig', () => {
     it('gets default env config (no env flag)', () => {
-      process.env.DEFAULT_ENV = ''
+      process.env.REACT_APP_DEFAULT_ENV = ''
 
       expect(getConfig()).toStrictEqual('local')
     })
 
     it('gets default env config (env flag)', () => {
-      process.env.DEFAULT_ENV = 'production'
+      process.env.REACT_APP_DEFAULT_ENV = 'production'
 
       expect(getConfig()).toStrictEqual('production')
     })
 
     it('gets default env config (localstorage)', () => {
-      process.env.DEFAULT_ENV = 'production'
+      process.env.REACT_APP_DEFAULT_ENV = 'production'
       setEnvironment('staging')
 
       expect(getConfig()).toStrictEqual('staging')
     })
 
     it('returns the given env', () => {
-      process.env.DEFAULT_ENV = 'production'
+      process.env.REACT_APP_DEFAULT_ENV = 'production'
       setEnvironment('staging')
 
       expect(getConfig({ env: 'local' })).toStrictEqual('local')

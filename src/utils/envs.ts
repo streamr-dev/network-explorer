@@ -20,7 +20,28 @@ export type EnvConfig = {
 type Envs = Record<string, EnvConfig>
 
 const envs: Envs = {
-  'mock-api': {
+  mainnet: {
+    tracker: {
+      source: 'contract',
+      contractAddress: '0xb21df4018dee577cd33f5b99f269ea7b23b8e6eb',
+      jsonRpcProvider: 'https://mainnet.infura.io/v3/17c3985baecb4c4d94a1edc2c4d23206',
+    },
+    streamr: {
+      http: 'https://streamr.network/api/v1',
+      ws: 'wss://streamr.network/api/v1/ws',
+    },
+  },
+  testnet: {
+    tracker: {
+      source: 'http',
+      http: 'https://testnet1.streamr.network:30300',
+    },
+    streamr: {
+      http: 'https://testnet1.streamr.network:7001',
+      ws: 'wss://testnet1.streamr.network:7001',
+    },
+  },
+  mockApi: {
     tracker: {
       source: 'http',
       http: process.env.REACT_APP_MOCK_API_URL || '',
@@ -39,17 +60,6 @@ const envs: Envs = {
     streamr: {
       http: process.env.REACT_APP_STREAMR_API_URL || '',
       ws: process.env.REACT_APP_STREAMR_WS_URL || '',
-    },
-  },
-  production: {
-    tracker: {
-      source: 'contract',
-      contractAddress: '0xb21df4018dee577cd33f5b99f269ea7b23b8e6eb',
-      jsonRpcProvider: 'https://mainnet.infura.io/v3/17c3985baecb4c4d94a1edc2c4d23206',
-    },
-    streamr: {
-      http: 'https://streamr.network/api/v1',
-      ws: 'wss://streamr.network/api/v1/ws',
     },
   },
 }
