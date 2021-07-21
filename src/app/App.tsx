@@ -8,6 +8,7 @@ import { ConnectedMap } from '../components/Map'
 import SearchBox from '../components/SearchBox'
 import Stream from '../components/Stream'
 import Network from '../components/Network'
+import NetworkSelector from '../components/NetworkSelector'
 import Debug from '../components/Debug'
 import UnstyledLoadingIndicator from '../components/LoadingIndicator'
 import Layout from '../components/Layout'
@@ -87,6 +88,7 @@ const App = () => (
                 <TrackerLoader />
                 <SearchTextResetter />
                 <Debug />
+                <NetworkSelector />
                 <SearchBox />
                 <Switch>
                   <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />

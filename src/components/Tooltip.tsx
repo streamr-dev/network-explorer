@@ -1,7 +1,7 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
 
-import { SANS } from '../../utils/styled'
+import { SANS } from '../utils/styled'
 
 type RootProps = {
   readonly tooltip: string

@@ -15,7 +15,7 @@ const Inner = styled.div`
 
 const IconButton = styled.button`
   appearance: none;
-  border: none;
+  border: 0;
   background: none;
   outline: none;
   margin: 0;

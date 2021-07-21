@@ -6,7 +6,7 @@ const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getEnvironment() {
   return (
-    (!!storage && JSON.parse(storage.getItem(APP_ENV_KEY) || 'false')) || process.env.DEFAULT_ENV
+    (!!storage && JSON.parse(storage.getItem(APP_ENV_KEY) || 'false')) || process.env.REACT_APP_DEFAULT_ENV
   )
 }
 
