@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import styled from 'styled-components/macro'
 import JsonView from 'react-pretty-json'
 
@@ -10,6 +10,7 @@ import {
 import { isLocalStorageAvailable } from '../../utils/storage'
 
 export const APP_DEBUG_MODE_KEY = 'network-eplorer.debug'
+export const APP_DEBUG_WINDOW_POS_KEY = 'network-eplorer.debug_window_pos'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getDebugMode() {
@@ -23,16 +24,31 @@ export function setDebugMode(value: boolean) {
   storage.setItem(APP_DEBUG_MODE_KEY, JSON.stringify(value))
 }
 
+type WindowPos = {
+  x: number,
+  y: number,
+}
+
+export function getDebugWindowPos(): WindowPos {
+  return !!storage && JSON.parse(storage.getItem(APP_DEBUG_WINDOW_POS_KEY) || '{"x":0,"y":0}')
+}
+
+export function setDebugWindowPos(value: WindowPos) {
+  if (!storage) {
+    return
+  }
+  storage.setItem(APP_DEBUG_WINDOW_POS_KEY, JSON.stringify(value))
+}
+
 const DebugContainer = styled.div`
   position: fixed;
-  bottom: 218px;
-  right: 32px;
   border-radius: 4px;
   color: white;
   font-family: ${SANS};
   font-size: 12px;
   background-color: rgba(0, 0, 0, 0.3);
   padding: 8px;
+  z-index: 10001;
 
   button {
     padding: 0;
@@ -95,6 +111,38 @@ const isDebugEnabled = getDebugMode()
 const Debug = () => {
   const { pending } = useAllPending()
   const { store } = useStore()
+  const [pos, setPos] = useState<WindowPos>(getDebugWindowPos())
+  const ref = useRef<HTMLDivElement>(null)
+
+  const onMouseDown = ({ clientX: x0, clientY: y0, button }: React.MouseEvent<HTMLElement>) => {
+    const { current: el } = ref
+
+    if (button !== 0 || !el) { return }
+
+    const { offsetLeft, offsetTop } = el || {}
+
+    const onMove = (e: MouseEvent) => {
+      e.preventDefault()
+
+      setPos({
+        x: offsetLeft - (x0 - e.clientX),
+        y: offsetTop - (y0 - e.clientY),
+      })
+    }
+
+    const onUp = (e: MouseEvent) => {
+      setDebugWindowPos({
+        x: offsetLeft - (x0 - e.clientX),
+        y: offsetTop - (y0 - e.clientY),
+      })
+
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
 
   // Hide debug view if not enabled in local storage
   if (!isDebugEnabled) {
@@ -102,7 +150,14 @@ const Debug = () => {
   }
 
   return (
-    <DebugContainer>
+    <DebugContainer
+      onMouseDown={onMouseDown}
+      ref={ref}
+      style={{
+        left: `${pos.x}px`,
+        top: `${pos.y}px`,
+      }}
+    >
       <Wrapper>
         <Variables>
           <JsonView
