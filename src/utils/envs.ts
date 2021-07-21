@@ -37,7 +37,7 @@ const envs: Envs = {
       http: 'https://testnet1.streamr.network:30300',
     },
     streamr: {
-      http: 'https://testnet1.streamr.network:7001',
+      http: 'https://streamr.network/api/v1',
       ws: 'wss://testnet1.streamr.network:7001',
     },
   },
