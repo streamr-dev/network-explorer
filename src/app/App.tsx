@@ -78,9 +78,9 @@ const LoadingBar = () => {
 const App = () => (
   <BrowserRouter basename={process.env.PUBLIC_URL}>
     <Pendingrovider>
-      <StreamrClientProvider>
-        <StoreProvider>
-          <ControllerProvider>
+      <StoreProvider>
+        <ControllerProvider>
+          <StreamrClientProvider>
             <ConnectedMap />
             <LoadingBar />
             <Layout>
@@ -98,9 +98,9 @@ const App = () => (
                 </Switch>
               </ErrorBoundary>
             </Layout>
-          </ControllerProvider>
-        </StoreProvider>
-      </StreamrClientProvider>
+          </StreamrClientProvider>
+        </ControllerProvider>
+      </StoreProvider>
     </Pendingrovider>
   </BrowserRouter>
 )

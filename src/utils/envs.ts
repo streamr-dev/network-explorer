@@ -47,8 +47,8 @@ const envs: Envs = {
       http: process.env.REACT_APP_MOCK_API_URL || '',
     },
     streamr: {
-      http: process.env.REACT_APP_MOCK_API_URL || '',
-      ws: process.env.REACT_APP_MOCK_API_URL || '',
+      http: 'https://streamr.network/api/v1',
+      ws: 'wss://streamr.network/api/v1/ws',
     },
   },
   local: {
