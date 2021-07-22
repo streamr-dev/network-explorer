@@ -27,13 +27,23 @@ describe('config', () => {
       process.env.REACT_APP_DEFAULT_ENV = 'staging'
 
       expect(getEnvironment()).toStrictEqual('staging')
+      expect(global.localStorage[APP_ENV_KEY]).toStrictEqual(undefined)
     })
 
-    it('returns value from localstorage', () => {
+    it('returns default value if localstorage is not part of defined envs', () => {
       process.env.REACT_APP_DEFAULT_ENV = 'staging'
       global.localStorage.setItem(APP_ENV_KEY, JSON.stringify('someOtherValue'))
 
-      expect(getEnvironment()).toStrictEqual('someOtherValue')
+      expect(getEnvironment()).toStrictEqual('staging')
+      expect(global.localStorage[APP_ENV_KEY]).toStrictEqual(undefined)
+    })
+
+    it('returns default value if localstorage is not part of defined envs', () => {
+      process.env.REACT_APP_DEFAULT_ENV = 'staging'
+      global.localStorage.setItem(APP_ENV_KEY, 'bad JSON')
+
+      expect(getEnvironment()).toStrictEqual('staging')
+      expect(global.localStorage[APP_ENV_KEY]).toStrictEqual(undefined)
     })
   })
 
@@ -72,14 +82,6 @@ describe('config', () => {
       expect(getConfig({ env: 'local' })).toStrictEqual('local')
       expect(getConfig({ env: 'staging' })).toStrictEqual('staging')
       expect(getConfig({ env: 'production' })).toStrictEqual('production')
-    })
-
-    it('throws if env is not found', () => {
-      setEnvironment('unknownEnv')
-
-      expect(() => {
-        getConfig()
-      }).toThrow()
     })
   })
 })

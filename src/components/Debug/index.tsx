@@ -9,8 +9,8 @@ import {
 } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 
-export const APP_DEBUG_MODE_KEY = 'network-eplorer.debug'
-export const APP_DEBUG_WINDOW_POS_KEY = 'network-eplorer.debug_window_pos'
+export const APP_DEBUG_MODE_KEY = 'network-explorer.debug'
+export const APP_DEBUG_WINDOW_POS_KEY = 'network-explorer.debug_window_pos'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getDebugMode() {
