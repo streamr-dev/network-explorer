@@ -4,19 +4,21 @@ import { get } from '../request'
 import getConfig from '../config'
 
 type SearchStreams = {
-  search?: string,
+  search?: string
 }
 
 export type SearchResult = {
-  type: 'streams' | 'nodes' | 'locations',
-  id: string,
-  name: string,
-  description?: string,
-  longitude?: number,
-  latitude?: number,
+  type: 'streams' | 'nodes' | 'locations'
+  id: string
+  name: string
+  description?: string
+  longitude?: number
+  latitude?: number
 }
 
-export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promise<SearchResult[]> => {
+export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promise<
+SearchResult[]
+> => {
   const params = {
     public: true,
     search: (search || '').trim().toLowerCase(),
@@ -24,42 +26,40 @@ export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promis
 
   const [exactMatch, matchingStreams] = await Promise.all([
     // getStream with empty id responds with all streams :O
-    search ? getStream({ id: search }).catch((err) => {
-      if (err.response && err.response.status === 404) {
-        // ignore 404, expected.
-        return
-      }
-      throw err
-    }) : Promise.resolve(undefined),
+    search
+      ? getStream({ id: search }).catch((err) => {
+        if (err.response && err.response.status === 404) {
+          // ignore 404, expected.
+          return
+        }
+        throw err
+      })
+      : Promise.resolve(undefined),
     getStreams({ params }),
   ])
 
-  const results = uniqBy([
-    ...(exactMatch ? [exactMatch] : []),
-    ...(matchingStreams || []),
-  ], 'id')
+  const results = uniqBy([...(exactMatch ? [exactMatch] : []), ...(matchingStreams || [])], 'id')
 
-  return results
-    .map(({ id, description }: Stream) => ({
-      type: 'streams',
-      id,
-      name: id,
-      description,
-    }))
+  return results.map(({ id, description }: Stream) => ({
+    type: 'streams',
+    id,
+    name: id,
+    description,
+  }))
 }
 
 type GetStream = {
-  id: string,
+  id: string
 }
 
 export type Stream = {
-  id: string,
-  name: string,
-  description: string,
+  id: string
+  name: string
+  description: string
 }
 
 type GetStreams = {
-  params?: Object,
+  params?: Object
 }
 
 export const getStreams = async ({ params }: GetStreams = {}) => {

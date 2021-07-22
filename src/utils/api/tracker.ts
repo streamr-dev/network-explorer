@@ -12,9 +12,11 @@ const getTrackerRegistry = async () => {
 
   if (tracker.source === 'http') {
     return {
-      getAllTrackers: () => ([{
-        http: tracker.http,
-      }]),
+      getAllTrackers: () => [
+        {
+          http: tracker.http,
+        },
+      ],
       getTracker: () => ({
         http: tracker.http,
       }),
@@ -34,9 +36,9 @@ export const getTrackers = async (): Promise<string[]> => {
   return result || []
 }
 
-export const getTrackerForStream = async (options: { id: string, partition?: number }) => {
+export const getTrackerForStream = async (options: { id: string; partition?: number }) => {
   const { id, partition } = {
-    ...({ id: undefined, partition: 0 }),
+    ...{ id: undefined, partition: 0 },
     ...options,
   }
   const trackerRegistry = await getTrackerRegistry()
@@ -47,28 +49,38 @@ export const getTrackerForStream = async (options: { id: string, partition?: num
 }
 
 export type Node = {
-  id: string,
-  title: string,
-  latitude: number,
-  longitude: number,
+  id: string
+  title: string
+  address: string,
+  latitude: number
+  longitude: number
   placeName: string
 }
 
 type NodeResult = {
-  country: string,
-  city: string,
-  latitude: number,
-  longitude: number,
+  country: string
+  city: string
+  latitude: number
+  longitude: number
 }
 type NodeResultList = Record<string, NodeResult>
 
-export const generateMnemonic = (id: string) => (
+export const generateMnemonic = (id: string) =>
   entropyToMnemonic(id.slice(2), wordlists.english)
     .split(' ')
     .slice(0, 3)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
-)
+
+export const getAddress = (id: string) => {
+  const hashPos = id.indexOf('#')
+
+  if (hashPos < 0) {
+    return id
+  }
+
+  return id.slice(0, hashPos)
+}
 
 export const getNodes = async (url: string): Promise<Node[]> => {
   let result: NodeResultList = {}
@@ -82,18 +94,30 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     console.warn(`Failed to load nodes from ${url}/location/`)
   }
 
-  return Promise.all(Object.keys(result || []).map(async (id: string) => {
-    const { latitude, longitude, country } = result[id] || {}
-    const { region } = await getReversedGeocodedLocation({ latitude, longitude })
+  return Promise.all(
+    Object.keys(result || []).map(async (id: string) => {
+      const { latitude, longitude, country } = result[id] || {}
+      const { region } = await getReversedGeocodedLocation({ latitude, longitude })
+      const address = getAddress(id)
+      let title
 
-    return {
-      id,
-      latitude,
-      longitude,
-      title: generateMnemonic(id),
-      placeName: region || country,
-    }
-  }))
+      try {
+        title = generateMnemonic(address)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(e)
+      }
+
+      return {
+        id,
+        latitude,
+        longitude,
+        address,
+        title: title || address,
+        placeName: region || country,
+      }
+    }),
+  )
 }
 
 export type Latency = Record<string, number | undefined>
@@ -101,30 +125,35 @@ export type Latency = Record<string, number | undefined>
 export type Topology = Record<string, Latency>
 
 export type TopologyEntry = {
-  neighborId: string,
-  rtt: number | undefined,
+  neighborId: string
+  rtt: number | undefined
 }
 
 export type TopologyResult = Record<string, TopologyEntry[]>
 
 export type StreamTopologyResult = Record<string, TopologyResult>
 
-export const getTopologyFromResponse = (response: TopologyResult): Topology => (
-  Object.keys(response || {}).reduce((topology: Topology, nodeId: string) => ({
-    ...topology,
-    [nodeId]: (response[nodeId] || []).reduce((latencies, { neighborId, rtt }) => ({
-      ...latencies,
-      [neighborId]: rtt,
-    }), {}),
-  }), {})
-)
+export const getTopologyFromResponse = (response: TopologyResult): Topology =>
+  Object.keys(response || {}).reduce(
+    (topology: Topology, nodeId: string) => ({
+      ...topology,
+      [nodeId]: (response[nodeId] || []).reduce(
+        (latencies, { neighborId, rtt }) => ({
+          ...latencies,
+          [neighborId]: rtt,
+        }),
+        {},
+      ),
+    }),
+    {},
+  )
 
 const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
 
 export const getIndexedNodes = (topology: Topology): GraphLink[] => {
   const ret: GraphLink[] = []
 
-  const matrix:  Map<string, number> = new Map<string, number>()
+  const matrix: Map<string, number> = new Map<string, number>()
 
   // build a mapping from links with arbitrary node ids to links with integer ids,
   // the integer id is based on the first occurence of the node in the data and
@@ -149,14 +178,14 @@ export const getIndexedNodes = (topology: Topology): GraphLink[] => {
         const b = nodeIds[neighborId]
 
         matrix.set(
-          JSON.stringify((a < b) ? [a, b] : [b, a]),
+          JSON.stringify(a < b ? [a, b] : [b, a]),
           Math.round((topology[nodeId][neighborId] || 0) / 2),
         )
       }
     })
   })
 
-  for (const [key, value] of  matrix.entries()) {
+  for (const [key, value] of matrix.entries()) {
     const [nodeIndex, neighborIndex] = JSON.parse(key)
     ret.push([nodeIndex, neighborIndex, value])
   }
@@ -189,9 +218,11 @@ export const getNodeConnections = async (): Promise<Topology> => {
   let nodeConnections
 
   try {
-    const topologyPromises = trackerUrls.map((url) => get<TopologyResult>({
-      url: `${url}/node-connections/`,
-    }))
+    const topologyPromises = trackerUrls.map((url) =>
+      get<TopologyResult>({
+        url: `${url}/node-connections/`,
+      }),
+    )
 
     const topologies = await Promise.all(topologyPromises)
 
@@ -209,13 +240,12 @@ export const getNodeConnections = async (): Promise<Topology> => {
         Object.keys(topology[nodeId] || {}).forEach((neighborId) => {
           let rtt
 
-          if (nextCombined[nodeId] &&
+          if (
+            nextCombined[nodeId] &&
             isNumber(nextCombined[nodeId][neighborId]) &&
-            isNumber(topology[nodeId][neighborId])) {
-            rtt = Math.max(
-              nextCombined[nodeId][neighborId] || 0,
-              topology[nodeId][neighborId] || 0,
-            )
+            isNumber(topology[nodeId][neighborId])
+          ) {
+            rtt = Math.max(nextCombined[nodeId][neighborId] || 0, topology[nodeId][neighborId] || 0)
           } else if (isNumber(topology[nodeId][neighborId])) {
             rtt = topology[nodeId][neighborId]
           }

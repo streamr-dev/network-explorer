@@ -10,15 +10,13 @@ import Placeholder from './Placeholder'
 import Loading from './Loading'
 
 type Props = {
-  children: React.ReactNode,
-  defaultInterval?: Interval,
+  children: React.ReactNode
+  defaultInterval?: Interval
 }
 
 const UnstyledGraphs = ({ children, defaultInterval, ...props }: Props) => (
   <GraphProvider defaultInterval={defaultInterval}>
-    <div {...props}>
-      {children || null}
-    </div>
+    <div {...props}>{children || null}</div>
   </GraphProvider>
 )
 

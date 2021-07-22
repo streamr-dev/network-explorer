@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
@@ -7,51 +7,57 @@ import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
 
 type Props = {
-  id: string,
+  id: string
 }
 
 interface ParamTypes {
-  nodeId: string,
+  nodeId: string
 }
 
 const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
-  const { nodeId: activeNodeId } = useParams<ParamTypes>()
+  const { nodeId: encodedNodeId } = useParams<ParamTypes>()
   const history = useHistory()
 
-  const toggleNode = useCallback((nodeId) => {
-    let path = `/streams/${encodeURIComponent(id)}`
+  const activeNodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
-    if (activeNodeId !== nodeId) {
-      path += `/nodes/${nodeId}`
-    }
+  const toggleNode = useCallback(
+    (nodeId) => {
+      let path = `/streams/${encodeURIComponent(id)}`
 
-    history.replace(path)
-  }, [id, history, activeNodeId])
+      if (activeNodeId !== nodeId) {
+        path += `/nodes/${encodeURIComponent(nodeId)}`
+      }
 
-  const streamTitle = stream && stream.name || id
+      history.replace(path)
+    },
+    [id, history, activeNodeId],
+  )
+
+  const streamTitle = (stream && stream.name) || id
 
   return (
     <NodeList>
       <NodeList.Header>
-        Showing
-        {' '}
-        <strong>{visibleNodes.length}</strong>
-        {' '}
-        nodes carrying the stream
-        {' '}
+        Showing <strong>{visibleNodes.length}</strong> nodes carrying the stream{' '}
         <strong title={id}>{truncate(streamTitle)}</strong>
       </NodeList.Header>
-      {visibleNodes.map(({ id: nodeId, title, placeName }) => (
+      {visibleNodes.map(({
+        id: nodeId,
+        title,
+        address,
+        placeName,
+      }) => (
         <NodeList.Node
           key={nodeId}
           nodeId={nodeId}
           title={title}
+          address={address}
           placeName={placeName}
           onClick={toggleNode}
           isActive={activeNodeId === nodeId}
         >
-          <NodeStats id={nodeId} />
+          <NodeStats id={address} />
         </NodeList.Node>
       ))}
     </NodeList>

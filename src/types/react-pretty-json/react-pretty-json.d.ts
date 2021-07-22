@@ -1,1 +1,1 @@
-declare module 'react-pretty-json';
+declare module 'react-pretty-json'

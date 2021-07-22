@@ -34,31 +34,37 @@ const SearchBox = () => {
     history.push('/')
   }, [history, updateSearchText, resetSearchResults])
 
-  const onSearch = useCallback((value: string) => {
-    updateSearch({ search: value })
-  }, [updateSearch])
+  const onSearch = useCallback(
+    (value: string) => {
+      updateSearch({ search: value })
+    },
+    [updateSearch],
+  )
 
-  const onResultClick = useCallback(({ id, type }) => {
-    setActiveView(ActiveView.Map)
-    switch (type) {
-      case 'streams':
-        resetSearchResults()
-        history.push(`/streams/${encodeURIComponent(id)}`)
-        break
+  const onResultClick = useCallback(
+    ({ id, type }) => {
+      setActiveView(ActiveView.Map)
+      switch (type) {
+        case 'streams':
+          resetSearchResults()
+          history.push(`/streams/${encodeURIComponent(id)}`)
+          break
 
-      case 'nodes':
-        resetSearchResults()
-        history.push(`/nodes/${id}`)
-        break
+        case 'nodes':
+          resetSearchResults()
+          history.push(`/nodes/${encodeURIComponent(id)}`)
+          break
 
-      case 'locations':
-        setActiveLocationId(id)
-        break
+        case 'locations':
+          setActiveLocationId(id)
+          break
 
-      default:
-        break
-    }
-  }, [setActiveView, history, setActiveLocationId, resetSearchResults])
+        default:
+          break
+      }
+    },
+    [setActiveView, history, setActiveLocationId, resetSearchResults],
+  )
 
   return (
     <Search
@@ -77,18 +83,10 @@ const SearchBox = () => {
         disabled={!!isDisabled}
         onFocus={() => setActiveView(ActiveView.List)}
       />
-      {!!hasStream && (
-        <StreamStats />
-      )}
-      {!hasStream && (
-        <NetworkStats />
-      )}
+      {!!hasStream && <StreamStats />}
+      {!hasStream && <NetworkStats />}
       {searchResults.length > 0 && (
-        <Search.Results
-          results={searchResults}
-          onClick={onResultClick}
-          highlight={search}
-        />
+        <Search.Results results={searchResults} onClick={onResultClick} highlight={search} />
       )}
     </Search>
   )

@@ -1,1 +1,1 @@
-declare module 'streamr-client-react';
+declare module 'streamr-client-react'

@@ -4,14 +4,14 @@ import axios from 'axios'
 import merge from 'lodash/merge'
 
 type Data = {
-  data: unknown,
+  data: unknown
 }
 
 type Request = {
-  url: string,
-  options?: Object,
+  url: string
+  options?: Object
   method?: 'get' | 'post' | 'put' | 'delete'
-  data?: Object | null,
+  data?: Object | null
 }
 
 export default function request<T>({
@@ -34,7 +34,8 @@ export default function request<T>({
   // Merge options with defaults
   const requestOptions = merge(defaultOptions, options)
 
-  return axios.request<T>({
+  return axios
+    .request<T>({
     ...requestOptions,
     url,
     method,
@@ -50,7 +51,8 @@ export default function request<T>({
     })
 }
 
-export const get = <T>(args: Request) => request<T>({
-  ...args,
-  method: 'get',
-})
+export const get = <T>(args: Request) =>
+  request<T>({
+    ...args,
+    method: 'get',
+  })

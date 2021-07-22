@@ -8,10 +8,10 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
 
-    & svg {
-      width: 32px;
-      height: 32px;
-    }
+  & svg {
+    width: 32px;
+    height: 32px;
+  }
 `
 
 const Logo = () => (

@@ -12,12 +12,12 @@ const Inner = styled.div`
 `
 
 type Props = {
-  children?: React.ReactNode,
+  children?: React.ReactNode
 }
 
 const Header = styled.div`
   font-family: ${SANS};
-  color: #A3A3A3;
+  color: #a3a3a3;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -34,9 +34,7 @@ const Header = styled.div`
 
 const NodeList = ({ children }: Props) => (
   <ControlBox>
-    <Inner>
-      {children}
-    </Inner>
+    <Inner>{children}</Inner>
   </ControlBox>
 )
 

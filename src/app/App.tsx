@@ -1,16 +1,14 @@
 import React, { useEffect } from 'react'
 import {
-  BrowserRouter,
-  Route,
-  Switch,
-  useLocation,
+  BrowserRouter, Route, Switch, useLocation,
 } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { ConnectedMap } from '../components/Map'
 import SearchBox from '../components/SearchBox'
 import Stream from '../components/Stream'
-import Node from '../components/Node'
+import Network from '../components/Network'
+import NetworkSelector from '../components/NetworkSelector'
 import Debug from '../components/Debug'
 import UnstyledLoadingIndicator from '../components/LoadingIndicator'
 import Layout from '../components/Layout'
@@ -23,10 +21,19 @@ import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
 
 function useLoadTrackersEffect() {
   const { loadTrackers } = useController()
+  const { env } = useStore()
+  const { search } = useLocation()
+  const queryParams = new URLSearchParams(search)
+  const nextEnv = queryParams.get('network')
 
   useEffect(() => {
+    // Prevent loading trackers when switching networks
+    if (nextEnv) {
+      return
+    }
+
     loadTrackers()
-  }, [loadTrackers])
+  }, [loadTrackers, env, nextEnv])
 }
 
 const TrackerLoader = () => {
@@ -35,10 +42,7 @@ const TrackerLoader = () => {
 }
 
 function useResetSearchTextEffect() {
-  const {
-    updateSearch: updateSearchText,
-    resetSearchResults,
-  } = useStore()
+  const { updateSearch: updateSearchText, resetSearchResults } = useStore()
   const { pathname } = useLocation()
 
   useEffect(() => {
@@ -68,17 +72,15 @@ const LoadingBar = () => {
 
   const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
 
-  return (
-    <LoadingIndicator large loading={isLoading} />
-  )
+  return <LoadingIndicator large loading={isLoading} />
 }
 
 const App = () => (
   <BrowserRouter basename={process.env.PUBLIC_URL}>
     <Pendingrovider>
-      <StreamrClientProvider>
-        <StoreProvider>
-          <ControllerProvider>
+      <StoreProvider>
+        <ControllerProvider>
+          <StreamrClientProvider>
             <ConnectedMap />
             <LoadingBar />
             <Layout>
@@ -86,18 +88,19 @@ const App = () => (
                 <TrackerLoader />
                 <SearchTextResetter />
                 <Debug />
+                <NetworkSelector />
                 <SearchBox />
                 <Switch>
                   <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
                   <Route exact path="/streams/:streamId" component={Stream} />
-                  <Route exact path="/nodes/:nodeId" component={Node} />
-                  <Route exact path="/" component={Node} />
+                  <Route exact path="/nodes/:nodeId" component={Network} />
+                  <Route exact path="/" component={Network} />
                 </Switch>
               </ErrorBoundary>
             </Layout>
-          </ControllerProvider>
-        </StoreProvider>
-      </StreamrClientProvider>
+          </StreamrClientProvider>
+        </ControllerProvider>
+      </StoreProvider>
     </Pendingrovider>
   </BrowserRouter>
 )

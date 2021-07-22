@@ -6,7 +6,7 @@ import empty2x from './assets/empty@2x.png'
 import { SANS, MEDIUM } from '../../utils/styled'
 
 type Props = {
-  showImage?: boolean,
+  showImage?: boolean
 }
 
 const UnstyledGraphPlaceholder = ({ showImage, ...props }: Props) => (
@@ -26,7 +26,7 @@ const GraphPlaceholder = styled(UnstyledGraphPlaceholder)`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #A3A3A3;
+  color: #a3a3a3;
   font-family: ${SANS};
   font-weight: ${MEDIUM};
   text-transform: uppercase;

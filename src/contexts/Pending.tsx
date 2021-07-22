@@ -1,17 +1,14 @@
 import React, {
-  useState,
-  useMemo,
-  useContext,
-  useCallback,
+  useState, useMemo, useContext, useCallback,
 } from 'react'
 
 import useIsMounted from '../hooks/useIsMounted'
 
 type Pending = Record<string, boolean>
 type ContextProps = {
-  pending: Pending,
-  isPending: (name: string) => boolean,
-  setPending: (name: string, value: boolean) => void,
+  pending: Pending
+  isPending: (name: string) => boolean
+  setPending: (name: string, value: boolean) => void
 }
 
 const PendingContext = React.createContext<ContextProps | undefined>(undefined)
@@ -28,28 +25,25 @@ function usePendingContext() {
     }))
   }, [])
 
-  return useMemo(() => ({
-    pending,
-    isPending,
-    setPending,
-  }), [
-    pending,
-    isPending,
-    setPending,
-  ])
+  return useMemo(
+    () => ({
+      pending,
+      isPending,
+      setPending,
+    }),
+    [pending, isPending, setPending],
+  )
 }
 
-interface Props  {
+interface Props {
   children: React.ReactNode
 }
 
 const PendingProvider = ({ children }: Props) => (
-  <PendingContext.Provider value={usePendingContext()}>
-    {children || null}
-  </PendingContext.Provider>
+  <PendingContext.Provider value={usePendingContext()}>{children || null}</PendingContext.Provider>
 )
 
-const useAllPending  = () => {
+const useAllPending = () => {
   const context = useContext(PendingContext)
 
   if (!context) {
@@ -64,39 +58,46 @@ const usePending = (name: string) => {
   const isMounted = useIsMounted()
 
   const start = useCallback(() => {
-    if (!isMounted()) { return }
+    if (!isMounted()) {
+      return
+    }
 
     setPending(name, true)
   }, [name, setPending, isMounted])
 
   const end = useCallback(() => {
-    if (!isMounted()) { return }
+    if (!isMounted()) {
+      return
+    }
 
     setPending(name, false)
   }, [name, setPending, isMounted])
 
-  const wrap = useCallback(async (fn: Function) => {
-    start()
-    try {
-      return await fn()
-    } finally {
-      end()
-    }
-  }, [start, end])
+  const wrap = useCallback(
+    async (fn: Function) => {
+      start()
+      try {
+        return await fn()
+      } finally {
+        end()
+      }
+    },
+    [start, end],
+  )
 
   const isCurrentPending = !!isPending(name)
 
-  return useMemo(() => ({
-    isPending: isCurrentPending,
-    start,
-    end,
-    wrap,
-  }), [isCurrentPending, start, end, wrap])
+  return useMemo(
+    () => ({
+      isPending: isCurrentPending,
+      start,
+      end,
+      wrap,
+    }),
+    [isCurrentPending, start, end, wrap],
+  )
 }
 
 export {
-  PendingProvider as Provider,
-  PendingContext as Context,
-  useAllPending,
-  usePending,
+  PendingProvider as Provider, PendingContext as Context, useAllPending, usePending,
 }

@@ -1,9 +1,5 @@
 import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-  useCallback,
+  useState, useEffect, useMemo, useRef, useCallback,
 } from 'react'
 import styled, { css } from 'styled-components/macro'
 import useResizeObserver from 'use-resize-observer'
@@ -17,7 +13,7 @@ import NodeList from './NodeList'
 
 const Backdrop = styled.div`
   position: absolute;
-  background: rgba(0, 0, 0, ${({ theme }) => theme.activeView === 'list' ? '0.2' : '0'});
+  background: rgba(0, 0, 0, ${({ theme }) => (theme.activeView === 'list' ? '0.2' : '0')});
   transition: all 180ms ease-in-out;
   top: 0;
   left: 0;
@@ -49,7 +45,7 @@ const LayoutComponent = styled.div`
     left: 0;
     width: 100%;
     bottom: 0;
-    background: #FCFCFC;
+    background: #fcfcfc;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
     transition: all 300ms ease-in-out;
@@ -59,23 +55,25 @@ const LayoutComponent = styled.div`
     }
 
     ${ControlBox} {
-      border: 1px solid #E7E7E7;
+      border: 1px solid #e7e7e7;
       box-shadow: none;
       border: 0;
       border-radius: 0;
     }
 
     ${ControlBox} + ${ControlBox} {
-      border-top: 1px solid #EFEFEF;
+      border-top: 1px solid #efefef;
     }
 
-    ${({ theme }) => theme.activeView === 'list' && css`
-      top: 40px;
+    ${({ theme }) =>
+    theme.activeView === 'list' &&
+      css`
+        top: 40px;
 
-      div > ${ControlBox} + * {
-        display: block;
-      }
-    `}
+        div > ${ControlBox} + * {
+          display: block;
+        }
+      `}
   }
 `
 
@@ -94,15 +92,20 @@ const Layout = ({ children, ...props }: Props) => {
 
   const isMounted = useIsMounted()
 
-  const setTop = useCallback((y: number) => {
-    if (isMounted()) {
-      setTopState(-Math.max(y, 170))
-    }
-  }, [isMounted])
+  const setTop = useCallback(
+    (y: number) => {
+      if (isMounted()) {
+        setTopState(-Math.max(y, 170))
+      }
+    },
+    [isMounted],
+  )
 
   const onTouchStart = (startEvent: React.TouchEvent) => {
     const { current: el } = dragRef
-    if (!el) { return }
+    if (!el) {
+      return
+    }
     const currentTop = el.offsetHeight
 
     const y0 = startEvent.touches[0].clientY
@@ -152,9 +155,7 @@ const Layout = ({ children, ...props }: Props) => {
         }}
         {...props}
       >
-        <div ref={ref}>
-          {children}
-        </div>
+        <div ref={ref}>{children}</div>
       </LayoutComponent>
     </>
   )

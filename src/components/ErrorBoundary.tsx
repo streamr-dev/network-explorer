@@ -4,8 +4,8 @@ import ControlBox from './ControlBox'
 interface Props {}
 
 interface ErrorBoundaryProps {
-  hasError: boolean;
-  error: string;
+  hasError: boolean
+  error: string
 }
 
 export default class ErrorBoundary extends React.Component<Props, ErrorBoundaryProps> {

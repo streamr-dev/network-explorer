@@ -1,49 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useRef } from 'react'
 import styled from 'styled-components/macro'
 import JsonView from 'react-pretty-json'
 
 import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
-import { useController } from '../../contexts/Controller'
-import envs from '../../utils/envs'
 import {
-  MONO,
-  SANS,
-  MEDIUM,
-  MD,
+  MONO, SANS, MD,
 } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 
-export const APP_DEBUG_MODE_KEY = 'network-eplorer.debug'
+export const APP_DEBUG_MODE_KEY = 'network-explorer.debug'
+export const APP_DEBUG_WINDOW_POS_KEY = 'network-explorer.debug_window_pos'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
 
 export function getDebugMode() {
-  return (!!storage && JSON.parse(storage.getItem(APP_DEBUG_MODE_KEY) || 'false'))
+  return !!storage && JSON.parse(storage.getItem(APP_DEBUG_MODE_KEY) || 'false')
 }
 
 export function setDebugMode(value: boolean) {
-  if (!storage) { return }
+  if (!storage) {
+    return
+  }
   storage.setItem(APP_DEBUG_MODE_KEY, JSON.stringify(value))
 }
 
-const openTheme = {
-  background: 'rgba(0, 0, 0, 0.3)',
+type WindowPos = {
+  x: number,
+  y: number,
 }
 
-const closeTheme = {
-  background: 'transparent',
+export function getDebugWindowPos(): WindowPos {
+  return !!storage && JSON.parse(storage.getItem(APP_DEBUG_WINDOW_POS_KEY) || '{"x":0,"y":0}')
+}
+
+export function setDebugWindowPos(value: WindowPos) {
+  if (!storage) {
+    return
+  }
+  storage.setItem(APP_DEBUG_WINDOW_POS_KEY, JSON.stringify(value))
 }
 
 const DebugContainer = styled.div`
   position: fixed;
-  top: 24px;
-  right: 24px;
   border-radius: 4px;
   color: white;
   font-family: ${SANS};
   font-size: 12px;
-  background-color: ${({ theme }) => theme.background};
+  background-color: rgba(0, 0, 0, 0.3);
   padding: 8px;
+  z-index: 10001;
 
   button {
     padding: 0;
@@ -83,103 +88,86 @@ const Variables = styled.pre`
   font-family: ${MONO};
   border-radius: 4px;
 
-  .key { font-weight: strong; color: lightblue; }
-  .boolean { color: cyan; }
-  .string { color: #ffcc00; }
-  .number { color: lightgreen; }
-  a { color: pink; }
-`
-
-const EnvSelect = styled.label`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 8px;
-
-  span {
-    flex-grow: 1;
+  .key {
+    font-weight: strong;
+    color: lightblue;
   }
-
-  select {
-    flex-grow: 1;
-    margin-left: 16px;
-    height: 20px;
+  .boolean {
+    color: cyan;
   }
-
-  button {
-    margin-left: 8px;
-    font-size: 12px;
+  .string {
+    color: #ffcc00;
+  }
+  .number {
+    color: lightgreen;
+  }
+  a {
+    color: pink;
   }
 `
 
-const OpenView = styled.div`
-  span {
-    user-select: none;
-    pointer-events: none;
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-
-    strong {
-      text-transform: uppercase;
-      font-weight: ${MEDIUM};
-      color: #FAFAD2;
-    }
-  }
-
-  button {
-    margin-left: 8px;
-  }
-`
+const isDebugEnabled = getDebugMode()
 
 const Debug = () => {
   const { pending } = useAllPending()
-  const { env: selectedEnv, store } = useStore()
-  const { changeEnv } = useController()
-  const [open, setOpen] = useState<boolean>(getDebugMode())
+  const { store } = useStore()
+  const [pos, setPos] = useState<WindowPos>(getDebugWindowPos())
+  const ref = useRef<HTMLDivElement>(null)
 
-  const toggleDebugMode = useCallback(() => {
-    setOpen((wasOpen) => !wasOpen)
-  }, [])
+  const onMouseDown = ({ clientX: x0, clientY: y0, button }: React.MouseEvent<HTMLElement>) => {
+    const { current: el } = ref
 
-  useEffect(() => {
-    setDebugMode(open)
-  }, [open])
+    if (button !== 0 || !el) { return }
+
+    const { offsetLeft, offsetTop } = el || {}
+
+    const onMove = (e: MouseEvent) => {
+      e.preventDefault()
+
+      setPos({
+        x: offsetLeft - (x0 - e.clientX),
+        y: offsetTop - (y0 - e.clientY),
+      })
+    }
+
+    const onUp = (e: MouseEvent) => {
+      setDebugWindowPos({
+        x: offsetLeft - (x0 - e.clientX),
+        y: offsetTop - (y0 - e.clientY),
+      })
+
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
+  // Hide debug view if not enabled in local storage
+  if (!isDebugEnabled) {
+    return null
+  }
 
   return (
-    <DebugContainer theme={open ? openTheme : closeTheme}>
-      {!open && (
-        <OpenView>
-          <span>using <strong>{selectedEnv}</strong> data</span>
-          <button type="button" onClick={toggleDebugMode}>
-            &#8505;
-          </button>
-        </OpenView>
-      )}
-      {!!open && (
-        <Wrapper>
-          <EnvSelect htmlFor="env">
-            <span>Selected env:</span>
-            <select
-              name="env"
-              value={selectedEnv}
-              onChange={(e) => changeEnv(e.currentTarget.value)}
-            >
-              {Object.keys(envs).map((env) => (
-                <option key={env} value={env}>
-                  {env}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={toggleDebugMode}>&#x2715;</button>
-          </EnvSelect>
-          <Variables>
-            <JsonView json={{
+    <DebugContainer
+      onMouseDown={onMouseDown}
+      ref={ref}
+      style={{
+        left: `${pos.x}px`,
+        top: `${pos.y}px`,
+      }}
+    >
+      <Wrapper>
+        <Variables>
+          <JsonView
+            json={{
               pending,
               store,
             }}
-            />
-          </Variables>
-        </Wrapper>
-      )}
+          />
+        </Variables>
+      </Wrapper>
     </DebugContainer>
   )
 }

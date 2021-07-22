@@ -4,17 +4,16 @@ import { SearchResult } from './streamr'
 
 export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN
 
-const getPlacesUrl = ({ place }: { place: string}) => (
+const getPlacesUrl = ({ place }: { place: string }) =>
   `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${MAPBOX_TOKEN}`
-)
 
 type GeoCodeResultFeature = {
-  id: string,
-  text: string,
-  place_type: Array<string>,
-  place_name: string,
-  bbox: Array<number>,
-  center: Array<number>,
+  id: string
+  text: string
+  place_type: Array<string>
+  place_name: string
+  bbox: Array<number>
+  center: Array<number>
 }
 
 type GeoCodeResult = {
@@ -22,13 +21,13 @@ type GeoCodeResult = {
 }
 
 type ReversedGeocodedLocation = {
-  region: string,
-  bbox: Array<number>,
+  region: string
+  bbox: Array<number>
 }
 
 type ReversedGeocodedLocationParams = {
-  longitude: number,
-  latitude: number,
+  longitude: number
+  latitude: number
 }
 
 export const getReversedGeocodedLocation = async ({
@@ -48,10 +47,9 @@ export const getReversedGeocodedLocation = async ({
     console.warn(`Failed to reverse geocode ${longitude},${latitude}`)
   }
 
-  const {
-    place_name: region,
-    bbox,
-  } = (result && result.features || []).find(({ place_type }) => place_type.includes('region')) || {}
+  const { place_name: region, bbox } =
+    ((result && result.features) || []).find(({ place_type }) => place_type.includes('region')) ||
+    {}
 
   return {
     region,
@@ -60,7 +58,7 @@ export const getReversedGeocodedLocation = async ({
 }
 
 type LocationSearch = {
-  search: string,
+  search: string
 }
 
 export const getLocations = async ({ search }: LocationSearch): Promise<SearchResult[]> => {
@@ -77,13 +75,10 @@ export const getLocations = async ({ search }: LocationSearch): Promise<SearchRe
     console.warn(`Request failed to find places for ${search}`)
   }
 
-  return (result && result.features || [])
+  return ((result && result.features) || [])
     .filter(({ place_type }) => place_type.includes('place'))
     .map(({
-      id,
-      text,
-      place_name,
-      center: [longitude, latitude],
+      id, text, place_name, center: [longitude, latitude],
     }) => ({
       id,
       name: text,
