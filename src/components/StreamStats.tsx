@@ -61,9 +61,10 @@ const StreamStats = () => {
         last: 1,
       },
     },
+  }, {
     onMessage,
-  )
-
+  })
+        
   return (
     <>
       <Stats active={selectedStat}>

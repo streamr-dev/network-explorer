@@ -51,8 +51,9 @@ const NetworkStats = () => {
         last: 1,
       },
     },
+  }, {
     onMessage,
-  )
+  })
 
   return (
     <>

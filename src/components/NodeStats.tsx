@@ -56,8 +56,9 @@ const NodeStats = ({ id }: Props) => {
         last: 1,
       },
     },
+  }, {
     onMessage,
-  )
+  })
 
   return (
     <>
