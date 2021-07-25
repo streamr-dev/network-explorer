@@ -86,7 +86,11 @@ export const Map = ({
       onViewportChange={setViewport}
       getCursor={getCursor}
       ref={mapRef}
-      onClick={onMapClick}
+      onClick={(e) => {
+        if (e.target.localName === 'div' && onMapClick) {
+          onMapClick()
+        }
+      }}
       dragPan={{
         inertia: INERTIA,
       }}
