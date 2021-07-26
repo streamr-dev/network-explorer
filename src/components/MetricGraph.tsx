@@ -161,13 +161,12 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
     [metric],
   )
 
-  useSubscription(
-    {
-      stream: streamId,
-      resend,
-    },
+  useSubscription({
+    stream: streamId,
+    resend,
+  }, {
     onMessage,
-  )
+  })
 
   return (
     <Graphs.TimeSeries
