@@ -200,7 +200,7 @@ const UnstyledNavigationControl = ({
     {typeof onZoomReset === 'function' && (
       <ButtonGroup>
         <Tooltip value="Reset the map">
-          <ResetButton type="button" onClick={() => onZoomReset()}>
+          <ResetButton type="button" onClick={onZoomReset}>
             <RefreshIcon />
           </ResetButton>
         </Tooltip>
