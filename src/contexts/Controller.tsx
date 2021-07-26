@@ -27,17 +27,15 @@ const ControllerContext = React.createContext<ContextProps | undefined>(undefine
 function useControllerContext() {
   const {
     nodes,
-    trackers,
     setTrackers,
     updateSearch: updateSearchText,
     resetSearchResults,
     addSearchResults,
-    addNodes,
+    setNodes,
     setTopology,
     setStream,
     resetStore,
   } = useStore()
-  const { wrap: wrapTrackers } = usePending('trackers')
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
@@ -46,8 +44,8 @@ function useControllerContext() {
   const isMounted = useIsMounted()
 
   const loadTrackers = useCallback(
-    () =>
-      wrapTrackers(async () => {
+    async () =>
+      wrapNodes(async () => {
         const nextTrackers = await trackerApi.getTrackers()
 
         if (!isMounted()) {
@@ -55,40 +53,17 @@ function useControllerContext() {
         }
 
         setTrackers(nextTrackers)
-      }),
-    [wrapTrackers, isMounted, setTrackers],
-  )
 
-  const loadNodes = useCallback(
-    async (url: string) => {
-      const nextNodes = await trackerApi.getNodes(url)
+        const nextNodes = await Promise.all(nextTrackers.map((url) => trackerApi.getNodes(url)))
 
-      if (!isMounted()) {
-        return
-      }
-
-      addNodes(nextNodes)
-    },
-    [isMounted, addNodes],
-  )
-
-  const doLoadNodes = useCallback(
-    async (urls: string[]) =>
-      wrapNodes(async () => {
-        await Promise.all(urls.map((url) => loadNodes(url)))
-      }),
-    [wrapNodes, loadNodes],
-  )
-
-  useEffect(() => {
-    if (trackers && trackers.length > 0) {
-      doLoadNodes(trackers).then(() => {
-        if (isMounted()) {
-          setHasLoaded(true)
+        if (!isMounted()) {
+          return
         }
-      })
-    }
-  }, [isMounted, trackers, doLoadNodes])
+
+        setNodes(nextNodes.flat())
+      }),
+    [wrapNodes, isMounted, setTrackers, setNodes],
+  )
 
   const loadStream = useCallback(
     async (streamId: string) =>

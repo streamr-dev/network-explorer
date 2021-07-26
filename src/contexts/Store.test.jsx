@@ -34,7 +34,7 @@ describe('Store', () => {
       ), container)
 
       act(() => {
-        store.addNodes([{
+        store.setNodes([{
           id: '1',
           title: 'Node 1',
         }, {
@@ -76,7 +76,7 @@ describe('Store', () => {
       ), container)
 
       act(() => {
-        store.addNodes([{
+        store.setNodes([{
           id: '1',
           title: 'Node 1',
         }, {
@@ -117,7 +117,7 @@ describe('Store', () => {
       ), container)
 
       act(() => {
-        store.addNodes([{
+        store.setNodes([{
           id: 'node1',
           title: 'Node 1',
         }, {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import {
   BrowserRouter, Route, Switch, useLocation,
 } from 'react-router-dom'
@@ -19,6 +19,8 @@ import { Provider as StoreProvider, useStore } from '../contexts/Store'
 import { Provider as ControllerProvider, useController } from '../contexts/Controller'
 import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
 
+const TRACKER_POLL_INTERVAL = 1000 * 10 // 1min
+
 function useLoadTrackersEffect() {
   const { loadTrackers } = useController()
   const { env } = useStore()
@@ -26,14 +28,28 @@ function useLoadTrackersEffect() {
   const queryParams = new URLSearchParams(search)
   const nextEnv = queryParams.get('network')
 
+  // Poll trackers
+  const trackerPollTimeout = useRef<number>()
+  const trackerPoll = useCallback(() => {
+    clearTimeout(trackerPollTimeout.current)
+    loadTrackers()
+
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    trackerPollTimeout.current = setTimeout(trackerPoll, TRACKER_POLL_INTERVAL)
+  }, [loadTrackers])
+
   useEffect(() => {
     // Prevent loading trackers when switching networks
     if (nextEnv) {
-      return
+      return () => {}
     }
 
-    loadTrackers()
-  }, [loadTrackers, env, nextEnv])
+    trackerPoll()
+
+    return () => {
+      clearTimeout(trackerPollTimeout.current)
+    }
+  }, [trackerPoll, env, nextEnv])
 }
 
 const TrackerLoader = () => {
@@ -65,12 +81,11 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
 `
 
 const LoadingBar = () => {
-  const { isPending: isLoadingTrackers } = usePending('trackers')
   const { isPending: isLoadingNodes } = usePending('nodes')
   const { isPending: isLoadingTopology } = usePending('topology')
   const { isPending: isSearching } = usePending('search')
 
-  const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
+  const isLoading = !!(isLoadingNodes || isLoadingTopology || isSearching)
 
   return <LoadingIndicator large loading={isLoading} />
 }

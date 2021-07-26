@@ -53,7 +53,7 @@ type ContextProps = {
   addSearchResults: (results: Array<SearchResult>) => void
   resetSearchResults: () => void
   nodes: trackerApi.Node[]
-  addNodes: (nodes: trackerApi.Node[]) => void
+  setNodes: (nodes: trackerApi.Node[]) => void
   trackers: string[]
   setTrackers: (trackers: string[]) => void
   topology: Topology
@@ -96,7 +96,7 @@ const getInitialState = (): Store => ({
 
 type Action =
   | { type: 'setTrackers'; trackers: string[] }
-  | { type: 'addNodes'; nodes: string[] }
+  | { type: 'setNodes'; nodes: string[] }
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
   | { type: 'setTopology'; latencies: trackerApi.Topology }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
@@ -115,13 +115,12 @@ const reducer = (state: Store, action: Action) => {
     case 'setTrackers': {
       return {
         ...state,
-        nodes: [],
         trackers: action.trackers,
       }
     }
 
-    case 'addNodes': {
-      const nextNodes = new Set([...state.nodes, ...action.nodes])
+    case 'setNodes': {
+      const nextNodes = new Set([...action.nodes])
 
       return {
         ...state,
@@ -232,7 +231,7 @@ const reducer = (state: Store, action: Action) => {
 function useStoreContext() {
   const [store, dispatch] = useReducer(reducer, getInitialState())
 
-  const addNodes = useCallback(
+  const setNodes = useCallback(
     (nodes: trackerApi.Node[]) => {
       const { result: nextNodes, entities } = normalize(nodes, nodesSchema)
 
@@ -241,7 +240,7 @@ function useStoreContext() {
         entities,
       })
       dispatch({
-        type: 'addNodes',
+        type: 'setNodes',
         nodes: nextNodes,
       })
     },
@@ -433,7 +432,7 @@ function useStoreContext() {
       addSearchResults,
       resetSearchResults,
       nodes,
-      addNodes,
+      setNodes,
       trackers,
       setTrackers,
       topology,
@@ -463,7 +462,7 @@ function useStoreContext() {
       addSearchResults,
       resetSearchResults,
       nodes,
-      addNodes,
+      setNodes,
       trackers,
       setTrackers,
       topology,

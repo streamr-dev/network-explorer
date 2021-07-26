@@ -77,7 +77,7 @@ describe('Controller', () => {
       ]
 
       act(() => {
-        store.addNodes(nextNodes)
+        store.setNodes(nextNodes)
       })
 
       const getNodeConnectionsMock = jest.fn().mockResolvedValue({
@@ -170,7 +170,7 @@ describe('Controller', () => {
       ]
 
       act(() => {
-        store.addNodes(nextNodes)
+        store.setNodes(nextNodes)
       })
 
       const getNodeConnectionsMock = jest.fn()
@@ -289,7 +289,7 @@ describe('Controller', () => {
       )
 
       act(() => {
-        store.addNodes([
+        store.setNodes([
           {
             id: '1',
             title: 'Berlin',
@@ -357,7 +357,7 @@ describe('Controller', () => {
       )
 
       act(() => {
-        store.addNodes([
+        store.setNodes([
           {
             id: '1',
             title: 'Berlin',
@@ -426,7 +426,7 @@ describe('Controller', () => {
       )
 
       act(() => {
-        store.addNodes([
+        store.setNodes([
           {
             id: '1',
             title: 'Berlin',

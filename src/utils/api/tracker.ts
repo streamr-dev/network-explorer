@@ -94,30 +94,27 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     console.warn(`Failed to load nodes from ${url}/location/`)
   }
 
-  return Promise.all(
-    Object.keys(result || []).map(async (id: string) => {
-      const { latitude, longitude, country } = result[id] || {}
-      const { region } = await getReversedGeocodedLocation({ latitude, longitude })
-      const address = getAddress(id)
-      let title
+  return Object.keys(result || []).map((id: string) => {
+    const { latitude, longitude, country } = result[id] || {}
+    const address = getAddress(id)
+    let title
 
-      try {
-        title = generateMnemonic(address)
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(e)
-      }
+    try {
+      title = generateMnemonic(address)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(e)
+    }
 
-      return {
-        id,
-        latitude,
-        longitude,
-        address,
-        title: title || address,
-        placeName: region || country,
-      }
-    }),
-  )
+    return {
+      id,
+      latitude,
+      longitude,
+      address,
+      title: title || address,
+      placeName: country,
+    }
+  })
 }
 
 export type Latency = Record<string, number | undefined>
