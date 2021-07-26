@@ -6,13 +6,27 @@ import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
 
+const POLL_INTERVAL = 1000 * 30 // 30s
+
 const NodeConnectionsLoader = () => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    loadTopology()
+    const fetchTopology = async () => {
+      await loadTopology()
+    }
+
+    let timeoutId: number
+    const pollTopology = () => {
+      clearTimeout(timeoutId)
+      fetchTopology()
+      timeoutId = setTimeout(pollTopology, POLL_INTERVAL)
+    }
+
+    pollTopology()
 
     return () => {
+      clearTimeout(timeoutId)
       resetTopology()
     }
   }, [loadTopology, resetTopology])
@@ -77,7 +91,6 @@ interface ParamTypes {
 export default () => {
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
-  const { nodes } = useStore()
 
   const { search } = useLocation()
   const queryParams = new URLSearchParams(search)
@@ -87,10 +100,6 @@ export default () => {
     return (
       <NetworkSetter env={nextEnv} />
     )
-  }
-
-  if (!nodes || nodes.length < 1) {
-    return null
   }
 
   return (

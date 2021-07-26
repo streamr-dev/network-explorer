@@ -1,5 +1,5 @@
 import React, {
-  useMemo, useContext, useCallback, useEffect, useState,
+  useMemo, useContext, useCallback, useRef, useState,
 } from 'react'
 
 import * as trackerApi from '../utils/api/tracker'
@@ -27,6 +27,7 @@ const ControllerContext = React.createContext<ContextProps | undefined>(undefine
 function useControllerContext() {
   const {
     nodes,
+    visibleNodes,
     setTrackers,
     updateSearch: updateSearchText,
     resetSearchResults,
@@ -42,6 +43,8 @@ function useControllerContext() {
   const { start: startSearch, end: endSearch } = usePending('search')
   const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
+  const nodesRef = useRef(visibleNodes)
+  nodesRef.current = visibleNodes
 
   const loadTrackers = useCallback(
     async () =>
@@ -130,13 +133,37 @@ function useControllerContext() {
           return
         }
 
-        setTopology(newTopology)
+        // Load trackers again if topology changes
+        const incomingNodes = new Set(Object.keys(newTopology))
+        const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
+
+        const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
+        const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
+        const didChange = !!(added.size > 0 || removed.size > 0)
+
+        if (didChange) {
+          await loadTrackers()
+        }
+
+        setTopology({
+          latencies: newTopology,
+          updateMap: didChange,
+        })
       }),
-    [wrapTopology, loadTopologyFromApi, loadNodeConnectionsFromApi, setTopology, isMounted],
+    [
+      wrapTopology,
+      loadTopologyFromApi,
+      loadNodeConnectionsFromApi,
+      setTopology,
+      loadTrackers,
+      isMounted,
+    ],
   )
 
   const resetTopology = useCallback(() => {
-    setTopology({})
+    setTopology({
+      latencies: {},
+    })
   }, [setTopology])
 
   const changeEnv = useCallback(

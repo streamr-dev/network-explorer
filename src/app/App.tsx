@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect } from 'react'
 import {
   BrowserRouter, Route, Switch, useLocation,
 } from 'react-router-dom'
@@ -16,46 +16,8 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import StreamrClientProvider from '../components/StreamrClientProvider'
 
 import { Provider as StoreProvider, useStore } from '../contexts/Store'
-import { Provider as ControllerProvider, useController } from '../contexts/Controller'
+import { Provider as ControllerProvider } from '../contexts/Controller'
 import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
-
-const TRACKER_POLL_INTERVAL = 1000 * 10 // 1min
-
-function useLoadTrackersEffect() {
-  const { loadTrackers } = useController()
-  const { env } = useStore()
-  const { search } = useLocation()
-  const queryParams = new URLSearchParams(search)
-  const nextEnv = queryParams.get('network')
-
-  // Poll trackers
-  const trackerPollTimeout = useRef<number>()
-  const trackerPoll = useCallback(() => {
-    clearTimeout(trackerPollTimeout.current)
-    loadTrackers()
-
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    trackerPollTimeout.current = setTimeout(trackerPoll, TRACKER_POLL_INTERVAL)
-  }, [loadTrackers])
-
-  useEffect(() => {
-    // Prevent loading trackers when switching networks
-    if (nextEnv) {
-      return () => {}
-    }
-
-    trackerPoll()
-
-    return () => {
-      clearTimeout(trackerPollTimeout.current)
-    }
-  }, [trackerPoll, env, nextEnv])
-}
-
-const TrackerLoader = () => {
-  useLoadTrackersEffect()
-  return null
-}
 
 function useResetSearchTextEffect() {
   const { updateSearch: updateSearchText, resetSearchResults } = useStore()
@@ -100,7 +62,6 @@ const App = () => (
             <LoadingBar />
             <Layout>
               <ErrorBoundary>
-                <TrackerLoader />
                 <SearchTextResetter />
                 <Debug />
                 <NetworkSelector />

@@ -6,6 +6,8 @@ import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
 
+const POLL_INTERVAL = 1000 * 30 // 30s
+
 type StreamProps = {
   id: string
 }
@@ -24,11 +26,21 @@ const TopologyLoader = ({ id }: StreamProps) => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    loadTopology({
-      streamId: id,
-    })
+    const fetchTopology = async () => {
+      await loadTopology()
+    }
+
+    let timeoutId: number
+    const pollTopology = () => {
+      clearTimeout(timeoutId)
+      fetchTopology()
+      timeoutId = setTimeout(pollTopology, POLL_INTERVAL)
+    }
+
+    pollTopology()
 
     return () => {
+      clearTimeout(timeoutId)
       resetTopology()
     }
   }, [loadTopology, resetTopology, id])
@@ -73,12 +85,11 @@ interface ParamTypes {
 
 export default () => {
   const { streamId: encodedStreamId, nodeId: encodedNodeId } = useParams<ParamTypes>()
-  const { nodes } = useStore()
 
   const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
-  if (!streamId || !nodes || nodes.length < 1) {
+  if (!streamId) {
     return null
   }
 

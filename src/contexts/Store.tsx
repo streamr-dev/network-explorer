@@ -40,6 +40,12 @@ type Store = {
   activeLocationId: string | undefined
   entities: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
   showConnections: ConnectionsMode
+  updateMap: boolean,
+}
+
+type SetTopology = {
+  latencies: trackerApi.Topology,
+  updateMap?: boolean,
 }
 
 type ContextProps = {
@@ -60,7 +66,7 @@ type ContextProps = {
   showConnections: ConnectionsMode
   toggleShowConnections: () => void
   latencies: trackerApi.Topology
-  setTopology: (topology: trackerApi.Topology) => void
+  setTopology: (params: SetTopology) => void
   setActiveNodeId: (activeNodeId?: string) => void
   setActiveLocationId: (activeLocationId?: string) => void
   visibleNodes: trackerApi.Node[]
@@ -70,7 +76,8 @@ type ContextProps = {
   stream: streamrApi.Stream | undefined
   setStream: (stream: streamrApi.Stream | undefined) => void
   store: Store
-  resetStore: Function
+  resetStore: Function,
+  updateMap: boolean,
 }
 
 const StoreContext = React.createContext<ContextProps | undefined>(undefined)
@@ -92,13 +99,14 @@ const getInitialState = (): Store => ({
     searchResults: {},
   },
   showConnections: ConnectionsMode.Auto,
+  updateMap: false,
 })
 
 type Action =
   | { type: 'setTrackers'; trackers: string[] }
   | { type: 'setNodes'; nodes: string[] }
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
-  | { type: 'setTopology'; latencies: trackerApi.Topology }
+  | { type: 'setTopology'; latencies: trackerApi.Topology, updateMap: boolean }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
   | { type: 'setActiveLocation'; activeLocationId: string | undefined }
   | { type: 'setStream'; streamId: string | undefined }
@@ -139,6 +147,7 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         latencies: action.latencies,
+        updateMap: action.updateMap,
       }
     }
 
@@ -258,10 +267,11 @@ function useStoreContext() {
   )
 
   const setTopology = useCallback(
-    (latencies: trackerApi.Topology) => {
+    ({ latencies, updateMap }: SetTopology) => {
       dispatch({
         type: 'setTopology',
         latencies,
+        updateMap: !!updateMap,
       })
     },
     [dispatch],
@@ -377,6 +387,7 @@ function useStoreContext() {
     latencies,
     entities,
     showConnections,
+    updateMap,
   } = store
 
   // Use ref to avoid unnecessary redraws when entities update
@@ -450,6 +461,7 @@ function useStoreContext() {
       setStream,
       store,
       resetStore,
+      updateMap,
     }),
     [
       env,
@@ -480,6 +492,7 @@ function useStoreContext() {
       setStream,
       store,
       resetStore,
+      updateMap,
     ],
   )
 }
