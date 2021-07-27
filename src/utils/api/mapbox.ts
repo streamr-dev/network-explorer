@@ -7,6 +7,14 @@ export const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN
 const getPlacesUrl = ({ place }: { place: string }) =>
   `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${MAPBOX_TOKEN}`
 
+export type Location = {
+  id: string,
+  title: string,
+  latitude: number
+  longitude: number
+  isReverseGeoCoded?: true,
+}
+
 type GeoCodeResultFeature = {
   id: string
   text: string

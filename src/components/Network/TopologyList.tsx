@@ -13,6 +13,7 @@ const TopologyList = ({ id }: Props) => {
   const { nodes } = useStore()
 
   const currentNode = useMemo(() => nodes.find(({ id: nodeId }) => nodeId === id), [nodes, id])
+  const { title } = (currentNode || {}).location || {}
 
   return currentNode ? (
     <NodeList>
@@ -20,7 +21,7 @@ const TopologyList = ({ id }: Props) => {
         nodeId={currentNode.id}
         title={currentNode.title}
         address={currentNode.address}
-        placeName={currentNode.placeName}
+        placeName={title || ''}
         isActive
       >
         <NodeStats key={currentNode.id} id={currentNode.address} />

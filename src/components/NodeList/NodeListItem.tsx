@@ -26,6 +26,10 @@ const TitleRow = styled.div`
   flex-direction: row;
   align-items: center;
   padding: 16px;
+
+  ${Name} {
+    flex: 1;
+  }
 `
 
 const IconWrapper = styled.div``
@@ -84,6 +88,10 @@ const PlacenameOrAddress = styled.div`
 
   * > div {
     position: absolute;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `
 

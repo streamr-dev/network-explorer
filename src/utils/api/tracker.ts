@@ -2,7 +2,7 @@ import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
-import { getReversedGeocodedLocation } from './mapbox'
+import { Location } from './mapbox'
 
 import { get } from '../request'
 import getConfig from '../config'
@@ -52,9 +52,7 @@ export type Node = {
   id: string
   title: string
   address: string,
-  latitude: number
-  longitude: number
-  placeName: string
+  location: Location,
 }
 
 type NodeResult = {
@@ -108,11 +106,14 @@ export const getNodes = async (url: string): Promise<Node[]> => {
 
     return {
       id,
-      latitude,
-      longitude,
       address,
       title: title || address,
-      placeName: country,
+      location: {
+        id,
+        latitude,
+        longitude,
+        title: country,
+      },
     }
   })
 }

@@ -1,5 +1,5 @@
 import React, {
-  useMemo, useContext, useCallback, useRef, useState,
+  useMemo, useContext, useCallback, useRef,
 } from 'react'
 
 import * as trackerApi from '../utils/api/tracker'
@@ -19,7 +19,7 @@ type ContextProps = {
   loadTopology: Function
   resetTopology: Function
   updateSearch: Function
-  hasLoaded: boolean
+  loadNodeLocations: Function
 }
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
@@ -28,6 +28,7 @@ function useControllerContext() {
   const {
     nodes,
     visibleNodes,
+    updateLocations,
     setTrackers,
     updateSearch: updateSearchText,
     resetSearchResults,
@@ -41,7 +42,6 @@ function useControllerContext() {
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
   const { start: startSearch, end: endSearch } = usePending('search')
-  const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
   const nodesRef = useRef(visibleNodes)
   nodesRef.current = visibleNodes
@@ -160,6 +160,28 @@ function useControllerContext() {
     ],
   )
 
+  const loadNodeLocations = useCallback(async (targetNodes: trackerApi.Node[]) => {
+    const results = await Promise.allSettled(
+      targetNodes.map(async ({ id, location }) => {
+        const { region } = await mapApi.getReversedGeocodedLocation({
+          longitude: location.longitude,
+          latitude: location.latitude,
+        })
+
+        return {
+          ...location,
+          title: region,
+          isReverseGeoCoded: true,
+        }
+      }),
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filtered = results.filter(({ status }) => status === 'fulfilled') as PromiseFulfilledResult<any>[]
+
+    updateLocations(filtered.map(({ value }) => value))
+  }, [updateLocations])
+
   const resetTopology = useCallback(() => {
     setTopology({
       latencies: {},
@@ -170,7 +192,6 @@ function useControllerContext() {
     (env: string) => {
       setEnvironment(env)
       resetStore()
-      setHasLoaded(false)
     },
     [resetStore],
   )
@@ -260,7 +281,7 @@ function useControllerContext() {
       loadTopology,
       resetTopology,
       updateSearch,
-      hasLoaded,
+      loadNodeLocations,
     }),
     [
       changeEnv,
@@ -270,7 +291,7 @@ function useControllerContext() {
       loadTopology,
       resetTopology,
       updateSearch,
-      hasLoaded,
+      loadNodeLocations,
     ],
   )
 }

@@ -5,10 +5,15 @@ import { schema, normalize, denormalize } from 'normalizr'
 import mergeWith from 'lodash/mergeWith'
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
+import * as mapboxApi from '../utils/api/mapbox'
 import { getEnvironment } from '../utils/config'
 import { SearchResult } from '../utils/api/streamr'
 
-const nodeSchema = new schema.Entity('nodes')
+const locationSchema = new schema.Entity('locations')
+const locationsSchema = [locationSchema]
+const nodeSchema = new schema.Entity('nodes', {
+  location: locationSchema,
+})
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
 const searchResultSchema = new schema.Entity('searchResults')
@@ -34,6 +39,7 @@ type Store = {
   searchResults: Array<SearchResult>
   nodes: string[]
   trackers: string[]
+  fetchedLocations: string[],
   latencies: trackerApi.Topology
   streamId: string | undefined
   activeNodeId: string | undefined
@@ -62,6 +68,7 @@ type ContextProps = {
   setNodes: (nodes: trackerApi.Node[]) => void
   trackers: string[]
   setTrackers: (trackers: string[]) => void
+  updateLocations: (locations: mapboxApi.Location[]) => void
   topology: Topology
   showConnections: ConnectionsMode
   toggleShowConnections: () => void
@@ -89,6 +96,7 @@ const getInitialState = (): Store => ({
   searchResults: [],
   nodes: [],
   trackers: [],
+  fetchedLocations: [],
   latencies: {},
   streamId: undefined,
   activeNodeId: undefined,
@@ -97,6 +105,7 @@ const getInitialState = (): Store => ({
     nodes: {},
     streams: {},
     searchResults: {},
+    locations: {},
   },
   showConnections: ConnectionsMode.Auto,
   updateMap: false,
@@ -105,6 +114,7 @@ const getInitialState = (): Store => ({
 type Action =
   | { type: 'setTrackers'; trackers: string[] }
   | { type: 'setNodes'; nodes: string[] }
+  | { type: 'addFetchedLocations'; locations: string[] }
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
   | { type: 'setTopology'; latencies: trackerApi.Topology, updateMap: boolean }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
@@ -136,10 +146,42 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
-    case 'updateEntities': {
+    case 'addFetchedLocations': {
+      const nextLocations = new Set([...state.fetchedLocations, ...action.locations])
+
       return {
         ...state,
-        entities: mergeWith({}, state.entities, action.entities),
+        fetchedLocations: [...nextLocations],
+      }
+    }
+
+    case 'updateEntities': {
+      const entities = {
+        ...action.entities,
+      }
+
+      // filter out locations that have been fetched already
+      if (entities.locations) {
+        entities.locations = Object.keys(entities.locations)
+          .reduce((result, nodeId) => {
+            const { isReverseGeoCoded } = state.entities.locations[nodeId] || {}
+
+            if (isReverseGeoCoded) {
+              return result
+            }
+
+            return ({
+              ...result,
+              [nodeId]: {
+                ...entities.locations[nodeId],
+              },
+            })
+          }, {})
+      }
+
+      return {
+        ...state,
+        entities: mergeWith({}, state.entities, entities),
       }
     }
 
@@ -251,6 +293,22 @@ function useStoreContext() {
       dispatch({
         type: 'setNodes',
         nodes: nextNodes,
+      })
+    },
+    [dispatch],
+  )
+
+  const updateLocations = useCallback(
+    (locations: mapboxApi.Location[]) => {
+      const { result: nextLocations, entities } = normalize(locations, locationsSchema)
+
+      dispatch({
+        type: 'updateEntities',
+        entities,
+      })
+      dispatch({
+        type: 'addFetchedLocations',
+        locations: nextLocations,
       })
     },
     [dispatch],
@@ -384,6 +442,7 @@ function useStoreContext() {
     streamId,
     nodes: nodeIds,
     trackers,
+    fetchedLocations,
     latencies,
     entities,
     showConnections,
@@ -394,9 +453,9 @@ function useStoreContext() {
   const entitiesRef = useRef(entities)
   entitiesRef.current = entities
 
-  const nodes = useMemo(() => denormalize(nodeIds, nodesSchema, entitiesRef.current) || [], [
-    nodeIds,
-  ])
+  const nodes = useMemo(() => (
+    denormalize(nodeIds, nodesSchema, entitiesRef.current) || []
+  ), [nodeIds])
 
   const topology = useMemo(
     () =>
@@ -412,7 +471,9 @@ function useStoreContext() {
 
   const visibleNodes = useMemo(
     () => denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || [],
-    [topology],
+    // Update visible nodes when topology and locations change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [topology, fetchedLocations],
   )
 
   const activeNode = useMemo(() => denormalize(activeNodeId, nodeSchema, entitiesRef.current), [
@@ -446,6 +507,7 @@ function useStoreContext() {
       setNodes,
       trackers,
       setTrackers,
+      updateLocations,
       topology,
       latencies,
       setTopology,
@@ -477,6 +539,7 @@ function useStoreContext() {
       setNodes,
       trackers,
       setTrackers,
+      updateLocations,
       topology,
       latencies,
       setTopology,
