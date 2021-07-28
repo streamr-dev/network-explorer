@@ -180,48 +180,53 @@ export type Props = {
   onToggleConnections?: () => void
 }
 
-const UnstyledNavigationControl = ({
+const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
   onZoomIn,
   onZoomOut,
   onZoomReset,
   onToggleConnections,
   ...props
-}: Props) => (
-  <div {...props}>
-    {typeof onToggleConnections === 'function' && (
-      <ButtonGroup>
-        <Tooltip value="Show node connections">
-          <ConnectionButton type="button" onClick={() => onToggleConnections()}>
-            <ConnectionIcon />
-          </ConnectionButton>
-        </Tooltip>
-      </ButtonGroup>
-    )}
-    {typeof onZoomReset === 'function' && (
-      <ButtonGroup>
-        <Tooltip value="Reset the map">
-          <ResetButton type="button" onClick={onZoomReset}>
-            <RefreshIcon />
-          </ResetButton>
-        </Tooltip>
-      </ButtonGroup>
-    )}
-    {(typeof onZoomIn === 'function' || typeof onZoomOut === 'function') && (
-      <ZoomGroup>
-        {typeof onZoomIn === 'function' && (
-          <Button type="button" onClick={() => onZoomIn()}>
-            <PlusIcon />
-          </Button>
-        )}
-        {typeof onZoomOut === 'function' && (
-          <Button type="button" onClick={() => onZoomOut()}>
-            <MinusIcon />
-          </Button>
-        )}
-      </ZoomGroup>
-    )}
-  </div>
-)
+}, ref?) => {
+  return (
+    <div {...props} ref={ref}>
+      {typeof onToggleConnections === 'function' && (
+        <ButtonGroup>
+          <Tooltip value="Show node connections">
+            <ConnectionButton type="button" onClick={() => onToggleConnections()}>
+              <ConnectionIcon />
+            </ConnectionButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {typeof onZoomReset === 'function' && (
+        <ButtonGroup>
+          <Tooltip value="Reset the map">
+            <ResetButton type="button" onClick={() => onZoomReset()}>
+              <RefreshIcon />
+            </ResetButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {(typeof onZoomIn === 'function' || typeof onZoomOut === 'function') && (
+        <ZoomGroup>
+          {typeof onZoomIn === 'function' && (
+            <Button
+              type="button"
+              onClick={onZoomIn}
+            >
+              <PlusIcon />
+            </Button>
+          )}
+          {typeof onZoomOut === 'function' && (
+            <Button type="button" onClick={() => onZoomOut()}>
+              <MinusIcon />
+            </Button>
+          )}
+        </ZoomGroup>
+      )}
+    </div>
+  )
+})
 
 const NavigationControl = styled(UnstyledNavigationControl)`
   position: absolute;
