@@ -3,12 +3,10 @@ import * as trackerUtils from 'streamr-client-protocol'
 
 import * as all from './tracker'
 import * as request from '../request'
-import * as mapbox from './mapbox'
 
 jest.mock('bip39')
 jest.mock('streamr-client-protocol')
 jest.mock('../request')
-jest.mock('./mapbox')
 
 const locations = {
   '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe': {
@@ -43,7 +41,6 @@ describe('tracker API', () => {
     bip39.entropyToMnemonic.mockClear()
     trackerUtils.Utils.getTrackerRegistryFromContract.mockClear()
     request.get.mockClear()
-    mapbox.getReversedGeocodedLocation.mockClear()
   })
 
   afterAll(() => {
@@ -101,11 +98,6 @@ describe('tracker API', () => {
       })
       bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
 
-      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
-        region: `${latitude}-${longitude}`,
-      }))
-      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
-
       const http = 'http://testurl'
       const result = await all.getNodes(http)
 
@@ -115,24 +107,33 @@ describe('tracker API', () => {
       expect(result).toStrictEqual([{
         id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
         address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
-        latitude: 51,
-        longitude: 17,
         title: 'Strong Wooden Table',
-        placeName: '51-17',
+        location: {
+          id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+          latitude: 51,
+          longitude: 17,
+          title: 'Poland',
+        },
       }, {
         id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        latitude: 41,
-        longitude: 2,
         title: 'Fierce Concrete Spoon',
-        placeName: '41-2',
+        location: {
+          id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+          latitude: 41,
+          longitude: 2,
+          title: 'Spain',
+        },
       }, {
         id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
         address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
-        latitude: 60,
-        longitude: 24,
         title: 'Mild Sunny Building',
-        placeName: '60-24',
+        location: {
+          id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+          latitude: 60,
+          longitude: 24,
+          title: 'Finland',
+        },
       }])
     })
 
@@ -145,11 +146,6 @@ describe('tracker API', () => {
       })
       bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
 
-      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
-        region: `${latitude}-${longitude}`,
-      }))
-      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
-
       const http = 'http://testurl'
       const result = await all.getNodes(http)
 
@@ -159,68 +155,33 @@ describe('tracker API', () => {
       expect(result).toStrictEqual([{
         id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
         address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
-        latitude: 51,
-        longitude: 17,
         title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
-        placeName: '51-17',
+        location: {
+          id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
+          latitude: 51,
+          longitude: 17,
+          title: 'Poland',
+        },
       }, {
         id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
         address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        latitude: 41,
-        longitude: 2,
         title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        placeName: '41-2',
+        location: {
+          id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
+          latitude: 41,
+          longitude: 2,
+          title: 'Spain',
+        },
       }, {
         id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
         address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
-        latitude: 60,
-        longitude: 24,
         title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
-        placeName: '60-24',
-      }])
-    })
-
-    it('uses country from response if reverse geocoding fails', async () => {
-      const getMock = jest.fn().mockResolvedValue(locations)
-      request.get.mockImplementation(getMock)
-
-      const entropyToMnemonicMock = jest.fn((id, list) => {
-        throw new Error('Mnemonic failed!')
-      })
-      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
-
-      const getReversedGeocodedLocationMock = jest.fn(({ latitude, longitude }) => Promise.resolve({
-        region: undefined,
-      }))
-      mapbox.getReversedGeocodedLocation.mockImplementation(getReversedGeocodedLocationMock)
-
-      const http = 'http://testurl'
-      const result = await all.getNodes(http)
-
-      expect(getMock).toBeCalledWith({
-        url: `${http}/location/`,
-      })
-      expect(result).toStrictEqual([{
-        id: '0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe',
-        address: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
-        latitude: 51,
-        longitude: 17,
-        title: '0xC983de43c5d22186F1e051c6da419c5a17F19544',
-        placeName: 'Poland',
-      }, {
-        id: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        address: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        latitude: 41,
-        longitude: 2,
-        title: '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa',
-        placeName: 'Spain',
-      }, {
-        id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
-        address: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
-        latitude: 60,
-        longitude: 24,
-        title: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d',
-        placeName: 'Finland',
+        location: {
+          id: '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d#490eb3e7-33c2-45e4-9ab2-b09de1e29990',
+          latitude: 60,
+          longitude: 24,
+          title: 'Finland',
+        },
       }])
     })
   })

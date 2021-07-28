@@ -136,15 +136,17 @@ describe('Store', () => {
 
       act(() => {
         store.setTopology({
-          'node1': {
-            'node3': 1,
-            'node4': 2,
-          },
-          'node3': {
-            'node1': 1,
-          },
-          'node4': {
-            'node1': 3,
+          latencies: {
+            'node1': {
+              'node3': 1,
+              'node4': 2,
+            },
+            'node3': {
+              'node1': 1,
+            },
+            'node4': {
+              'node1': 3,
+            },
           },
         })
       })
