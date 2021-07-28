@@ -5,10 +5,15 @@ import { schema, normalize, denormalize } from 'normalizr'
 import mergeWith from 'lodash/mergeWith'
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
+import * as mapboxApi from '../utils/api/mapbox'
 import { getEnvironment } from '../utils/config'
 import { SearchResult } from '../utils/api/streamr'
 
-const nodeSchema = new schema.Entity('nodes')
+const locationSchema = new schema.Entity('locations')
+const locationsSchema = [locationSchema]
+const nodeSchema = new schema.Entity('nodes', {
+  location: locationSchema,
+})
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
 const searchResultSchema = new schema.Entity('searchResults')
@@ -34,12 +39,19 @@ type Store = {
   searchResults: Array<SearchResult>
   nodes: string[]
   trackers: string[]
+  fetchedLocations: string[],
   latencies: trackerApi.Topology
   streamId: string | undefined
   activeNodeId: string | undefined
   activeLocationId: string | undefined
   entities: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
   showConnections: ConnectionsMode
+  updateMap: boolean,
+}
+
+type SetTopology = {
+  latencies: trackerApi.Topology,
+  updateMap?: boolean,
 }
 
 type ContextProps = {
@@ -53,14 +65,15 @@ type ContextProps = {
   addSearchResults: (results: Array<SearchResult>) => void
   resetSearchResults: () => void
   nodes: trackerApi.Node[]
-  addNodes: (nodes: trackerApi.Node[]) => void
+  setNodes: (nodes: trackerApi.Node[]) => void
   trackers: string[]
   setTrackers: (trackers: string[]) => void
+  updateLocations: (locations: mapboxApi.Location[]) => void
   topology: Topology
   showConnections: ConnectionsMode
   toggleShowConnections: () => void
   latencies: trackerApi.Topology
-  setTopology: (topology: trackerApi.Topology) => void
+  setTopology: (params: SetTopology) => void
   setActiveNodeId: (activeNodeId?: string) => void
   setActiveLocationId: (activeLocationId?: string) => void
   visibleNodes: trackerApi.Node[]
@@ -70,7 +83,8 @@ type ContextProps = {
   stream: streamrApi.Stream | undefined
   setStream: (stream: streamrApi.Stream | undefined) => void
   store: Store
-  resetStore: Function
+  resetStore: Function,
+  updateMap: boolean,
 }
 
 const StoreContext = React.createContext<ContextProps | undefined>(undefined)
@@ -82,6 +96,7 @@ const getInitialState = (): Store => ({
   searchResults: [],
   nodes: [],
   trackers: [],
+  fetchedLocations: [],
   latencies: {},
   streamId: undefined,
   activeNodeId: undefined,
@@ -90,15 +105,18 @@ const getInitialState = (): Store => ({
     nodes: {},
     streams: {},
     searchResults: {},
+    locations: {},
   },
   showConnections: ConnectionsMode.Auto,
+  updateMap: false,
 })
 
 type Action =
   | { type: 'setTrackers'; trackers: string[] }
-  | { type: 'addNodes'; nodes: string[] }
+  | { type: 'setNodes'; nodes: string[] }
+  | { type: 'addFetchedLocations'; locations: string[] }
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
-  | { type: 'setTopology'; latencies: trackerApi.Topology }
+  | { type: 'setTopology'; latencies: trackerApi.Topology, updateMap: boolean }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
   | { type: 'setActiveLocation'; activeLocationId: string | undefined }
   | { type: 'setStream'; streamId: string | undefined }
@@ -115,13 +133,12 @@ const reducer = (state: Store, action: Action) => {
     case 'setTrackers': {
       return {
         ...state,
-        nodes: [],
         trackers: action.trackers,
       }
     }
 
-    case 'addNodes': {
-      const nextNodes = new Set([...state.nodes, ...action.nodes])
+    case 'setNodes': {
+      const nextNodes = new Set([...action.nodes])
 
       return {
         ...state,
@@ -129,10 +146,42 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
-    case 'updateEntities': {
+    case 'addFetchedLocations': {
+      const nextLocations = new Set([...state.fetchedLocations, ...action.locations])
+
       return {
         ...state,
-        entities: mergeWith({}, state.entities, action.entities),
+        fetchedLocations: [...nextLocations],
+      }
+    }
+
+    case 'updateEntities': {
+      const entities = {
+        ...action.entities,
+      }
+
+      // filter out locations that have been fetched already
+      if (entities.locations) {
+        entities.locations = Object.keys(entities.locations)
+          .reduce((result, nodeId) => {
+            const { isReverseGeoCoded } = state.entities.locations[nodeId] || {}
+
+            if (isReverseGeoCoded) {
+              return result
+            }
+
+            return ({
+              ...result,
+              [nodeId]: {
+                ...entities.locations[nodeId],
+              },
+            })
+          }, {})
+      }
+
+      return {
+        ...state,
+        entities: mergeWith({}, state.entities, entities),
       }
     }
 
@@ -140,6 +189,7 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         latencies: action.latencies,
+        updateMap: action.updateMap,
       }
     }
 
@@ -232,7 +282,7 @@ const reducer = (state: Store, action: Action) => {
 function useStoreContext() {
   const [store, dispatch] = useReducer(reducer, getInitialState())
 
-  const addNodes = useCallback(
+  const setNodes = useCallback(
     (nodes: trackerApi.Node[]) => {
       const { result: nextNodes, entities } = normalize(nodes, nodesSchema)
 
@@ -241,8 +291,24 @@ function useStoreContext() {
         entities,
       })
       dispatch({
-        type: 'addNodes',
+        type: 'setNodes',
         nodes: nextNodes,
+      })
+    },
+    [dispatch],
+  )
+
+  const updateLocations = useCallback(
+    (locations: mapboxApi.Location[]) => {
+      const { result: nextLocations, entities } = normalize(locations, locationsSchema)
+
+      dispatch({
+        type: 'updateEntities',
+        entities,
+      })
+      dispatch({
+        type: 'addFetchedLocations',
+        locations: nextLocations,
       })
     },
     [dispatch],
@@ -259,10 +325,11 @@ function useStoreContext() {
   )
 
   const setTopology = useCallback(
-    (latencies: trackerApi.Topology) => {
+    ({ latencies, updateMap }: SetTopology) => {
       dispatch({
         type: 'setTopology',
         latencies,
+        updateMap: !!updateMap,
       })
     },
     [dispatch],
@@ -375,18 +442,20 @@ function useStoreContext() {
     streamId,
     nodes: nodeIds,
     trackers,
+    fetchedLocations,
     latencies,
     entities,
     showConnections,
+    updateMap,
   } = store
 
   // Use ref to avoid unnecessary redraws when entities update
   const entitiesRef = useRef(entities)
   entitiesRef.current = entities
 
-  const nodes = useMemo(() => denormalize(nodeIds, nodesSchema, entitiesRef.current) || [], [
-    nodeIds,
-  ])
+  const nodes = useMemo(() => (
+    denormalize(nodeIds, nodesSchema, entitiesRef.current) || []
+  ), [nodeIds])
 
   const topology = useMemo(
     () =>
@@ -402,7 +471,9 @@ function useStoreContext() {
 
   const visibleNodes = useMemo(
     () => denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || [],
-    [topology],
+    // Update visible nodes when topology and locations change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [topology, fetchedLocations],
   )
 
   const activeNode = useMemo(() => denormalize(activeNodeId, nodeSchema, entitiesRef.current), [
@@ -433,9 +504,10 @@ function useStoreContext() {
       addSearchResults,
       resetSearchResults,
       nodes,
-      addNodes,
+      setNodes,
       trackers,
       setTrackers,
+      updateLocations,
       topology,
       latencies,
       setTopology,
@@ -451,6 +523,7 @@ function useStoreContext() {
       setStream,
       store,
       resetStore,
+      updateMap,
     }),
     [
       env,
@@ -463,9 +536,10 @@ function useStoreContext() {
       addSearchResults,
       resetSearchResults,
       nodes,
-      addNodes,
+      setNodes,
       trackers,
       setTrackers,
+      updateLocations,
       topology,
       latencies,
       setTopology,
@@ -481,6 +555,7 @@ function useStoreContext() {
       setStream,
       store,
       resetStore,
+      updateMap,
     ],
   )
 }

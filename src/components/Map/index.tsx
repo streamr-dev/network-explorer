@@ -139,6 +139,7 @@ export const ConnectedMap = () => {
     setActiveView,
     showConnections,
     toggleShowConnections,
+    updateMap,
   } = useStore()
   const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
@@ -168,7 +169,7 @@ export const ConnectedMap = () => {
 
   // zoom topology into view
   useEffect(() => {
-    if (visibleNodes.length <= 0) {
+    if (visibleNodes.length <= 0 || !updateMap) {
       return
     }
 
@@ -179,7 +180,7 @@ export const ConnectedMap = () => {
         ...vp,
       }
     })
-  }, [debouncedSetViewport, visibleNodes])
+  }, [debouncedSetViewport, visibleNodes, updateMap])
 
   const { id: activeNodeId } = activeNode || {}
 

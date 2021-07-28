@@ -6,8 +6,8 @@ export const getCenteredViewport = (nodes: Node[], vpWidth: number, vpHeight: nu
     return {}
   }
 
-  const pointsLong = nodes.map((point) => point.longitude)
-  const pointsLat = nodes.map((point) => point.latitude)
+  const pointsLong = nodes.map(({ location }) => location.longitude)
+  const pointsLat = nodes.map(({ location }) => location.latitude)
   const cornersLongLat: [[number, number], [number, number]] = [
     [Math.min(...pointsLong), Math.min(...pointsLat)],
     [Math.max(...pointsLong), Math.max(...pointsLat)],

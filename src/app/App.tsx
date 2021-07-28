@@ -16,30 +16,8 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import StreamrClientProvider from '../components/StreamrClientProvider'
 
 import { Provider as StoreProvider, useStore } from '../contexts/Store'
-import { Provider as ControllerProvider, useController } from '../contexts/Controller'
+import { Provider as ControllerProvider } from '../contexts/Controller'
 import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
-
-function useLoadTrackersEffect() {
-  const { loadTrackers } = useController()
-  const { env } = useStore()
-  const { search } = useLocation()
-  const queryParams = new URLSearchParams(search)
-  const nextEnv = queryParams.get('network')
-
-  useEffect(() => {
-    // Prevent loading trackers when switching networks
-    if (nextEnv) {
-      return
-    }
-
-    loadTrackers()
-  }, [loadTrackers, env, nextEnv])
-}
-
-const TrackerLoader = () => {
-  useLoadTrackersEffect()
-  return null
-}
 
 function useResetSearchTextEffect() {
   const { updateSearch: updateSearchText, resetSearchResults } = useStore()
@@ -65,12 +43,11 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
 `
 
 const LoadingBar = () => {
-  const { isPending: isLoadingTrackers } = usePending('trackers')
   const { isPending: isLoadingNodes } = usePending('nodes')
   const { isPending: isLoadingTopology } = usePending('topology')
   const { isPending: isSearching } = usePending('search')
 
-  const isLoading = !!(isLoadingTrackers || isLoadingNodes || isLoadingTopology || isSearching)
+  const isLoading = !!(isLoadingNodes || isLoadingTopology || isSearching)
 
   return <LoadingIndicator large loading={isLoading} />
 }
@@ -85,7 +62,6 @@ const App = () => (
             <LoadingBar />
             <Layout>
               <ErrorBoundary>
-                <TrackerLoader />
                 <SearchTextResetter />
                 <Debug />
                 <NetworkSelector />

@@ -1,5 +1,5 @@
 import React, {
-  useMemo, useContext, useCallback, useEffect, useState,
+  useMemo, useContext, useCallback, useRef,
 } from 'react'
 
 import * as trackerApi from '../utils/api/tracker'
@@ -19,7 +19,7 @@ type ContextProps = {
   loadTopology: Function
   resetTopology: Function
   updateSearch: Function
-  hasLoaded: boolean
+  loadNodeLocations: Function
 }
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
@@ -27,27 +27,28 @@ const ControllerContext = React.createContext<ContextProps | undefined>(undefine
 function useControllerContext() {
   const {
     nodes,
-    trackers,
+    visibleNodes,
+    updateLocations,
     setTrackers,
     updateSearch: updateSearchText,
     resetSearchResults,
     addSearchResults,
-    addNodes,
+    setNodes,
     setTopology,
     setStream,
     resetStore,
   } = useStore()
-  const { wrap: wrapTrackers } = usePending('trackers')
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
   const { start: startSearch, end: endSearch } = usePending('search')
-  const [hasLoaded, setHasLoaded] = useState(false)
   const isMounted = useIsMounted()
+  const nodesRef = useRef(visibleNodes)
+  nodesRef.current = visibleNodes
 
   const loadTrackers = useCallback(
-    () =>
-      wrapTrackers(async () => {
+    async () =>
+      wrapNodes(async () => {
         const nextTrackers = await trackerApi.getTrackers()
 
         if (!isMounted()) {
@@ -55,40 +56,17 @@ function useControllerContext() {
         }
 
         setTrackers(nextTrackers)
-      }),
-    [wrapTrackers, isMounted, setTrackers],
-  )
 
-  const loadNodes = useCallback(
-    async (url: string) => {
-      const nextNodes = await trackerApi.getNodes(url)
+        const nextNodes = await Promise.all(nextTrackers.map((url) => trackerApi.getNodes(url)))
 
-      if (!isMounted()) {
-        return
-      }
-
-      addNodes(nextNodes)
-    },
-    [isMounted, addNodes],
-  )
-
-  const doLoadNodes = useCallback(
-    async (urls: string[]) =>
-      wrapNodes(async () => {
-        await Promise.all(urls.map((url) => loadNodes(url)))
-      }),
-    [wrapNodes, loadNodes],
-  )
-
-  useEffect(() => {
-    if (trackers && trackers.length > 0) {
-      doLoadNodes(trackers).then(() => {
-        if (isMounted()) {
-          setHasLoaded(true)
+        if (!isMounted()) {
+          return
         }
-      })
-    }
-  }, [isMounted, trackers, doLoadNodes])
+
+        setNodes(nextNodes.flat())
+      }),
+    [wrapNodes, isMounted, setTrackers, setNodes],
+  )
 
   const loadStream = useCallback(
     async (streamId: string) =>
@@ -155,20 +133,65 @@ function useControllerContext() {
           return
         }
 
-        setTopology(newTopology)
+        // Load trackers again if topology changes
+        const incomingNodes = new Set(Object.keys(newTopology))
+        const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
+
+        const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
+        const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
+        const didChange = !!(added.size > 0 || removed.size > 0)
+
+        if (didChange) {
+          await loadTrackers()
+        }
+
+        setTopology({
+          latencies: newTopology,
+          updateMap: didChange,
+        })
       }),
-    [wrapTopology, loadTopologyFromApi, loadNodeConnectionsFromApi, setTopology, isMounted],
+    [
+      wrapTopology,
+      loadTopologyFromApi,
+      loadNodeConnectionsFromApi,
+      setTopology,
+      loadTrackers,
+      isMounted,
+    ],
   )
 
+  const loadNodeLocations = useCallback(async (targetNodes: trackerApi.Node[]) => {
+    const results = await Promise.allSettled(
+      targetNodes.map(async ({ id, location }) => {
+        const { region } = await mapApi.getReversedGeocodedLocation({
+          longitude: location.longitude,
+          latitude: location.latitude,
+        })
+
+        return {
+          ...location,
+          title: region,
+          isReverseGeoCoded: true,
+        }
+      }),
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filtered = results.filter(({ status }) => status === 'fulfilled') as PromiseFulfilledResult<any>[]
+
+    updateLocations(filtered.map(({ value }) => value))
+  }, [updateLocations])
+
   const resetTopology = useCallback(() => {
-    setTopology({})
+    setTopology({
+      latencies: {},
+    })
   }, [setTopology])
 
   const changeEnv = useCallback(
     (env: string) => {
       setEnvironment(env)
       resetStore()
-      setHasLoaded(false)
     },
     [resetStore],
   )
@@ -258,7 +281,7 @@ function useControllerContext() {
       loadTopology,
       resetTopology,
       updateSearch,
-      hasLoaded,
+      loadNodeLocations,
     }),
     [
       changeEnv,
@@ -268,7 +291,7 @@ function useControllerContext() {
       loadTopology,
       resetTopology,
       updateSearch,
-      hasLoaded,
+      loadNodeLocations,
     ],
   )
 }

@@ -2,7 +2,7 @@ import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
-import { getReversedGeocodedLocation } from './mapbox'
+import { Location } from './mapbox'
 
 import { get } from '../request'
 import getConfig from '../config'
@@ -52,9 +52,7 @@ export type Node = {
   id: string
   title: string
   address: string,
-  latitude: number
-  longitude: number
-  placeName: string
+  location: Location,
 }
 
 type NodeResult = {
@@ -94,30 +92,30 @@ export const getNodes = async (url: string): Promise<Node[]> => {
     console.warn(`Failed to load nodes from ${url}/location/`)
   }
 
-  return Promise.all(
-    Object.keys(result || []).map(async (id: string) => {
-      const { latitude, longitude, country } = result[id] || {}
-      const { region } = await getReversedGeocodedLocation({ latitude, longitude })
-      const address = getAddress(id)
-      let title
+  return Object.keys(result || []).map((id: string) => {
+    const { latitude, longitude, country } = result[id] || {}
+    const address = getAddress(id)
+    let title
 
-      try {
-        title = generateMnemonic(address)
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(e)
-      }
+    try {
+      title = generateMnemonic(address)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(e)
+    }
 
-      return {
+    return {
+      id,
+      address,
+      title: title || address,
+      location: {
         id,
         latitude,
         longitude,
-        address,
-        title: title || address,
-        placeName: region || country,
-      }
-    }),
-  )
+        title: country,
+      },
+    }
+  })
 }
 
 export type Latency = Record<string, number | undefined>

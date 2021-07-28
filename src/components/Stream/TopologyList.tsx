@@ -46,14 +46,14 @@ const TopologyList = ({ id }: Props) => {
         id: nodeId,
         title,
         address,
-        placeName,
+        location,
       }) => (
         <NodeList.Node
           key={nodeId}
           nodeId={nodeId}
           title={title}
           address={address}
-          placeName={placeName}
+          placeName={(location || {}).title || ''}
           onClick={toggleNode}
           isActive={activeNodeId === nodeId}
         >

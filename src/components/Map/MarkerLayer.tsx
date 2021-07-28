@@ -11,8 +11,8 @@ type Props = {
 
 const MarkerLayer = ({ nodes, activeNode, onNodeClick }: Props) => (
   <>
-    {nodes.map(({ id, longitude, latitude }) => (
-      <Marker key={`node-${id}`} latitude={latitude} longitude={longitude}>
+    {nodes.map(({ id, location }) => (
+      <Marker key={`node-${id}`} latitude={location.latitude} longitude={location.longitude}>
         <NodeMarker
           id={id}
           isActive={activeNode === id}

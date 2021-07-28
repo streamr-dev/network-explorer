@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
+
+const POLL_INTERVAL = 1000 * 30 // 30s
 
 type StreamProps = {
   id: string
@@ -24,11 +26,21 @@ const TopologyLoader = ({ id }: StreamProps) => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    loadTopology({
-      streamId: id,
-    })
+    const fetchTopology = async () => {
+      await loadTopology({ streamId: id })
+    }
+
+    let timeoutId: number
+    const pollTopology = () => {
+      clearTimeout(timeoutId)
+      fetchTopology()
+      timeoutId = setTimeout(pollTopology, POLL_INTERVAL)
+    }
+
+    pollTopology()
 
     return () => {
+      clearTimeout(timeoutId)
       resetTopology()
     }
   }, [loadTopology, resetTopology, id])
@@ -66,6 +78,27 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
+const ReverseGeoCodingLoader = () => {
+  const { visibleNodes } = useStore()
+  const { loadNodeLocations } = useController()
+  const fetching = useRef(false)
+
+  useEffect(() => {
+    const nodesWithoutLocation = visibleNodes
+      .filter(({ location }) => location && !location.isReverseGeoCoded)
+
+    if (nodesWithoutLocation.length > 0 && !fetching.current) {
+      fetching.current = true
+      loadNodeLocations(nodesWithoutLocation)
+        .then(() => {
+          fetching.current = false
+        })
+    }
+  }, [visibleNodes, loadNodeLocations])
+
+  return null
+}
+
 interface ParamTypes {
   nodeId: string
   streamId: string
@@ -73,12 +106,11 @@ interface ParamTypes {
 
 export default () => {
   const { streamId: encodedStreamId, nodeId: encodedNodeId } = useParams<ParamTypes>()
-  const { nodes } = useStore()
 
   const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
-  if (!streamId || !nodes || nodes.length < 1) {
+  if (!streamId) {
     return null
   }
 
@@ -89,6 +121,7 @@ export default () => {
       <StreamLoader id={streamId} />
       <ActiveNodeSetter id={nodeId} />
       <TopologyList id={streamId} />
+      <ReverseGeoCodingLoader />
     </>
   )
 }
