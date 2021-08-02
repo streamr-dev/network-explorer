@@ -61,7 +61,7 @@ const Button = styled.button`
   width: 40px;
   height: 40px;
   position: relative;
-  color: #A3A3A3;
+  color: #323232;
   transition: 300ms color ease-in-out;
   cursor: pointer;
   padding: 0;
@@ -82,7 +82,7 @@ const Button = styled.button`
   }
 
   :hover {
-    color: #323232;
+    color: #A3A3A3;
   }
 `
 
@@ -93,7 +93,7 @@ const NetworkList = styled.div`
   position: absolute;
   right: 0;
   top: 48px;
-  padding: 4px 14px;
+  padding: 4px 0px;
 `
 
 const NetworkName = styled.div`
@@ -113,11 +113,16 @@ const NetworkItem = styled.button`
   text-align: left;
   padding: 0;
   margin: 0;
+  padding: 0px 14px;
 
   ${NetworkName} {
     flex: 1;
     margin-left: 12px;
     min-width: 64px;
+  }
+
+  :hover {
+    background-color: #ebebeb;
   }
 `
 
