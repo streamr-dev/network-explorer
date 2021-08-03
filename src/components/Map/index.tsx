@@ -75,6 +75,7 @@ export const Map = ({
   showConnections = false,
 }: Props) => {
   const mapRef = useRef<MapRef>(null)
+  const navRef = useRef<HTMLDivElement>(null)
 
   return (
     <ReactMapGL
@@ -86,7 +87,11 @@ export const Map = ({
       onViewportChange={setViewport}
       getCursor={getCursor}
       ref={mapRef}
-      onClick={onMapClick}
+      onClick={(e) => {
+        if (!navRef.current!.contains(e.target) && onMapClick) {
+          onMapClick()
+        }
+      }}
       dragPan={{
         inertia: INERTIA,
       }}
@@ -111,6 +116,7 @@ export const Map = ({
         onZoomOut={onZoomOut}
         onZoomReset={onZoomReset}
         onToggleConnections={onToggleConnections}
+        ref={navRef}
       />
     </ReactMapGL>
   )
