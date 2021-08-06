@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useRef, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import { useStore, ActiveView } from '../../contexts/Store'
@@ -24,6 +24,7 @@ const SearchBox = () => {
   const { updateSearch } = useController()
   const { isPending: isStreamLoading } = usePending('streams')
   const history = useHistory()
+  const searchRef = useRef<HTMLDivElement>(null)
 
   const hasStream = !!streamId
   const isDisabled = hasStream && !!isStreamLoading
@@ -63,8 +64,32 @@ const SearchBox = () => {
           break
       }
     },
-    [setActiveView, history, setActiveLocationId, resetSearchResults],
+    [history, setActiveView, setActiveLocationId, resetSearchResults],
   )
+
+  useEffect(() => {
+    if (activeView !== ActiveView.List || !searchRef.current) {
+      return undefined
+    }
+
+    const onMouseDown = (e: MouseEvent) => {
+      const { current: el } = searchRef
+
+      if (!el) {
+        return
+      }
+
+      if (!el.contains((e.target as Element))) {
+        setActiveView(ActiveView.Map)
+      }
+    }
+
+    window.addEventListener('mousedown', onMouseDown)
+
+    return () => {
+      window.removeEventListener('mousedown', onMouseDown)
+    }
+  }, [activeView, setActiveView])
 
   return (
     <Search
@@ -74,6 +99,7 @@ const SearchBox = () => {
         hasStats: true,
       }}
       key={env}
+      ref={searchRef}
     >
       <Search.SlideHandle />
       <Search.Input

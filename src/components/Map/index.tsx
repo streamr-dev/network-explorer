@@ -16,7 +16,7 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
 
-import { useStore, ActiveView, Topology } from '../../contexts/Store'
+import { useStore, Topology } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node } from '../../utils/api/tracker'
 import { useDebounced } from '../../hooks/wrapCallback'
@@ -142,7 +142,6 @@ export const ConnectedMap = () => {
     activeNode,
     activeLocation,
     streamId,
-    setActiveView,
     showConnections,
     toggleShowConnections,
     updateMap,
@@ -209,20 +208,16 @@ export const ConnectedMap = () => {
 
   const onNodeClick = useCallback(
     (nodeId: string) => {
-      setActiveView(ActiveView.Map)
-
       showNode(nodeId !== activeNodeId ? nodeId : undefined)
     },
-    [setActiveView, showNode, activeNodeId],
+    [showNode, activeNodeId],
   )
 
   // reset search view when clicking on map
   const onMapClick = useCallback(() => {
-    setActiveView(ActiveView.Map)
-
     // unselect active node
     showNode(undefined)
-  }, [setActiveView, showNode])
+  }, [showNode])
 
   const zoomIn = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => ({

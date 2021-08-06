@@ -104,7 +104,7 @@ const Search = styled(ControlBox)`
   ${SearchResults} {
     max-height: calc(100vh - 170px);
     overflow: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 
   @media (min-width: ${SM}px) {
@@ -119,7 +119,7 @@ const Search = styled(ControlBox)`
     ${SearchResults} {
       max-height: 280px;
       overflow: hidden;
-      overflow-y: scroll;
+      overflow-y: auto;
       padding: 8px 0;
     }
   }
