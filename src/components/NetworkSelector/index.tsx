@@ -1,4 +1,9 @@
-import React, { useState, useCallback } from 'react'
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
@@ -81,7 +86,8 @@ const Button = styled.button`
     transform: translate(-50%, -50%) translate(4px, 4px);
   }
 
-  :hover {
+  :hover,
+  :focus-within {
     color: #A3A3A3;
   }
 `
@@ -132,6 +138,7 @@ const UnstyledNetworkSelector = (props: Props) => {
   const { env: selectedEnv } = useStore()
   const [open, setOpen] = useState<boolean>(false)
   const history = useHistory()
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const toggleOpen = useCallback(() => {
     setOpen((wasOpen) => !wasOpen)
@@ -142,10 +149,46 @@ const UnstyledNetworkSelector = (props: Props) => {
     setOpen(false)
   }, [history])
 
+  useEffect(() => {
+    if (!open || !containerRef.current) {
+      return undefined
+    }
+
+    // close on esc
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+
+    const onMouseDown = (e: MouseEvent) => {
+      const { current: el } = containerRef
+
+      if (!el) {
+        return
+      }
+
+      if (!el.contains((e.target as Element))) {
+        setOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('mousedown', onMouseDown)
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('mousedown', onMouseDown)
+    }
+  }, [open])
+
   return (
-    <div {...props}>
-      <Tooltip value="Network selector">
-        <Button type="button" onClick={toggleOpen}>
+    <div {...props} ref={containerRef}>
+      <Tooltip value={!open ? 'Network selector' : undefined}>
+        <Button
+          type="button"
+          onClick={toggleOpen}
+        >
           <GlobeIcon />
           <NetworkIndicator
             theme={(!!selectedEnv && !!themes[selectedEnv]) ? themes[selectedEnv] : themes.default}
