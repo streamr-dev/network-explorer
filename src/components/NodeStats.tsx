@@ -17,7 +17,7 @@ type StatsState = {
 }
 
 const NodeStats = ({ id }: Props) => {
-  const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
+  const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
   const [{ messagesPerSecond, bytesPerSecond, latency }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
       ...(prevState || {}),
