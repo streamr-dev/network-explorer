@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components/macro'
 import Identicon from 'react-identicons'
 import { useTransition, animated } from 'react-spring'
 
-import { MONO, MEDIUM } from '../../utils/styled'
+import { SANS, MEDIUM } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
@@ -97,15 +97,16 @@ const PlacenameOrAddress = styled.div`
 
 const PlaceName = styled.div`
   font-size: 10px;
-  align-items: center;
-  color: #adadad;
+  color: #ADADAD;
   margin-top: 2px;
   font-weight: ${MEDIUM};
 `
 
 const Address = styled(PlaceName)`
-  font-family: ${MONO};
+  font-family: ${SANS};
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-feature-settings: 'zero' on;
 `
 
 type Props = {
