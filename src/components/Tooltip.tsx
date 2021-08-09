@@ -4,7 +4,7 @@ import styled, { css } from 'styled-components'
 import { SANS } from '../utils/styled'
 
 type RootProps = {
-  readonly tooltip: string
+  readonly tooltip: string | undefined
 }
 
 const Root = styled.div<RootProps>`
@@ -45,7 +45,7 @@ const Root = styled.div<RootProps>`
 `
 
 type Props = {
-  value: string
+  value: string | undefined
   children: React.ReactNode
 }
 
