@@ -231,7 +231,7 @@ const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
 const NavigationControl = styled(UnstyledNavigationControl)`
   position: absolute;
   right: 16px;
-  top: 16px;
+  top: 64px;
 
   ${ZoomGroup} {
     display: none;

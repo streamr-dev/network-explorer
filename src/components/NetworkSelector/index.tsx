@@ -10,7 +10,7 @@ import styled from 'styled-components/macro'
 import envs from '../../utils/envs'
 import Tooltip from '../Tooltip'
 import { useStore } from '../../contexts/Store'
-import { SANS } from '../../utils/styled'
+import { SANS, SM } from '../../utils/styled'
 
 const GlobeIcon = () => (
   <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -220,8 +220,13 @@ const UnstyledNetworkSelector = (props: Props) => {
 
 const NetworkSelector = styled(UnstyledNetworkSelector)`
   position: fixed;
-  top: 32px;
-  right: 32px;
+  top: 16px;
+  right: 16px;
+
+  @media (min-width: ${SM}px) {
+    top: 32px;
+    right: 32px;
+  }
 `
 
 export default NetworkSelector
