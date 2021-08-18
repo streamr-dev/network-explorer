@@ -21,19 +21,11 @@ module.exports = function override(config, env) {
   }))
   config.plugins.push(new WriteFilePlugin())
 
-  config.module.rules.push(	{
+  config.module.rules.push({
     test: /dijkstraengine\.js$/,
     loader: "exports-loader",
     options: {
       exports: "Module",
-    }
-  })
-
-  config.module.rules.push({
-    test: /dijkstraengine\.wasm$/,
-    loader: "file-loader",
-    options: {
-      publicPath: "build/static/js"
     }
   })
 

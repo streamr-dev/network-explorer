@@ -224,6 +224,8 @@ export const getNodeConnections = async (): Promise<Topology> => {
 
     const topologies = await Promise.all(topologyPromises)
 
+    // Endpoint /node-connections returns an aggregate topology,
+    // this selects the maximum rtt value between nodes
     nodeConnections = (topologies || []).reduce((combined: Topology, response: TopologyResult) => {
       const topology = getTopologyFromResponse(response)
       const nextCombined = {
