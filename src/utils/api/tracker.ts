@@ -1,4 +1,3 @@
-import { entropyToMnemonic, wordlists } from 'bip39'
 import { Utils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
@@ -63,23 +62,6 @@ type NodeResult = {
 }
 type NodeResultList = Record<string, NodeResult>
 
-export const generateMnemonic = (id: string) =>
-  entropyToMnemonic(id.slice(2), wordlists.english)
-    .split(' ')
-    .slice(0, 3)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-
-export const getAddress = (id: string) => {
-  const hashPos = id.indexOf('#')
-
-  if (hashPos < 0) {
-    return id
-  }
-
-  return id.slice(0, hashPos)
-}
-
 export const getNodes = async (url: string): Promise<Node[]> => {
   let result: NodeResultList = {}
 
@@ -94,11 +76,11 @@ export const getNodes = async (url: string): Promise<Node[]> => {
 
   return Object.keys(result || []).map((id: string) => {
     const { latitude, longitude, country } = result[id] || {}
-    const address = getAddress(id)
+    const address = Utils.parseAddressFromNodeId(id)
     let title
 
     try {
-      title = generateMnemonic(address)
+      title = Utils.generateMnemonicFromAddress(address)
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn(e)
