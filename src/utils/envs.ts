@@ -20,7 +20,7 @@ export type EnvConfig = {
 type Envs = Record<string, EnvConfig>
 
 const envs: Envs = {
-  mainnet: {
+  /* mainnet: {
     tracker: {
       source: 'contract',
       contractAddress: '0xb21df4018dee577cd33f5b99f269ea7b23b8e6eb',
@@ -30,7 +30,7 @@ const envs: Envs = {
       http: 'https://streamr.network/api/v1',
       ws: 'wss://streamr.network/api/v1/ws',
     },
-  },
+  }, */
   testnet: {
     tracker: {
       source: 'http',
@@ -41,17 +41,7 @@ const envs: Envs = {
       ws: 'wss://testnet1.streamr.network:7001',
     },
   },
-  mockApi: {
-    tracker: {
-      source: 'http',
-      http: process.env.REACT_APP_MOCK_API_URL || '',
-    },
-    streamr: {
-      http: 'https://streamr.network/api/v1',
-      ws: 'wss://streamr.network/api/v1/ws',
-    },
-  },
-  local: {
+  /* local: {
     tracker: {
       source: 'contract',
       contractAddress: process.env.REACT_APP_TRACKER_REGISTRY_ADDRESS || '',
@@ -61,7 +51,7 @@ const envs: Envs = {
       http: process.env.REACT_APP_STREAMR_API_URL || '',
       ws: process.env.REACT_APP_STREAMR_WS_URL || '',
     },
-  },
+  }, */
 }
 
 export default envs

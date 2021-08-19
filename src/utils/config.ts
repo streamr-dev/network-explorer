@@ -42,9 +42,10 @@ export function getEnvironment() {
 }
 
 function getConfig(options = {}): EnvConfig {
+  const envNames = Object.keys(envs)
   const { env } = {
     ...{
-      env: getEnvironment() || 'local',
+      env: getEnvironment() || (envNames.length > 0 && envNames[0]),
     },
     ...(options || {}),
   }
