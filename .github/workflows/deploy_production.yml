@@ -1,0 +1,53 @@
+name: Deploy to production
+on: [push]
+#on:
+#  push:
+#    tags:
+#     - v*
+
+jobs:  
+  deploy:
+    name: Build and deploy to production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          npm install -g npm@lts
+          npm ci
+      - name: Get version string from git tag name
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      - name: Print version string
+        run: echo ${{ steps.get_version.outputs.VERSION }}
+      - name: Build app with production environment variables
+        env:
+          NODE_ENV: production
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          REACT_APP_STREAMR_API_URL: https://staging.streamr.com/api/v1
+          REACT_APP_STREAMR_WS_URL: ws://staging.streamr.com/api/v1/ws
+          REACT_APP_TRACKER_REGISTRY_ADDRESS: "0xD127C88C3F6a22fE8Ef6Ed8eB062658Ed7eD0125"
+          REACT_APP_TRACKER_REGISTRY_PROVIDER: https://staging.streamr.com:8540
+          REACT_APP_DEFAULT_ENV: production
+          REACT_APP_MOCK_API_URL: https://new-staging.streamr.network/network-explorer-mock-api
+        run: npm run build --if-present
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with: 
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/. s3://eu-west-1-streamr-network-explorer-cdn --acl private
+#      - name: Invalidate Cloudfront cache
+#        run: |
+#          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} --paths "/*"
