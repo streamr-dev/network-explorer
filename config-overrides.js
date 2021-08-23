@@ -30,7 +30,7 @@ module.exports = function override(config, env) {
   })
 
   config.output.futureEmitAssets = false
-  config.output.publicPath = process.env.REACT_APP_PUBLIC_URL
+  config.output.publicPath = `${process.env.REACT_APP_PUBLIC_URL || ''}/`
 
   return config
 }
