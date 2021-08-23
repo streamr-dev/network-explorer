@@ -20,7 +20,6 @@ import { useStore, Topology } from '../../contexts/Store'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node } from '../../utils/api/tracker'
 import { useDebounced } from '../../hooks/wrapCallback'
-import { getCenteredViewport } from './utils'
 import useKeyDown from '../../hooks/useKeyDown'
 
 type Props = {
@@ -37,9 +36,9 @@ type Props = {
 const defaultViewport = {
   width: 0,
   height: 0,
-  latitude: 60.16952,
-  longitude: 24.93545,
-  zoom: 10,
+  latitude: 53.86859,
+  longitude: -0.36616,
+  zoom: 3,
   bearing: 0,
   pitch: 0,
   altitude: 0,
@@ -144,7 +143,6 @@ export const ConnectedMap = () => {
     streamId,
     showConnections,
     toggleShowConnections,
-    updateMap,
   } = useStore()
   const history = useHistory()
   const [viewport, setViewport] = useState<ViewportProps>({
@@ -171,21 +169,6 @@ export const ConnectedMap = () => {
       }))
     }
   }, [debouncedSetViewport, activeLocation])
-
-  // zoom topology into view
-  useEffect(() => {
-    if (visibleNodes.length <= 0 || !updateMap) {
-      return
-    }
-
-    debouncedSetViewport((prev: ViewportProps) => {
-      const vp = getCenteredViewport(visibleNodes, prev.width || 0, prev.height || 0)
-      return {
-        ...prev,
-        ...vp,
-      }
-    })
-  }, [debouncedSetViewport, visibleNodes, updateMap])
 
   const { id: activeNodeId } = activeNode || {}
 
@@ -237,14 +220,14 @@ export const ConnectedMap = () => {
 
   const reset = useCallback(() => {
     debouncedSetViewport((prev: ViewportProps) => {
-      const nextViewport = getCenteredViewport(visibleNodes, prev.width || 0, prev.height || 0)
+      const nextViewport = defaultViewport
       return {
         ...prev,
         ...nextViewport,
         LINEAR_TRANSITION_PROPS,
       }
     })
-  }, [debouncedSetViewport, visibleNodes])
+  }, [debouncedSetViewport])
 
   useKeyDown(
     useMemo(
