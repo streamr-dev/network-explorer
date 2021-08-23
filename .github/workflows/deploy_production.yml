@@ -34,6 +34,7 @@ jobs:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
           REACT_APP_DEFAULT_ENV: testnet
           REACT_APP_VISIBLE_ENVS: testnet
+          REACT_APP_PUBLIC_URL: https://network-explorer-cdn.streamr.network/
           REACT_APP_MAPBOX_TOKEN: pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig
         run: npm run build --if-present
       - name: Configure AWS credentials
