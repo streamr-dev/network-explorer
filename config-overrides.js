@@ -30,6 +30,7 @@ module.exports = function override(config, env) {
   })
 
   config.output.futureEmitAssets = false
+  config.output.publicPath = "https://network-explorer-cdn.streamr.network/"
 
   return config
 }
