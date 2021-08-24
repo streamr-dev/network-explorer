@@ -1,4 +1,9 @@
-import React, { useCallback, useState, useReducer } from 'react'
+import React, {
+  useCallback,
+  useState,
+  useReducer,
+  useMemo,
+} from 'react'
 import { useSubscription } from 'streamr-client-react'
 
 import useIsMounted from '../hooks/useIsMounted'
@@ -17,6 +22,7 @@ type StatsState = {
 }
 
 const NodeStats = ({ id }: Props) => {
+  const nodeId = useMemo(() => (id || '').toLowerCase(), [id])
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
   const [{ messagesPerSecond, bytesPerSecond, latency }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
@@ -51,7 +57,7 @@ const NodeStats = ({ id }: Props) => {
 
   useSubscription(
     {
-      stream: `${id}/streamr/node/metrics/sec`,
+      stream: `${nodeId}/streamr/node/metrics/sec`,
       resend: {
         last: 1,
       },
@@ -81,7 +87,7 @@ const NodeStats = ({ id }: Props) => {
           onClick={() => toggleStat('latency')}
         />
       </Stats>
-      {!!selectedStat && <MetricGraph type="node" id={id} metric={selectedStat} />}
+      {!!selectedStat && <MetricGraph type="node" id={nodeId} metric={selectedStat} />}
     </>
   )
 }
