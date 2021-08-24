@@ -53,7 +53,7 @@ const LoadingBar = () => {
 }
 
 const App = () => (
-  <BrowserRouter basename="/network-explorer">
+  <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
     <Pendingrovider>
       <StoreProvider>
         <ControllerProvider>
