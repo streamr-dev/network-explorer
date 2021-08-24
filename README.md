@@ -35,3 +35,13 @@ Single files:
 ```
 npx react-scripts test path/to/file.test.ts
 ```
+
+# Deploying to production
+
+All we need to do start a production deploy is to push a tag prefixed with `v`.
+
+```
+npm version patch
+git push
+git push --tags
+```
