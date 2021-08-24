@@ -7,6 +7,7 @@ jest.mock('../config')
 
 describe('streamr API', () => {
   afterEach(() => {
+    jest.restoreAllMocks()
     jest.clearAllMocks()
   })
 

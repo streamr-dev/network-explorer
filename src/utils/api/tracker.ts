@@ -8,14 +8,13 @@ import getConfig from '../config'
 
 const getTrackerRegistry = async () => {
   const { tracker } = getConfig()
+  debugger
 
   if (tracker.source === 'http') {
     return {
-      getAllTrackers: () => [
-        {
-          http: tracker.http,
-        },
-      ],
+      getAllTrackers: () => [{
+        http: tracker.http,
+      }],
       getTracker: () => ({
         http: tracker.http,
       }),

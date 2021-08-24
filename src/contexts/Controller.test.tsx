@@ -27,6 +27,7 @@ afterEach(() => {
 
 describe('Controller', () => {
   afterEach(() => {
+    jest.restoreAllMocks()
     jest.clearAllMocks()
   })
 
