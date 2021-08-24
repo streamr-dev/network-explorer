@@ -7,20 +7,18 @@ jest.mock('../config')
 
 describe('streamr API', () => {
   afterEach(() => {
-    config.default.mockClear()
-    request.get.mockClear()
+    jest.clearAllMocks()
   })
 
   describe('searchStreams', () => {
     it('does not search for specific stream if search is empty', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
       })
-
       const getMock = jest.fn().mockResolvedValue(undefined)
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams()
 
@@ -38,14 +36,14 @@ describe('streamr API', () => {
     })
 
     it('searches for specific stream and other results', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
       })
 
       const getMock = jest.fn().mockResolvedValue(undefined)
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams({
         search: 'Helsinki',
@@ -68,7 +66,7 @@ describe('streamr API', () => {
     })
 
     it('ignores if specific stream is not found', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -92,7 +90,7 @@ describe('streamr API', () => {
 
         throw new Error()
       })
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams({
         search: 'Helsinki',
@@ -108,7 +106,7 @@ describe('streamr API', () => {
     })
 
     it('places specific stream result first', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -134,7 +132,7 @@ describe('streamr API', () => {
 
         throw new Error()
       })
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams({
         search: 'streamr.eth/trams',
@@ -162,7 +160,7 @@ describe('streamr API', () => {
 
   describe('getStreams', () => {
     it('calls API with params', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -173,7 +171,7 @@ describe('streamr API', () => {
       }, {
         id: 'stream-2',
       }])
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getStreams({
         params: {
@@ -201,7 +199,7 @@ describe('streamr API', () => {
 
   describe('getStream', () => {
     it('calls API with encoded stream id', async () => {
-      config.default.mockReturnValue({
+      jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -210,7 +208,7 @@ describe('streamr API', () => {
       const getMock = jest.fn().mockResolvedValue({
         id: '0x123/test/my-stream',
       })
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getStream({
         id: '0x123/test/my-stream',

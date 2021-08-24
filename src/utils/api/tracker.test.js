@@ -1,11 +1,19 @@
-import * as bip39 from 'bip39'
 import * as trackerUtils from 'streamr-client-protocol'
 
 import * as all from './tracker'
 import * as request from '../request'
 
-jest.mock('bip39')
-jest.mock('streamr-client-protocol')
+jest.mock('streamr-client-protocol', () => {
+  const originalModule = jest.requireActual('streamr-client-protocol')
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    Utils: {
+      ...originalModule.Utils,
+    },
+  }
+})
 jest.mock('../request')
 
 const locations = {
@@ -32,62 +40,24 @@ const locations = {
 describe('tracker API', () => {
   beforeAll(() => {
     // don't show warnigns when console.warn is called
-    jest.spyOn(console, 'warn')
     // eslint-disable-next-line no-console
-    console.warn.mockImplementation((...args) => {})
+    jest.spyOn(console, 'warn').mockImplementation((...args) => {})
   })
 
   afterEach(() => {
-    bip39.entropyToMnemonic.mockClear()
-    trackerUtils.Utils.getTrackerRegistryFromContract.mockClear()
-    request.get.mockClear()
-  })
-
-  afterAll(() => {
-    // eslint-disable-next-line no-console
-    console.warn.mockRestore()
-  })
-
-  describe('generateMnemonic', () => {
-    it('returns a mnemonic for an address', () => {
-      const oldWordlist = bip39.wordlists
-      const wordlist = ['solid', 'wooden', 'table', 'tree', 'desk', 'computer', 'android']
-      Object.assign(bip39.wordlists, {
-        english: wordlist,
-      })
-      const entropyToMnemonicMock = jest.fn((id, list) => list.join(' '))
-      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
-
-      const result = all.generateMnemonic('0x123')
-
-      expect(entropyToMnemonicMock).toBeCalledWith('123', wordlist)
-      expect(result).toStrictEqual('Solid Wooden Table')
-      bip39.wordlists = oldWordlist
-    })
-  })
-
-  describe('getAddress', () => {
-    it('strips hash and returns the address', () => {
-      expect(all.getAddress('0xC983de43c5d22186F1e051c6da419c5a17F19544#4caa44ec-c26d-4cb2-9056-c54e60eceafe'))
-        .toBe('0xC983de43c5d22186F1e051c6da419c5a17F19544')
-    })
-
-    it('returns address as is', () => {
-      expect(all.getAddress('0xC983de43c5d22186F1e051c6da419c5a17F19544'))
-        .toBe('0xC983de43c5d22186F1e051c6da419c5a17F19544')
-    })
+    jest.clearAllMocks()
   })
 
   describe('getNodes', () => {
     it('gets list of nodes from a tracker', async () => {
       const getMock = jest.fn().mockResolvedValue(locations)
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
-      const entropyToMnemonicMock = jest.fn((id, list) => {
+      const entropyToMnemonicMock = jest.fn((id) => {
         const mnemonics = {
-          'C983de43c5d22186F1e051c6da419c5a17F19544': 'strong wooden table',
-          'c3075C2556A1FD30c67530F1ac5ddAE618762CAa': 'fierce concrete spoon',
-          'e61611feb4a4Bd058E2b7f23E53786da530AdA7d': 'mild sunny building',
+          '0xC983de43c5d22186F1e051c6da419c5a17F19544': 'Strong Wooden Table',
+          '0xc3075C2556A1FD30c67530F1ac5ddAE618762CAa': 'Fierce Concrete Spoon',
+          '0xe61611feb4a4Bd058E2b7f23E53786da530AdA7d': 'Mild Sunny Building',
         }
 
         if (!mnemonics[id]) {
@@ -96,7 +66,7 @@ describe('tracker API', () => {
 
         return mnemonics[id]
       })
-      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
+      jest.spyOn(trackerUtils.Utils, 'generateMnemonicFromAddress').mockImplementation(entropyToMnemonicMock)
 
       const http = 'http://testurl'
       const result = await all.getNodes(http)
@@ -139,12 +109,12 @@ describe('tracker API', () => {
 
     it('uses address as title if mnemonic cannot be generated', async () => {
       const getMock = jest.fn().mockResolvedValue(locations)
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
-      const entropyToMnemonicMock = jest.fn((id, list) => {
+      const entropyToMnemonicMock = jest.fn((id) => {
         throw new Error('Mnemonic failed!')
       })
-      bip39.entropyToMnemonic.mockImplementation(entropyToMnemonicMock)
+      jest.spyOn(trackerUtils.Utils, 'generateMnemonicFromAddress').mockImplementation(entropyToMnemonicMock)
 
       const http = 'http://testurl'
       const result = await all.getNodes(http)
@@ -194,7 +164,7 @@ describe('tracker API', () => {
         http: 'http://streamr.network/:30302',
       }])
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
 
@@ -225,7 +195,7 @@ describe('tracker API', () => {
         return undefined
       })
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
@@ -243,7 +213,7 @@ describe('tracker API', () => {
         http: 'http://streamr.network/:30301',
       }))
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
@@ -261,7 +231,7 @@ describe('tracker API', () => {
         http,
       }))
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
@@ -284,7 +254,7 @@ describe('tracker API', () => {
           }],
         },
       })
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getTopology({ id: '0x1234/path/tostream' })
 
@@ -358,7 +328,7 @@ describe('tracker API', () => {
       }]
       const getAllTrackersMock = jest.fn(() => results)
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
 
@@ -368,7 +338,7 @@ describe('tracker API', () => {
         return Promise.resolve(topology)
       })
 
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getNodeConnections()
 
@@ -419,7 +389,7 @@ describe('tracker API', () => {
       }]
       const getAllTrackersMock = jest.fn(() => results)
 
-      trackerUtils.Utils.getTrackerRegistryFromContract.mockResolvedValue({
+      jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
 
@@ -429,7 +399,7 @@ describe('tracker API', () => {
         return Promise.resolve(topology)
       })
 
-      request.get.mockImplementation(getMock)
+      jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getNodeConnections()
 
