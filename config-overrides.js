@@ -33,6 +33,11 @@ module.exports = function override(config, env) {
 
   if (process.env.REACT_APP_PUBLIC_URL) {
     config.output.publicPath = `${process.env.REACT_APP_PUBLIC_URL}/`
+
+    if (!config.devServer) {
+      config.devServer = {}
+    }
+    config.devServer.publicPath = `${process.env.REACT_APP_PUBLIC_URL}/`
   }
 
   return config
