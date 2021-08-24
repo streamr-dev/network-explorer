@@ -476,9 +476,12 @@ function useStoreContext() {
     [topology, fetchedLocations],
   )
 
-  const activeNode = useMemo(() => denormalize(activeNodeId, nodeSchema, entitiesRef.current), [
-    activeNodeId,
-  ])
+  const activeNode = useMemo(() => denormalize(activeNodeId, nodeSchema, entitiesRef.current),
+    // Update active node also when nodes change so that we will update
+    // activeNode after activeNodeId was set but nodes were not loaded yet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeNodeId, nodes],
+  )
 
   const activeLocation = useMemo(
     () => denormalize(activeLocationId, searchResultSchema, entitiesRef.current),
