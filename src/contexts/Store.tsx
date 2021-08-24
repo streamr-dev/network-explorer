@@ -470,7 +470,11 @@ function useStoreContext() {
   )
 
   const visibleNodes = useMemo(
-    () => denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || [],
+    () => {
+      const newNodes = denormalize(Object.keys(topology), nodesSchema, entitiesRef.current) || []
+      // Hotfix to filter out undefined entries, which may appear due to inconsistencies in tracker output
+      return newNodes.filter(Boolean)
+    },
     // Update visible nodes when topology and locations change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [topology, fetchedLocations],
