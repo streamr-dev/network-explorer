@@ -201,7 +201,7 @@ describe('tracker API', () => {
       const result = await all.getTrackers()
 
       expect(result).toStrictEqual([
-        'http://streamr.network/:30301'
+        'http://streamr.network/:30301',
       ])
 
       configSpy.mockRestore()
