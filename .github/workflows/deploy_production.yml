@@ -1,0 +1,51 @@
+name: Deploy to production
+
+on:
+  push:
+    tags:
+     - v*
+
+jobs:  
+  deploy:
+    name: Build and deploy to production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          npm install -g npm@lts
+          npm ci
+      - name: Get version string from git tag name
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      - name: Print version string
+        run: echo ${{ steps.get_version.outputs.VERSION }}
+      - name: Build app with production environment variables
+        env:
+          NODE_ENV: production
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          REACT_APP_DEFAULT_ENV: testnet
+          REACT_APP_PUBLIC_URL: https://network-explorer-cdn.streamr.network
+          REACT_APP_BASENAME: /network-explorer
+          REACT_APP_MAPBOX_TOKEN: pk.eyJ1IjoibWF0dGlubmVzIiwiYSI6ImNrNWhrN2FubDA0cGgzam1ycHV6Nmg2dHoifQ.HC5_Wu1R-OqRLza1u6P3Ig
+        run: npm run build --if-present
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with: 
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - name: Deploy to S3
+        run: |
+          aws s3 sync build/. s3://eu-west-1-streamr-network-explorer-cdn --acl private
+      - name: Invalidate Cloudfront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} --paths "/*"
