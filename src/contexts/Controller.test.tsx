@@ -136,19 +136,6 @@ describe('Controller', () => {
         id: '4',
         title: 'Node 4',
       }]
-      const getNodeConnectionsMock = jest.fn().mockResolvedValue({
-        '1': {
-          '3': 5,
-          '4': 1,
-        },
-        '2': {},
-        '3': {
-          '1': 9,
-        },
-        '4': {
-          '1': 4,
-        },
-      })
       const getTopologyMock = jest.fn()
       const getTrackersMock = jest.fn().mockResolvedValue([
         'tracker1',
@@ -157,33 +144,23 @@ describe('Controller', () => {
 
       jest.spyOn(trackerApi, 'getTrackers').mockImplementation(getTrackersMock)
       jest.spyOn(trackerApi, 'getNodes').mockImplementation(getNodesMock)
-      jest.spyOn(trackerApi, 'getNodeConnections').mockImplementation(getNodeConnectionsMock)
-      jest.spyOn(trackerApi, 'getTopology').mockImplementation(getTopologyMock)
 
       await act(async () => {
         await controller.loadTopology()
       })
 
-      expect(getNodeConnectionsMock).toBeCalled()
       expect(getTopologyMock).not.toBeCalled()
       expect(store.topology).toStrictEqual({
-        '1': ['3', '4'],
+        '1': [],
         '2': [],
-        '3': ['1'],
-        '4': ['1'],
+        '3': [],
+        '4': [],
       })
       expect(store.latencies).toStrictEqual({
-        '1': {
-          '3': 5,
-          '4': 1,
-        },
+        '1': {},
         '2': {},
-        '3': {
-          '1': 9,
-        },
-        '4': {
-          '1': 4,
-        },
+        '3': {},
+        '4': {},
       })
       expect(store.visibleNodes).toStrictEqual(nextNodes)
     })
@@ -338,7 +315,7 @@ describe('Controller', () => {
         id: '4',
         title: 'Node 4',
       }]
-      const getNodeConnectionsMock = jest.fn().mockResolvedValue({
+      const getTopologyMock = jest.fn().mockResolvedValue({
         '1': {
           '3': 5,
           '4': 1,
@@ -351,7 +328,6 @@ describe('Controller', () => {
           '1': 4,
         },
       })
-      const getTopologyMock = jest.fn()
       const getTrackersMock = jest.fn().mockResolvedValue([
         'tracker1',
       ])
@@ -359,20 +335,21 @@ describe('Controller', () => {
 
       jest.spyOn(trackerApi, 'getTrackers').mockImplementation(getTrackersMock)
       jest.spyOn(trackerApi, 'getNodes').mockImplementation(getNodesMock)
-      jest.spyOn(trackerApi, 'getNodeConnections').mockImplementation(getNodeConnectionsMock)
       jest.spyOn(trackerApi, 'getTopology').mockImplementation(getTopologyMock)
 
       await act(async () => {
-        await controller.loadTopology()
+        await controller.loadTopology({
+          streamId: '1',
+        })
       })
 
       await act(async () => {
-        await controller.loadTopology()
+        await controller.loadTopology({
+          streamId: '1',
+        })
       })
 
-      expect(getNodeConnectionsMock).toBeCalledTimes(2)
       expect(getTrackersMock).toBeCalledTimes(1)
-      expect(getTopologyMock).not.toBeCalled()
       expect(store.topology).toStrictEqual({
         '1': ['3', '4'],
         '2': [],
@@ -448,7 +425,7 @@ describe('Controller', () => {
         id: '4',
         title: 'Node 4',
       }]
-      const getNodeConnectionsMock = jest.fn()
+      const getTopologyMock = jest.fn()
         .mockResolvedValueOnce({
           '1': {
             '3': 5,
@@ -472,7 +449,6 @@ describe('Controller', () => {
             '1': 4,
           },
         })
-      const getTopologyMock = jest.fn()
       const getTrackersMock = jest.fn().mockResolvedValue([
         'tracker1',
       ])
@@ -482,15 +458,15 @@ describe('Controller', () => {
 
       jest.spyOn(trackerApi, 'getTrackers').mockImplementation(getTrackersMock)
       jest.spyOn(trackerApi, 'getNodes').mockImplementation(getNodesMock)
-      jest.spyOn(trackerApi, 'getNodeConnections').mockImplementation(getNodeConnectionsMock)
       jest.spyOn(trackerApi, 'getTopology').mockImplementation(getTopologyMock)
 
       await act(async () => {
-        await controller.loadTopology()
+        await controller.loadTopology({
+          streamId: '1',
+        })
       })
 
-      expect(getNodeConnectionsMock).toBeCalledTimes(1)
-      expect(getTopologyMock).not.toBeCalled()
+      expect(getTopologyMock).toBeCalledTimes(1)
       expect(store.topology).toStrictEqual({
         '1': ['2', '3'],
         '2': [],
@@ -509,11 +485,12 @@ describe('Controller', () => {
       expect(store.visibleNodes).toStrictEqual(nodes1)
 
       await act(async () => {
-        await controller.loadTopology()
+        await controller.loadTopology({
+          streamId: '1',
+        })
       })
 
-      expect(getNodeConnectionsMock).toBeCalledTimes(2)
-      expect(getTopologyMock).not.toBeCalled()
+      expect(getTopologyMock).toBeCalledTimes(2)
       expect(store.topology).toStrictEqual({
         '1': ['3', '4'],
         '2': [],

@@ -52,7 +52,7 @@ function useControllerContext() {
         const nextTrackers = await trackerApi.getTrackers()
 
         if (!isMounted()) {
-          return
+          return undefined
         }
 
         setTrackers(nextTrackers)
@@ -60,10 +60,14 @@ function useControllerContext() {
         const nextNodes = await Promise.all(nextTrackers.map((url) => trackerApi.getNodes(url)))
 
         if (!isMounted()) {
-          return
+          return undefined
         }
 
-        setNodes(nextNodes.flat())
+        const combinedNodes = nextNodes.flat()
+
+        setNodes(combinedNodes)
+
+        return combinedNodes
       }),
     [wrapNodes, isMounted, setTrackers, setNodes],
   )
@@ -104,45 +108,46 @@ function useControllerContext() {
     }
   }, [])
 
-  const loadNodeConnectionsFromApi = useCallback(async () => {
-    try {
-      const nextTopology = await trackerApi.getNodeConnections()
-
-      return nextTopology
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn(e)
-      throw e
-    }
-  }, [])
-
   const loadTopology = useCallback(
     async (options: { streamId?: string } = {}) =>
       wrapTopology(async () => {
         const { streamId } = options || {}
 
         let newTopology
+        let didChange = false
 
         if (streamId) {
           newTopology = await loadTopologyFromApi({ id: streamId })
+
+          if (!isMounted()) {
+            return
+          }
+
+          // Load trackers again if topology changes
+          const incomingNodes = new Set(Object.keys(newTopology))
+          const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
+
+          const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
+          const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
+          didChange = !!(added.size > 0 || removed.size > 0)
+
+          if (didChange) {
+            await loadTrackers()
+          }
         } else {
-          newTopology = await loadNodeConnectionsFromApi()
-        }
+          const nextNodes = await loadTrackers()
 
-        if (!isMounted()) {
-          return
-        }
+          if (!isMounted()) {
+            return
+          }
 
-        // Load trackers again if topology changes
-        const incomingNodes = new Set(Object.keys(newTopology))
-        const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
-
-        const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
-        const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
-        const didChange = !!(added.size > 0 || removed.size > 0)
-
-        if (didChange) {
-          await loadTrackers()
+          newTopology = (nextNodes || []).reduce(
+            (topology: trackerApi.Topology, { id }: trackerApi.Node) => ({
+              ...topology,
+              [id]: {},
+            }),
+            {},
+          )
         }
 
         setTopology({
@@ -153,7 +158,6 @@ function useControllerContext() {
     [
       wrapTopology,
       loadTopologyFromApi,
-      loadNodeConnectionsFromApi,
       setTopology,
       loadTrackers,
       isMounted,
