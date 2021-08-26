@@ -32,11 +32,11 @@ const Header = styled.div`
   }
 `
 
-const NodeList = ({ children }: Props) => (
-  <ControlBox>
+const NodeList = React.forwardRef<HTMLDivElement, Props>(({ children }, ref?) => (
+  <ControlBox ref={ref}>
     <Inner>{children}</Inner>
   </ControlBox>
-)
+))
 
 export default Object.assign(NodeList, {
   Inner,
