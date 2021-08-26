@@ -6,7 +6,7 @@ import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
 
-const POLL_INTERVAL = 1000 * 30 // 30s
+const POLL_INTERVAL = 1000 * 60 // 1min
 
 type StreamProps = {
   id: string

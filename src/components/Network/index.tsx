@@ -6,7 +6,7 @@ import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
 
-const POLL_INTERVAL = 1000 * 30 // 30s
+const POLL_INTERVAL = 1000 * 60 * 5 // 5min
 
 const NodeConnectionsLoader = () => {
   const { loadTopology, resetTopology } = useController()
