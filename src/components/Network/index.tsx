@@ -7,15 +7,20 @@ import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
 
 const NodeConnectionsLoader = () => {
+  const { showConnections: connectionMode } = useStore()
   const { loadTopology, resetTopology } = useController()
 
+  const showConnections = !!(connectionMode === 'always')
+
   useEffect(() => {
-    loadTopology()
+    loadTopology({
+      showConnections,
+    })
 
     return () => {
       resetTopology()
     }
-  }, [loadTopology, resetTopology])
+  }, [loadTopology, resetTopology, showConnections])
 
   return null
 }
