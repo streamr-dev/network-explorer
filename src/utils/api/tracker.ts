@@ -1,5 +1,6 @@
 import { Utils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
+import sample from 'lodash/sample'
 
 import { Location } from './mapbox'
 
@@ -10,13 +11,25 @@ const getTrackerRegistry = async () => {
   const { tracker } = getConfig()
 
   if (tracker.source === 'http') {
+    const { strategy, http } = tracker
+
     return {
-      getAllTrackers: () => [{
-        http: tracker.http,
-      }],
-      getTracker: () => ({
-        http: tracker.http,
-      }),
+      getAllTrackers: () => {
+        if (strategy === 'all') {
+          return http.map((url) => ({
+            http: url,
+          }))
+        }
+
+        return [{
+          http: sample(http),
+        }]
+      },
+      getTracker: () => {
+        return {
+          http: sample(http),
+        }
+      },
     }
   }
 

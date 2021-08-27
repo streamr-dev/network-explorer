@@ -6,7 +6,8 @@ type TrackerConfig =
   }
   | {
     source: 'http'
-    http: string
+    strategy?: 'random' | 'all'
+    http: string[]
   }
 
 export type EnvConfig = {
@@ -34,7 +35,10 @@ const envs: Envs = {
   testnet: {
     tracker: {
       source: 'http',
-      http: 'https://testnet1.streamr.network:30300',
+      strategy: 'random',
+      http: [
+        'https://testnet1.streamr.network:30300',
+      ],
     },
     streamr: {
       http: 'https://streamr.network/api/v1',
