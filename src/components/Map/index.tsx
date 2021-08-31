@@ -77,6 +77,38 @@ export const Map = ({
 }: Props) => {
   const mapRef = useRef<MapRef>(null)
   const navRef = useRef<HTMLDivElement>(null)
+  const hoveredNodeIdRef = useRef<string | null>(null)
+  const activeNodeIdRef = useRef<string | null>(null)
+
+  const setNodeFeatureState = useCallback((id: string, state) => {
+    const map = mapRef.current?.getMap()
+
+    if (map) {
+      map.setFeatureState({
+        source: 'node-source',
+        id,
+      }, {
+        ...state,
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    // Set node feature state to contain active status
+    if (activeNode?.id) {
+      if (activeNodeIdRef.current !== activeNode.id) {
+        if (activeNodeIdRef.current) {
+          setNodeFeatureState(activeNodeIdRef.current, { active: false })
+        }
+        activeNodeIdRef.current = activeNode.id
+      }
+
+      setNodeFeatureState(activeNodeIdRef.current, { active: true })
+    } else if (activeNodeIdRef.current != null) {
+      setNodeFeatureState(activeNodeIdRef.current, { active: false })
+      activeNodeIdRef.current = null
+    }
+  }, [activeNode, setNodeFeatureState])
 
   return (
     <ReactMapGL
@@ -88,9 +120,40 @@ export const Map = ({
       onViewportChange={setViewport}
       getCursor={getCursor}
       ref={mapRef}
+      interactiveLayerIds={['node-layer']}
       onClick={(e) => {
-        if (!navRef.current!.contains(e.target) && onMapClick) {
-          onMapClick()
+        if (!navRef.current!.contains(e.target)) {
+          // Did we click on a node or just the background map layer?
+          if (onNodeClick && e.features && e.features.length > 0) {
+            const firstId = e.features[0].properties.id
+            if (firstId) {
+              onNodeClick(firstId)
+            }
+          } else if (onMapClick) {
+            onMapClick()
+          }
+        }
+      }}
+      onHover={(e) => {
+        // Set node feature state to contain hover status
+        if (e.features && e.features.length > 0) {
+          if (e.features[0].properties.id) {
+            if (hoveredNodeIdRef.current !== e.features[0].properties.id) {
+              if (hoveredNodeIdRef.current) {
+                setNodeFeatureState(hoveredNodeIdRef.current, { hover: false })
+              }
+              hoveredNodeIdRef.current = e.features[0].properties.id
+            }
+
+            if (hoveredNodeIdRef.current) {
+              setNodeFeatureState(hoveredNodeIdRef.current, { hover: true })
+            }
+          }
+        } else {
+          if (hoveredNodeIdRef.current) {
+            setNodeFeatureState(hoveredNodeIdRef.current, { hover: false })
+          }
+          hoveredNodeIdRef.current = null
         }
       }}
       dragPan={{
@@ -111,8 +174,6 @@ export const Map = ({
       )}
       <MarkerLayer
         nodes={nodes}
-        activeNode={activeNode && activeNode.id}
-        onNodeClick={onNodeClick}
       />
       <NavigationControl
         onZoomIn={onZoomIn}
