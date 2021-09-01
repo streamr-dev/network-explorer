@@ -86,13 +86,16 @@ export const Map = ({
   const setNodeFeatureState = useCallback((id: string, state) => {
     const map = mapRef.current?.getMap()
 
-    if (map && map.loaded()) {
+    if (map && map.isStyleLoaded()) {
       map.setFeatureState({
         source: NODE_SOURCE_ID,
         id,
       }, {
         ...state,
       })
+    } else if (map && !map.isStyleLoaded()) {
+      // Defer the call for a while to wait for styles to load
+      setTimeout(() => setNodeFeatureState(id, state), 100)
     }
   }, [])
 
