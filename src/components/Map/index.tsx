@@ -52,6 +52,9 @@ const defaultViewport = {
 // react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
 const INERTIA = 300
 
+const NODE_SOURCE_ID = 'node-source'
+const NODE_LAYER_ID = 'node-layer'
+
 function getCursor({ isHovering, isDragging }: { isHovering: boolean; isDragging: boolean }) {
   if (isDragging) {
     return 'all-scroll'
@@ -83,9 +86,9 @@ export const Map = ({
   const setNodeFeatureState = useCallback((id: string, state) => {
     const map = mapRef.current?.getMap()
 
-    if (map) {
+    if (map && map.loaded()) {
       map.setFeatureState({
-        source: 'node-source',
+        source: NODE_SOURCE_ID,
         id,
       }, {
         ...state,
@@ -120,7 +123,7 @@ export const Map = ({
       onViewportChange={setViewport}
       getCursor={getCursor}
       ref={mapRef}
-      interactiveLayerIds={['node-layer']}
+      interactiveLayerIds={[NODE_LAYER_ID]}
       onClick={(e) => {
         if (!navRef.current!.contains(e.target)) {
           // Did we click on a node or just the background map layer?
@@ -174,6 +177,8 @@ export const Map = ({
       )}
       <MarkerLayer
         nodes={nodes}
+        sourceId={NODE_SOURCE_ID}
+        layerId={NODE_LAYER_ID}
       />
       <NavigationControl
         onZoomIn={onZoomIn}

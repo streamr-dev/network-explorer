@@ -4,9 +4,11 @@ import { Node } from '../../utils/api/tracker'
 
 type Props = {
   nodes: Node[]
+  sourceId: string
+  layerId: string
 }
 
-const MarkerLayer = ({ nodes }: Props) => {
+const MarkerLayer = ({ nodes, sourceId, layerId }: Props) => {
   const geoJson: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     return {
       type: 'FeatureCollection',
@@ -27,9 +29,9 @@ const MarkerLayer = ({ nodes }: Props) => {
   // promoteId for Source is needed so that we can use string ids for Features.
   // We need Feature ids for using feature states to control styling dynamically.
   return (
-    <Source id="node-source" type="geojson" data={geoJson} promoteId="id">
+    <Source id={sourceId} type="geojson" data={geoJson} promoteId="id">
       <Layer
-        id="node-layer"
+        id={layerId}
         type="circle"
         paint={{
           'circle-radius': [
