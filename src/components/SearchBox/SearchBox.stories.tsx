@@ -137,6 +137,19 @@ export const LongResultList = () => {
   )
 }
 
+export const WithEmptyResults = () => {
+  const [search, setSearch] = useState('')
+
+  return (
+    <Wrapper>
+      <Search>
+        <Search.Input value={search} onChange={setSearch} onClear={() => setSearch('')} />
+        <Search.NoResults search={search} />
+      </Search>
+    </Wrapper>
+  )
+}
+
 export const SearchInput = () => {
   const [search, setSearch] = useState('')
 
