@@ -11,11 +11,11 @@ const getTrackerRegistry = async () => {
 
   if (tracker.source === 'http') {
     return {
-      getAllTrackers: () => [{
-        http: tracker.http,
-      }],
+      getAllTrackers: () => tracker.http.map((url) => ({
+        http: url,
+      })),
       getTracker: () => ({
-        http: tracker.http,
+        http: tracker.http[0],
       }),
     }
   }

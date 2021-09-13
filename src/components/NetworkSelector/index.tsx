@@ -40,7 +40,10 @@ const themes: Record<string, Object> = {
   mainnet: {
     color: '#0EAC1B',
   },
-  testnet: {
+  testnet1: {
+    color: '#FF7575',
+  },
+  testnet2: {
     color: '#FF7575',
   },
   default: {
@@ -203,7 +206,7 @@ const UnstyledNetworkSelector = (props: Props) => {
                   theme={themes[env] ? themes[env] : themes.default}
                 />
                 <NetworkName>
-                  {env.charAt(0).toUpperCase() + env.slice(1)}
+                  {envs[env].title}
                 </NetworkName>
                 <div>
                   {(env === selectedEnv) && (

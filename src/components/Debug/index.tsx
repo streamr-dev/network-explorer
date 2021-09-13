@@ -1,6 +1,11 @@
-import React, { useEffect, useReducer, useRef } from 'react'
+import React, {
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  useCallback,
+} from 'react'
 import styled from 'styled-components/macro'
-import JsonView from 'react-pretty-json'
 
 import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../contexts/Store'
@@ -8,6 +13,7 @@ import {
   MONO, SANS, MD,
 } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
+import { useDebounced } from '../../hooks/wrapCallback'
 
 export const APP_DEBUG_MODE_KEY = 'network-explorer.debug'
 export const APP_DEBUG_WINDOW_PROPS_KEY = 'network-explorer.debug_window_props'
@@ -158,6 +164,26 @@ const Debug = () => {
       ...nextState,
     }), getDebugWindowProps())
   const ref = useRef<HTMLDivElement>(null)
+  const [stringifiedJson, setStringifiedJson] = useState<string>('')
+
+  const debouncedSetJson = useDebounced(
+    useCallback(async (nextJson: Object) => {
+      try {
+        setStringifiedJson(JSON.stringify(nextJson, null, 2))
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(e)
+      }
+    }, []),
+    250,
+  )
+
+  useEffect(() => {
+    debouncedSetJson({
+      pending,
+      store,
+    })
+  }, [debouncedSetJson, store, pending])
 
   const onMoveContainer = ({ clientX: x0, clientY: y0, button }: React.MouseEvent<HTMLElement>) => {
     const { current: el } = ref
@@ -249,12 +275,7 @@ const Debug = () => {
           Debug
         </Header>
         <Variables>
-          <JsonView
-            json={{
-              pending,
-              store,
-            }}
-          />
+          {stringifiedJson}
         </Variables>
       </Wrapper>
       <ResizeHandle

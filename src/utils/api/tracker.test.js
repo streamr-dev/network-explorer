@@ -190,11 +190,16 @@ describe('tracker API', () => {
       trackerSpy.mockRestore()
     })
 
-    it('gets testnet address', async () => {
+    it('gets testnet addresses', async () => {
+      const trackerHttps = [
+        'http://streamr.network/:30301',
+        'http://streamr.network/:30302',
+        'http://streamr.network/:30303',
+      ]
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'http',
-          http: 'http://streamr.network/:30301',
+          http: trackerHttps,
         },
       })
 
@@ -202,6 +207,8 @@ describe('tracker API', () => {
 
       expect(result).toStrictEqual([
         'http://streamr.network/:30301',
+        'http://streamr.network/:30302',
+        'http://streamr.network/:30303',
       ])
 
       configSpy.mockRestore()
@@ -209,7 +216,7 @@ describe('tracker API', () => {
   })
 
   describe('getTracker', () => {
-    it('gets tracker with id', async () => {
+    it('gets tracker with id from contract', async () => {
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'contract',
@@ -248,7 +255,7 @@ describe('tracker API', () => {
       trackerSpy.mockRestore()
     })
 
-    it('gets tracker with id and partition', async () => {
+    it('gets tracker with id and partition from contract', async () => {
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'contract',
@@ -270,6 +277,26 @@ describe('tracker API', () => {
 
       configSpy.mockRestore()
       trackerSpy.mockRestore()
+    })
+
+    it('gets tracker with id from testnet', async () => {
+      const trackerHttps = [
+        'http://streamr.network/:30301',
+        'http://streamr.network/:30302',
+        'http://streamr.network/:30303',
+      ]
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
+        tracker: {
+          source: 'http',
+          http: trackerHttps,
+        },
+      })
+
+      const result = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
+
+      expect(result).toBe(trackerHttps[0])
+
+      configSpy.mockRestore()
     })
   })
 

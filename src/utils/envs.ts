@@ -6,10 +6,11 @@ type TrackerConfig =
   }
   | {
     source: 'http'
-    http: string
+    http: string[]
   }
 
 export type EnvConfig = {
+  title: string,
   tracker: TrackerConfig
   streamr: {
     http: string
@@ -31,14 +32,39 @@ const envs: Envs = {
       ws: 'wss://streamr.network/api/v1/ws',
     },
   }, */
-  testnet: {
+  testnet1: {
+    title: 'Testnet 1',
     tracker: {
       source: 'http',
-      http: 'https://testnet1.streamr.network:30300',
+      http: [
+        'https://testnet1.streamr.network:30300',
+      ],
     },
     streamr: {
       http: 'https://streamr.network/api/v1',
       ws: 'wss://testnet1.streamr.network:7001',
+    },
+  },
+  testnet2: {
+    title: 'Testnet 2',
+    tracker: {
+      source: 'http',
+      http: [
+        'https://testnet3.streamr.network:30401',
+        'https://testnet3.streamr.network:30402',
+        'https://testnet3.streamr.network:30403',
+        'https://testnet3.streamr.network:30404',
+        'https://testnet3.streamr.network:30405',
+        'https://testnet4.streamr.network:30401',
+        'https://testnet4.streamr.network:30402',
+        'https://testnet4.streamr.network:30403',
+        'https://testnet4.streamr.network:30404',
+        'https://testnet4.streamr.network:30405',
+      ],
+    },
+    streamr: {
+      http: 'https://streamr.network/api/v1',
+      ws: 'wss://testnet1.streamr.network:7006',
     },
   },
   /* local: {
