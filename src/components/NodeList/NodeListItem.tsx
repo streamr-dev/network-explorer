@@ -46,6 +46,7 @@ const NodeElement = styled.div`
 
   & + & {
     margin-top: 12px;
+    scroll-margin-top: 12px;
   }
 
   ${IconWrapper} {

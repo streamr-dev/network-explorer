@@ -1,8 +1,14 @@
-import React, { useCallback, useMemo } from 'react'
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
 import { truncate } from '../../utils/text'
+import useIsMounted from '../../hooks/useIsMounted'
 import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
 
@@ -18,8 +24,13 @@ const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
   const history = useHistory()
+  const listRef = useRef<HTMLDivElement>(null)
+  const scrollTimeout = useRef<number | undefined>(undefined)
+  const isMounted = useIsMounted()
 
-  const activeNodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
+  const activeNodeId = useMemo(() => (
+    encodedNodeId && decodeURIComponent(encodedNodeId)
+  ), [encodedNodeId])
 
   const toggleNode = useCallback(
     (nodeId) => {
@@ -36,8 +47,35 @@ const TopologyList = ({ id }: Props) => {
 
   const streamTitle = (stream && stream.name) || id
 
+  useEffect(() => {
+    const { current: el } = listRef
+
+    if (!isMounted() || !el || !activeNodeId || visibleNodes.length < 1) {
+      return undefined
+    }
+
+    const activeEl = el.querySelector(`[data-node-id="${activeNodeId}"]`)
+
+    if (activeEl) {
+      clearTimeout(scrollTimeout.current)
+
+      scrollTimeout.current = setTimeout(() => {
+        if (isMounted()) {
+          activeEl.scrollIntoView({
+            block: 'start',
+            behavior: 'smooth',
+          })
+        }
+      }, 500)
+    }
+
+    return () => {
+      clearTimeout(scrollTimeout.current)
+    }
+  }, [activeNodeId, visibleNodes, isMounted])
+
   return (
-    <NodeList>
+    <NodeList ref={listRef}>
       <NodeList.Header>
         Showing <strong>{visibleNodes.length}</strong> nodes carrying the stream{' '}
         <strong title={id}>{truncate(streamTitle)}</strong>
@@ -56,6 +94,7 @@ const TopologyList = ({ id }: Props) => {
           placeName={(location || {}).title || ''}
           onClick={toggleNode}
           isActive={activeNodeId === nodeId}
+          data-node-id={nodeId}
         >
           <NodeStats id={address} />
         </NodeList.Node>
