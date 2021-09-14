@@ -190,26 +190,47 @@ describe('tracker API', () => {
       trackerSpy.mockRestore()
     })
 
-    it('gets testnet address', async () => {
+    it('gets testnet addresses', async () => {
+      const trackers = [{
+        id: '1',
+        ws: 'wss://streamr.network/:30301',
+        http: 'http://streamr.network/:30301',
+      }, {
+        id: '2',
+        ws: 'wss://streamr.network/:30302',
+        http: 'http://streamr.network/:30302',
+      }, {
+        id: '3',
+        ws: 'wss://streamr.network/:30303',
+        http: 'http://streamr.network/:30303',
+      }]
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'http',
-          http: 'http://streamr.network/:30301',
+          trackers,
         },
+      })
+      const getAllTrackersMock = jest.fn(() => trackers)
+
+      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'createTrackerRegistry').mockResolvedValue({
+        getAllTrackers: getAllTrackersMock,
       })
 
       const result = await all.getTrackers()
 
       expect(result).toStrictEqual([
         'http://streamr.network/:30301',
+        'http://streamr.network/:30302',
+        'http://streamr.network/:30303',
       ])
 
       configSpy.mockRestore()
+      trackerSpy.mockRestore()
     })
   })
 
   describe('getTracker', () => {
-    it('gets tracker with id', async () => {
+    it('gets tracker with id from contract', async () => {
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'contract',
@@ -248,7 +269,7 @@ describe('tracker API', () => {
       trackerSpy.mockRestore()
     })
 
-    it('gets tracker with id and partition', async () => {
+    it('gets tracker with id and partition from contract', async () => {
       const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         tracker: {
           source: 'contract',
@@ -266,6 +287,44 @@ describe('tracker API', () => {
       const result1 = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
 
       expect(result1).toStrictEqual('http://streamr.network/:30301')
+      expect(getTrackerMock).toBeCalledWith('mystream', 3)
+
+      configSpy.mockRestore()
+      trackerSpy.mockRestore()
+    })
+
+    it('gets tracker with id from testnet', async () => {
+      const trackers = [{
+        id: '1',
+        ws: 'wss://streamr.network/:30301',
+        http: 'http://streamr.network/:30301',
+      }, {
+        id: '2',
+        ws: 'wss://streamr.network/:30302',
+        http: 'http://streamr.network/:30302',
+      }, {
+        id: '3',
+        ws: 'wss://streamr.network/:30303',
+        http: 'http://streamr.network/:30303',
+      }]
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
+        tracker: {
+          source: 'http',
+          trackers,
+        },
+      })
+
+      const getTrackerMock = jest.fn((id) => ({
+        http: 'http://streamr.network/:30301',
+      }))
+
+      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'createTrackerRegistry').mockResolvedValue({
+        getTracker: getTrackerMock,
+      })
+
+      const result = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
+
+      expect(result).toStrictEqual(trackers[0].http)
       expect(getTrackerMock).toBeCalledWith('mystream', 3)
 
       configSpy.mockRestore()

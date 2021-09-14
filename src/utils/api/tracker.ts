@@ -1,4 +1,4 @@
-import { Utils } from 'streamr-client-protocol'
+import { SmartContractRecord, Utils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 
 import { Location } from './mapbox'
@@ -10,17 +10,13 @@ const getTrackerRegistry = async () => {
   const { tracker } = getConfig()
 
   if (tracker.source === 'http') {
-    return {
-      getAllTrackers: () => [{
-        http: tracker.http,
-      }],
-      getTracker: () => ({
-        http: tracker.http,
-      }),
-    }
+    return Utils.createTrackerRegistry<SmartContractRecord>(tracker.trackers)
   }
 
-  return Utils.getTrackerRegistryFromContract(tracker)
+  return Utils.getTrackerRegistryFromContract({
+    contractAddress: tracker.contractAddress,
+    jsonRpcProvider: tracker.jsonRpcProvider,
+  })
 }
 
 export const getTrackers = async (): Promise<string[]> => {
