@@ -19,30 +19,26 @@ const getNodeConnections = (topology: Topology, nodes: Node[]): Array<NodeConnec
     return nodeList.map((n) => [key, n])
   })
 
-  const uniqueConnections =
-    // reduce connection pairs to unique lines between nodes
-    nodeConnections.reduce((result: UniqueConnection, [sourceId, targetId]) => {
-      const uniqueId = [sourceId, targetId].sort().join()
+  const uniqueConnections: UniqueConnection = {}
+  for (let i = 0; i < nodeConnections.length; ++i) {
+    const sourceId = nodeConnections[i][0]
+    const targetId = nodeConnections[i][1]
+    const uniqueId = [sourceId, targetId].sort().join()
 
-      if (!result[uniqueId] && sourceId !== targetId) {
-        const src = nodes.find(({ id }) => id === sourceId)
-        const target = nodes.find(({ id }) => id === targetId)
+    if (!uniqueConnections[uniqueId] && sourceId !== targetId) {
+      const src = nodes.find(({ id }) => id === sourceId)
+      const target = nodes.find(({ id }) => id === targetId)
 
-        if (src && target) {
-          return {
-            ...result,
-            [uniqueId]: {
-              source: [src.location.longitude, src.location.latitude] as [number, number],
-              target: [target.location.longitude, target.location.latitude] as [number, number],
-              sourceId,
-              targetId,
-            },
-          }
+      if (src && target) {
+        uniqueConnections[uniqueId] = {
+          source: [src.location.longitude, src.location.latitude] as [number, number],
+          target: [target.location.longitude, target.location.latitude] as [number, number],
+          sourceId,
+          targetId,
         }
       }
-
-      return result
-    }, {})
+    }
+  }
 
   return Object.values(uniqueConnections)
 }
