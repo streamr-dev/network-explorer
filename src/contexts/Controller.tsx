@@ -113,7 +113,7 @@ function useControllerContext() {
       wrapTopology(async () => {
         const { streamId } = options || {}
 
-        let newTopology
+        let newTopology: trackerApi.Topology = {}
         let didChange = false
 
         if (streamId) {
@@ -135,19 +135,15 @@ function useControllerContext() {
             await loadTrackers()
           }
         } else {
-          const nextNodes = await loadTrackers()
+          const nextNodes = await loadTrackers() || []
 
           if (!isMounted()) {
             return
           }
 
-          newTopology = (nextNodes || []).reduce(
-            (topology: trackerApi.Topology, { id }: trackerApi.Node) => ({
-              ...topology,
-              [id]: {},
-            }),
-            {},
-          )
+          for (let i = 0; i < nextNodes.length; ++i) {
+            newTopology[nextNodes[i].id] = {}
+          }
         }
 
         setTopology({

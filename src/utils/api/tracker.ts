@@ -107,20 +107,22 @@ export type TopologyResult = Record<string, TopologyEntry[]>
 
 export type StreamTopologyResult = Record<string, TopologyResult>
 
-export const getTopologyFromResponse = (response: TopologyResult): Topology =>
-  Object.keys(response || {}).reduce(
-    (topology: Topology, nodeId: string) => ({
-      ...topology,
-      [nodeId]: (response[nodeId] || []).reduce(
-        (latencies, { neighborId, rtt }) => ({
-          ...latencies,
-          [neighborId]: rtt,
-        }),
-        {},
-      ),
-    }),
-    {},
-  )
+export const getTopologyFromResponse = (response: TopologyResult): Topology => {
+  const result: Topology = {}
+
+  const keys = Object.keys(response || {})
+
+  for (let i = 0; i < keys.length; ++i) {
+    const latencies = response[keys[i]] || []
+
+    result[keys[i]] = {}
+    for (let j = 0; j < latencies.length; ++j) {
+      result[keys[i]][latencies[j].neighborId] = latencies[j].rtt
+    }
+  }
+
+  return result
+}
 
 const isNumber = (value: number | undefined) => typeof value === 'number' && isFinite(value)
 
