@@ -162,21 +162,20 @@ const reducer = (state: Store, action: Action) => {
 
       // filter out locations that have been fetched already
       if (entities.locations) {
-        entities.locations = Object.keys(entities.locations)
-          .reduce((result, nodeId) => {
-            const { isReverseGeoCoded } = state.entities.locations[nodeId] || {}
+        const keys = Object.keys(entities.locations)
 
-            if (isReverseGeoCoded) {
-              return result
+        const nextLocations: Record<string, mapboxApi.Location> = {}
+        for (let i = 0; i < keys.length; ++i) {
+          const { isReverseGeoCoded } = state.entities.locations[keys[i]] || {}
+
+          if (!isReverseGeoCoded) {
+            nextLocations[keys[i]] = {
+              ...entities.locations[keys[i]],
             }
+          }
+        }
 
-            return ({
-              ...result,
-              [nodeId]: {
-                ...entities.locations[nodeId],
-              },
-            })
-          }, {})
+        entities.locations = nextLocations
       }
 
       return {
@@ -458,14 +457,17 @@ function useStoreContext() {
   ), [nodeIds])
 
   const topology = useMemo(
-    () =>
-      Object.keys(latencies || {}).reduce(
-        (flattened, nodeId) => ({
-          ...flattened,
-          [nodeId]: Object.keys(latencies[nodeId]),
-        }),
-        {},
-      ),
+    () => {
+      const result: Topology = {}
+
+      const keys = Object.keys(latencies || {})
+
+      for (let i = 0; i < keys.length; ++i) {
+        result[keys[i]] = Object.keys(latencies[keys[i]])
+      }
+
+      return result
+    },
     [latencies],
   )
 
