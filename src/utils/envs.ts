@@ -34,21 +34,6 @@ const envs: Envs = {
       ws: 'wss://streamr.network/api/v1/ws',
     },
   }, */
-  testnet1: {
-    title: 'Testnet 1',
-    tracker: {
-      source: 'http',
-      trackers: [{
-        id: '0x49D45c17bCA1Caf692001D21c38aDECCB4c08504',
-        http: 'https://testnet1.streamr.network:30300',
-        ws: 'wss://testnet1.streamr.network:30300',
-      }],
-    },
-    streamr: {
-      http: 'https://streamr.network/api/v1',
-      ws: 'wss://testnet1.streamr.network:7001',
-    },
-  },
   testnet2: {
     title: 'Testnet 2',
     tracker: {
