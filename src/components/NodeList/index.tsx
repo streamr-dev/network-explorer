@@ -4,11 +4,18 @@ import styled from 'styled-components/macro'
 import ControlBox from '../ControlBox'
 
 import NodeListItem from './NodeListItem'
+import Pager from './Pager'
 import { SANS, MEDIUM } from '../../utils/styled'
 
 const Inner = styled.div`
   padding: 16px;
   font-size: 12px;
+
+  > * + ${Pager},
+  > ${Pager} + * {
+    margin-top: 12px;
+    scroll-margin-top: 12px;
+  }
 `
 
 type Props = {
@@ -42,4 +49,5 @@ export default Object.assign(NodeList, {
   Inner,
   Header,
   Node: NodeListItem,
+  Pager,
 })

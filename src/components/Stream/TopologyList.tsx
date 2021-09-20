@@ -3,12 +3,15 @@ import React, {
   useMemo,
   useRef,
   useEffect,
+  useState,
 } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
 import { truncate } from '../../utils/text'
+import { Node } from '../../utils/api/tracker'
 import useIsMounted from '../../hooks/useIsMounted'
+import usePaged from '../../hooks/usePaged'
 import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
 
@@ -20,6 +23,8 @@ interface ParamTypes {
   nodeId: string
 }
 
+const PAGE_SIZE = 10
+
 const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
@@ -27,6 +32,14 @@ const TopologyList = ({ id }: Props) => {
   const listRef = useRef<HTMLDivElement>(null)
   const scrollTimeout = useRef<number | undefined>(undefined)
   const isMounted = useIsMounted()
+  const [pageChangedOnLoad, setPageChangedOnLoad] = useState(false)
+
+  const {
+    currentPage,
+    setPage,
+    items,
+    pages,
+  } = usePaged<Node>({ items: visibleNodes, limit: PAGE_SIZE })
 
   const activeNodeId = useMemo(() => (
     encodedNodeId && decodeURIComponent(encodedNodeId)
@@ -47,10 +60,26 @@ const TopologyList = ({ id }: Props) => {
 
   const streamTitle = (stream && stream.name) || id
 
+  // Set correct page on load
+  useEffect(() => {
+    if (!activeNodeId || visibleNodes.length < 1 || pageChangedOnLoad) {
+      return
+    }
+
+    const index = visibleNodes.findIndex(({ id: nodeId }) => nodeId === activeNodeId)
+
+    if (index >= 0) {
+      const page = Math.ceil((index + 1) / PAGE_SIZE)
+
+      setPage(page)
+      setPageChangedOnLoad(true)
+    }
+  }, [activeNodeId, visibleNodes, setPage, pageChangedOnLoad])
+
   useEffect(() => {
     const { current: el } = listRef
 
-    if (!isMounted() || !el || !activeNodeId || visibleNodes.length < 1) {
+    if (!el || !activeNodeId || items.length < 1) {
       return undefined
     }
 
@@ -72,7 +101,7 @@ const TopologyList = ({ id }: Props) => {
     return () => {
       clearTimeout(scrollTimeout.current)
     }
-  }, [activeNodeId, visibleNodes, isMounted])
+  }, [activeNodeId, items, isMounted])
 
   return (
     <NodeList ref={listRef}>
@@ -80,7 +109,14 @@ const TopologyList = ({ id }: Props) => {
         Showing <strong>{visibleNodes.length}</strong> nodes carrying the stream{' '}
         <strong title={id}>{truncate(streamTitle)}</strong>
       </NodeList.Header>
-      {visibleNodes.map(({
+      {pages > 1 && (
+        <NodeList.Pager
+          currentPage={currentPage}
+          lastPage={pages}
+          onChange={setPage}
+        />
+      )}
+      {items.map(({
         id: nodeId,
         title,
         address,
