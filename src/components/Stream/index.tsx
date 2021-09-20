@@ -6,8 +6,6 @@ import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
 
-const POLL_INTERVAL = 1000 * 60 // 1min
-
 type StreamProps = {
   id: string
 }
@@ -26,21 +24,9 @@ const TopologyLoader = ({ id }: StreamProps) => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    const fetchTopology = async () => {
-      await loadTopology({ streamId: id })
-    }
-
-    let timeoutId: number
-    const pollTopology = () => {
-      clearTimeout(timeoutId)
-      fetchTopology()
-      timeoutId = setTimeout(pollTopology, POLL_INTERVAL)
-    }
-
-    pollTopology()
+    loadTopology({ streamId: id })
 
     return () => {
-      clearTimeout(timeoutId)
       resetTopology()
     }
   }, [loadTopology, resetTopology, id])

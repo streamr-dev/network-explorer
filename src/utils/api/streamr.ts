@@ -1,10 +1,11 @@
-import uniqBy from 'lodash/uniqBy'
+import { CancelToken } from 'axios'
 
 import { get } from '../request'
 import getConfig from '../config'
 
 type SearchStreams = {
   search?: string
+  cancelToken?: CancelToken
 }
 
 export type SearchResult = {
@@ -16,31 +17,18 @@ export type SearchResult = {
   latitude?: number
 }
 
-export const searchStreams = async ({ search = '' }: SearchStreams = {}): Promise<
-SearchResult[]
-> => {
+export const searchStreams = async ({
+  search = '',
+  cancelToken,
+}: SearchStreams = {}): Promise<SearchResult[]> => {
   const params = {
     public: true,
     search: (search || '').trim().toLowerCase(),
   }
 
-  const [exactMatch, matchingStreams] = await Promise.all([
-    // getStream with empty id responds with all streams :O
-    search
-      ? getStream({ id: search }).catch((err) => {
-        if (err.response && err.response.status === 404) {
-          // ignore 404, expected.
-          return
-        }
-        throw err
-      })
-      : Promise.resolve(undefined),
-    getStreams({ params }),
-  ])
+  const results = await getStreams({ params, cancelToken })
 
-  const results = uniqBy([...(exactMatch ? [exactMatch] : []), ...(matchingStreams || [])], 'id')
-
-  return results.map(({ id, description }: Stream) => ({
+  return (results || []).map(({ id, description }: Stream) => ({
     type: 'streams',
     id,
     name: id,
@@ -50,6 +38,7 @@ SearchResult[]
 
 type GetStream = {
   id: string
+  cancelToken?: CancelToken
 }
 
 export type Stream = {
@@ -60,23 +49,28 @@ export type Stream = {
 
 type GetStreams = {
   params?: Object
+  cancelToken?: CancelToken
 }
 
-export const getStreams = async ({ params }: GetStreams = {}) => {
+export const getStreams = async ({ params, cancelToken }: GetStreams = {}) => {
   const { http } = getConfig().streamr
 
   return get<Stream[]>({
     url: `${http}/streams`,
     options: {
       params,
+      cancelToken,
     },
   })
 }
 
-export const getStream = async ({ id }: GetStream) => {
+export const getStream = async ({ id, cancelToken }: GetStream) => {
   const { http } = getConfig().streamr
 
   return get<Stream>({
     url: `${http}/streams/${encodeURIComponent(id)}/validation`,
+    options: {
+      cancelToken,
+    },
   })
 }
