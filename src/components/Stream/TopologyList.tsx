@@ -12,6 +12,7 @@ import { truncate } from '../../utils/text'
 import { Node } from '../../utils/api/tracker'
 import useIsMounted from '../../hooks/useIsMounted'
 import usePaged from '../../hooks/usePaged'
+import { useController } from '../../contexts/Controller'
 import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
 
@@ -33,6 +34,7 @@ const TopologyList = ({ id }: Props) => {
   const scrollTimeout = useRef<number | undefined>(undefined)
   const isMounted = useIsMounted()
   const [pageChangedOnLoad, setPageChangedOnLoad] = useState(false)
+  const { loadNodeLocations } = useController()
 
   const {
     currentPage,
@@ -102,6 +104,21 @@ const TopologyList = ({ id }: Props) => {
       clearTimeout(scrollTimeout.current)
     }
   }, [activeNodeId, items, isMounted])
+
+  // load locations for visible list items
+  const fetching = useRef(false)
+  useEffect(() => {
+    const nodesWithoutLocation = items
+      .filter(({ location }) => location && !location.isReverseGeoCoded)
+
+    if (nodesWithoutLocation.length > 0 && !fetching.current) {
+      fetching.current = true
+      loadNodeLocations(nodesWithoutLocation)
+        .then(() => {
+          fetching.current = false
+        })
+    }
+  }, [items, loadNodeLocations])
 
   return (
     <NodeList ref={listRef}>
