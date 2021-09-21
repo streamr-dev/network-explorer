@@ -161,25 +161,27 @@ function useControllerContext() {
   )
 
   const loadNodeLocations = useCallback(async (targetNodes: trackerApi.Node[]) => {
-    const results = await Promise.allSettled(
-      targetNodes.map(async ({ id, location }) => {
-        const { region } = await mapApi.getReversedGeocodedLocation({
-          longitude: location.longitude,
-          latitude: location.latitude,
-        })
+    if (!targetNodes || targetNodes.length < 1) {
+      return
+    }
 
-        return {
+    for (let i = 0; i < targetNodes.length; ++i) {
+      const { location } = targetNodes[i]
+
+      // eslint-disable-next-line no-await-in-loop
+      const { region } = await mapApi.getReversedGeocodedLocation({
+        longitude: location.longitude,
+        latitude: location.latitude,
+      })
+
+      if (region) {
+        updateLocations([{
           ...location,
           title: region,
           isReverseGeoCoded: true,
-        }
-      }),
-    )
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filtered = results.filter(({ status }) => status === 'fulfilled') as PromiseFulfilledResult<any>[]
-
-    updateLocations(filtered.map(({ value }) => value))
+        }])
+      }
+    }
   }, [updateLocations])
 
   const resetTopology = useCallback(() => {

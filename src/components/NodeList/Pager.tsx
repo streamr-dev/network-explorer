@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
 
+import { ConnectionIcon } from '../Map/NavigationControl'
 import { SANS, MEDIUM, BOLD } from '../../utils/styled'
 
 const Title = styled.div`
@@ -45,7 +46,7 @@ const Icon = styled.button`
   }
 `
 
-const Partition = styled.div`
+const Connection = styled.div`
   background-color: #F8F8F8;
   border-radius: 4px;
   position: relative;
@@ -57,14 +58,6 @@ const Partition = styled.div`
     transform: translate(-50%, -50%);
   }
 `
-
-const PartitionIcon = () => (
-  <svg width="21" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path stroke="#323232" strokeWidth="1.5" strokeLinecap="round" d="M.75 8.031h4.078M10.313 8.033h8.937" />
-    <circle cx="7.703" cy="8.158" r="2.5" transform="rotate(-90 7.703 8.158)" stroke="#323232" strokeWidth="1.5" />
-    <path d="M19.375 1.49h-6.042c-4.21 0-5.297 3.038-5.556 4.165M19.375 14.824h-6.042c-4.059 0-5.215-2.824-5.524-4.037M19.375 4.824h-6.888c-1.5 0-2.496.714-3.085 1.348M19.375 11.523h-6.888c-1.532 0-2.538-.743-3.12-1.386" stroke="#323232" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
 
 const LeftArrow = () => (
   <svg width="13" height="10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,9 +91,9 @@ const UnstyledPager = ({
 
   return (
     <div {...props}>
-      <Partition>
-        <PartitionIcon />
-      </Partition>
+      <Connection>
+        <ConnectionIcon />
+      </Connection>
       <Title>
         Page <strong>{currentPage} of {lastPage}</strong>
       </Title>
@@ -135,7 +128,7 @@ const Pager = styled(UnstyledPager)`
     flex: 1;
   }
 
-  ${Partition}, ${Icon} {
+  ${Connection}, ${Icon} {
     width: 32px;
     height: 32px;
   }

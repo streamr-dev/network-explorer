@@ -98,7 +98,7 @@ const PlusIcon = () => (
   </svg>
 )
 
-const ConnectionIcon = () => (
+export const ConnectionIcon = () => (
   <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M9 5.49902C10.1046 5.49902 11 4.60359 11 3.49902C11 2.39445 10.1046 1.49902 9 1.49902C7.89543 1.49902 7 2.39445 7 3.49902C7 4.60359 7.89543 5.49902 9 5.49902Z"
