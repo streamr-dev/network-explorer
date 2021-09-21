@@ -12,14 +12,14 @@ describe('streamr API', () => {
   })
 
   describe('searchStreams', () => {
-    it('does not search for specific stream if search is empty', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
+    it('returns empty result list if search is empty', async () => {
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
       })
       const getMock = jest.fn().mockResolvedValue(undefined)
-      jest.spyOn(request, 'get').mockImplementation(getMock)
+      const getSpy = jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams()
 
@@ -34,23 +34,32 @@ describe('streamr API', () => {
       })
       expect(getMock).toBeCalledTimes(1)
       expect(result).toStrictEqual([])
+
+      configSpy.mockRestore()
+      getSpy.mockRestore()
     })
 
-    it('searches for specific stream and other results', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
+    it('returns search results', async () => {
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
       })
 
-      const getMock = jest.fn().mockResolvedValue(undefined)
-      jest.spyOn(request, 'get').mockImplementation(getMock)
+      const getMock = jest.fn().mockResolvedValue([{
+        id: '1',
+        description: 'streamr.eth/trams fake 1',
+      }, {
+        id: '2',
+        description: 'streamr.eth/trams fake 2',
+      }])
+      const getSpy = jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.searchStreams({
         search: 'Helsinki',
       })
 
-      expect(getMock).toBeCalledTimes(2)
+      expect(getMock).toBeCalledTimes(1)
       expect(getMock).toBeCalledWith({
         url: '/streams',
         options: {
@@ -60,92 +69,7 @@ describe('streamr API', () => {
           },
         },
       })
-      expect(getMock).toBeCalledWith({
-        url: '/streams/Helsinki/validation',
-      })
-      expect(result).toStrictEqual([])
-    })
-
-    it('ignores if specific stream is not found', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
-        streamr: {
-          http: '',
-        },
-      })
-
-      const getMock = jest.fn(({ url }) => {
-        if (url === '/streams/Helsinki/validation') {
-          const error = new Error()
-          error.response = {
-            status: 404,
-          }
-          throw error
-        }
-
-        if (url === '/streams') {
-          return Promise.resolve([{
-            id: 'streamr.eth/trams',
-            description: 'Helsinki trams demo',
-          }])
-        }
-
-        throw new Error()
-      })
-      jest.spyOn(request, 'get').mockImplementation(getMock)
-
-      const result = await all.searchStreams({
-        search: 'Helsinki',
-      })
-
-      expect(getMock).toBeCalledTimes(2)
       expect(result).toStrictEqual([{
-        type: 'streams',
-        id: 'streamr.eth/trams',
-        name: 'streamr.eth/trams',
-        description: 'Helsinki trams demo',
-      }])
-    })
-
-    it('places specific stream result first', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
-        streamr: {
-          http: '',
-        },
-      })
-
-      const getMock = jest.fn(({ url }) => {
-        if (url === '/streams/streamr.eth%2Ftrams/validation') {
-          return Promise.resolve({
-            id: 'streamr.eth/trams',
-            description: 'Helsinki trams demo',
-          })
-        }
-
-        if (url === '/streams') {
-          return Promise.resolve([{
-            id: '1',
-            description: 'streamr.eth/trams fake 1',
-          }, {
-            id: '2',
-            description: 'streamr.eth/trams fake 2',
-          }])
-        }
-
-        throw new Error()
-      })
-      jest.spyOn(request, 'get').mockImplementation(getMock)
-
-      const result = await all.searchStreams({
-        search: 'streamr.eth/trams',
-      })
-
-      expect(getMock).toBeCalledTimes(2)
-      expect(result).toStrictEqual([{
-        type: 'streams',
-        id: 'streamr.eth/trams',
-        name: 'streamr.eth/trams',
-        description: 'Helsinki trams demo',
-      }, {
         type: 'streams',
         id: '1',
         name: '1',
@@ -156,12 +80,15 @@ describe('streamr API', () => {
         name: '2',
         description: 'streamr.eth/trams fake 2',
       }])
+
+      configSpy.mockRestore()
+      getSpy.mockRestore()
     })
   })
 
   describe('getStreams', () => {
     it('calls API with params', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -172,7 +99,7 @@ describe('streamr API', () => {
       }, {
         id: 'stream-2',
       }])
-      jest.spyOn(request, 'get').mockImplementation(getMock)
+      const getSpy = jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getStreams({
         params: {
@@ -195,12 +122,15 @@ describe('streamr API', () => {
       }, {
         id: 'stream-2',
       }])
+
+      configSpy.mockRestore()
+      getSpy.mockRestore()
     })
   })
 
   describe('getStream', () => {
     it('calls API with encoded stream id', async () => {
-      jest.spyOn(config, 'default').mockReturnValue({
+      const configSpy = jest.spyOn(config, 'default').mockReturnValue({
         streamr: {
           http: '',
         },
@@ -209,7 +139,7 @@ describe('streamr API', () => {
       const getMock = jest.fn().mockResolvedValue({
         id: '0x123/test/my-stream',
       })
-      jest.spyOn(request, 'get').mockImplementation(getMock)
+      const getSpy = jest.spyOn(request, 'get').mockImplementation(getMock)
 
       const result = await all.getStream({
         id: '0x123/test/my-stream',
@@ -217,10 +147,16 @@ describe('streamr API', () => {
 
       expect(getMock).toBeCalledWith({
         url: '/streams/0x123%2Ftest%2Fmy-stream/validation',
+        options: {
+          cancelToken: undefined,
+        },
       })
       expect(result).toStrictEqual({
         id: '0x123/test/my-stream',
       })
+
+      configSpy.mockRestore()
+      getSpy.mockRestore()
     })
   })
 })

@@ -726,9 +726,7 @@ describe('Controller', () => {
       })
 
       expect(store.search).toStrictEqual('berlin')
-      expect(streamSearchMock).toBeCalledWith({
-        search: 'berlin',
-      })
+      expect(streamSearchMock.mock.calls[0][0].search).toBe('berlin')
       expect(store.searchResults).toStrictEqual([
         {
           id: '1',
@@ -795,9 +793,7 @@ describe('Controller', () => {
       })
 
       expect(store.search).toStrictEqual('berlin')
-      expect(getLocationsMock).toBeCalledWith({
-        search: 'berlin',
-      })
+      expect(getLocationsMock.mock.calls[0][0].search).toBe('berlin')
       expect(store.searchResults).toStrictEqual([
         {
           id: '1',

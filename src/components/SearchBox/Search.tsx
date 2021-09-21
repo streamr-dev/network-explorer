@@ -101,12 +101,6 @@ const Search = styled(ControlBox)`
     background-color: #ffffff;
   }
 
-  ${SearchResults} {
-    max-height: calc(100vh - 170px);
-    overflow: hidden;
-    overflow-y: auto;
-  }
-
   @media (min-width: ${SM}px) {
     ${({ theme }) =>
     theme.resultsActive &&
@@ -117,10 +111,7 @@ const Search = styled(ControlBox)`
       `}
 
     ${SearchResults} {
-      max-height: 280px;
-      overflow: hidden;
-      overflow-y: auto;
-      padding: 8px 0;
+      height: 280px;
     }
   }
 `

@@ -6,27 +6,13 @@ import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
 
-const POLL_INTERVAL = 1000 * 60 * 5 // 5min
-
 const NodeConnectionsLoader = () => {
   const { loadTopology, resetTopology } = useController()
 
   useEffect(() => {
-    const fetchTopology = async () => {
-      await loadTopology()
-    }
-
-    let timeoutId: number
-    const pollTopology = () => {
-      clearTimeout(timeoutId)
-      fetchTopology()
-      timeoutId = setTimeout(pollTopology, POLL_INTERVAL)
-    }
-
-    pollTopology()
+    loadTopology()
 
     return () => {
-      clearTimeout(timeoutId)
       resetTopology()
     }
   }, [loadTopology, resetTopology])

@@ -1,6 +1,7 @@
 import React, {
   useMemo, useContext, useCallback, useRef,
 } from 'react'
+import axios from 'axios'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
@@ -45,6 +46,7 @@ function useControllerContext() {
   const isMounted = useIsMounted()
   const nodesRef = useRef(visibleNodes)
   nodesRef.current = visibleNodes
+  const cancelRef = useRef<undefined | Function>()
 
   const loadTrackers = useCallback(
     async () =>
@@ -220,34 +222,79 @@ function useControllerContext() {
       async ({ search }: { search: string }) => {
         resetSearchResults()
 
+        if (cancelRef.current !== undefined) {
+          cancelRef.current()
+          cancelRef.current = undefined
+        }
+
         if (!search) {
           endSearch()
         } else {
           try {
             addSearchResults(searchNodes(search))
 
-            const streamPromise = new Promise<streamrApi.SearchResult[]>((resolve) =>
-              streamrApi.searchStreams({ search }).then(resolve, () => resolve([])),
-            ).then((nextResults) => {
-              if (!isMounted()) {
+            const source = axios.CancelToken.source()
+
+            const streamPromise = new Promise<{
+              results: streamrApi.SearchResult[],
+              cancelled: boolean,
+            }>((resolve, reject) => {
+              return streamrApi.searchStreams({
+                search,
+                cancelToken: source.token,
+              }).then((results) => {
+                resolve({
+                  results,
+                  cancelled: false,
+                })
+              }, () => resolve({
+                results: [],
+                cancelled: true,
+              }))
+            }).then(({ results: nextResults, cancelled }) => {
+              if (!isMounted() || cancelled) {
                 return
               }
 
               addSearchResults(nextResults)
             })
 
-            const mapPromise = new Promise<streamrApi.SearchResult[]>((resolve) =>
-              mapApi.getLocations({ search }).then(resolve, () => resolve([])),
-            ).then((nextResults) => {
-              if (!isMounted()) {
+            const mapPromise = new Promise<{
+              results: streamrApi.SearchResult[],
+              cancelled: boolean,
+            }>((resolve, reject) => {
+              return mapApi.getLocations({
+                search,
+                cancelToken: source.token,
+              }).then((results) => {
+                resolve({
+                  results,
+                  cancelled: false,
+                })
+              }, () => resolve({
+                results: [],
+                cancelled: true,
+              }))
+            }).then(({ results: nextResults, cancelled }) => {
+              if (!isMounted() || cancelled) {
                 return
               }
 
               addSearchResults(nextResults)
+            })
+
+            const cancelPromise = new Promise<undefined>((resolve, reject) => {
+              cancelRef.current = () => {
+                source.cancel()
+                reject()
+              }
             })
 
             // wait for all searches to complete before ending progress status
-            await Promise.all([streamPromise, mapPromise])
+            await Promise.race([
+              Promise.all([streamPromise, mapPromise]),
+              cancelPromise,
+            ])
             if (!isMounted()) {
               return
             }
@@ -255,6 +302,7 @@ function useControllerContext() {
             // todo
           } finally {
             endSearch()
+            cancelRef.current = undefined
           }
         }
       },

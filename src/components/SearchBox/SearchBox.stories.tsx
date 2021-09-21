@@ -115,6 +115,28 @@ export const WithResults = () => {
   )
 }
 
+const longList: Array<SearchResult> = Array.from({
+  length: 1500,
+}, (v, i) => ({
+  id: `stream-${i + 1}`,
+  type: 'streams',
+  name: `0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1/stream/${i + 1}`,
+  description: `Description ${i + 1}`,
+}))
+
+export const LongResultList = () => {
+  const [search, setSearch] = useState('')
+
+  return (
+    <Wrapper>
+      <Search>
+        <Search.Input value={search} onChange={setSearch} onClear={() => setSearch('')} />
+        <Search.Results results={longList} highlight={search} />
+      </Search>
+    </Wrapper>
+  )
+}
+
 export const SearchInput = () => {
   const [search, setSearch] = useState('')
 

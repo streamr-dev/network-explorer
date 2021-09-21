@@ -1,5 +1,7 @@
 import React from 'react'
 import styled from 'styled-components/macro'
+import { FixedSizeList } from 'react-window'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import Highlight from '../Highlight'
@@ -158,50 +160,69 @@ const resultTypes = {
   nodes: 'Node',
 }
 
+type ResultRowProps = {
+  index: number
+  style: Object
+}
+
 const UnstyledSearchResults = ({
   results, onClick, highlight, ...props
-}: Props) => (
-  <div {...props}>
-    <List>
-      {results.map((result) => {
-        const fullname = truncate(result.name)
-        const search = highlight && truncate(highlight)
+}: Props) => {
+  const ResultRow = ({ index, style }: ResultRowProps) => {
+    const result = results[index]
+    const fullname = truncate(result.name)
+    const search = highlight && truncate(highlight)
 
-        // Preserve last path fragment & allow the path before it to be truncated
-        const lastSlashPos = fullname.lastIndexOf('/')
+    // Preserve last path fragment & allow the path before it to be truncated
+    const lastSlashPos = fullname.lastIndexOf('/')
 
-        const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
-        const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
+    const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
+    const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
 
-        return (
-          <Row key={result.id} onClick={() => typeof onClick === 'function' && onClick(result)}>
-            <IconWrapper>
-              <Icon>
-                <ResultIcon type={result.type} />
-              </Icon>
-            </IconWrapper>
-            <Item>
-              <Name>
-                <TruncatedPath>
-                  <Highlight search={search}>{truncatedPath}</Highlight>
-                </TruncatedPath>
-                {!!pathFragment && (
-                  <PathFragment>
-                    /<Highlight search={search}>{pathFragment}</Highlight>
-                  </PathFragment>
-                )}
-              </Name>
-              <Description>
-                {result.type === 'streams' && (result.description || 'No description')}
-                {result.type !== 'streams' && (resultTypes[result.type] || '')}
-              </Description>
-            </Item>
-          </Row>
-        )
-      })}
-    </List>
-  </div>
-)
+    return (
+      <Row style={style} onClick={() => typeof onClick === 'function' && onClick(result)}>
+        <IconWrapper>
+          <Icon>
+            <ResultIcon type={result.type} />
+          </Icon>
+        </IconWrapper>
+        <Item>
+          <Name>
+            <TruncatedPath>
+              <Highlight search={search}>{truncatedPath}</Highlight>
+            </TruncatedPath>
+            {!!pathFragment && (
+              <PathFragment>
+                /<Highlight search={search}>{pathFragment}</Highlight>
+              </PathFragment>
+            )}
+          </Name>
+          <Description>
+            {result.type === 'streams' && (result.description || 'No description')}
+            {result.type !== 'streams' && (resultTypes[result.type] || '')}
+          </Description>
+        </Item>
+      </Row>
+    )
+  }
+
+  return (
+    <div {...props}>
+      <AutoSizer>
+        {({ height, width }) => (
+          <FixedSizeList
+            height={height}
+            width={width}
+            itemCount={results.length}
+            itemSize={40}
+          >
+            {ResultRow}
+          </FixedSizeList>
+        )}
+      </AutoSizer>
+    </div>
+  )
+}
 
 const SearchResults = styled(UnstyledSearchResults)`
   @media (max-width: ${SM}px) {

@@ -1,3 +1,5 @@
+import { CancelToken } from 'axios'
+
 import { get } from '../request'
 
 import { SearchResult } from './streamr'
@@ -67,9 +69,13 @@ export const getReversedGeocodedLocation = async ({
 
 type LocationSearch = {
   search: string
+  cancelToken?: CancelToken
 }
 
-export const getLocations = async ({ search }: LocationSearch): Promise<SearchResult[]> => {
+export const getLocations = async ({
+  search,
+  cancelToken,
+}: LocationSearch): Promise<SearchResult[]> => {
   let result: GeoCodeResult | undefined
 
   try {
@@ -77,6 +83,9 @@ export const getLocations = async ({ search }: LocationSearch): Promise<SearchRe
       url: getPlacesUrl({
         place: search,
       }),
+      options: {
+        cancelToken,
+      },
     })
   } catch (e) {
     // eslint-disable-next-line no-console
