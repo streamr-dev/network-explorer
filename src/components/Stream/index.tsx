@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { useStore } from '../../contexts/Store'
@@ -64,27 +64,6 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
-const ReverseGeoCodingLoader = () => {
-  const { visibleNodes } = useStore()
-  const { loadNodeLocations } = useController()
-  const fetching = useRef(false)
-
-  useEffect(() => {
-    const nodesWithoutLocation = visibleNodes
-      .filter(({ location }) => location && !location.isReverseGeoCoded)
-
-    if (nodesWithoutLocation.length > 0 && !fetching.current) {
-      fetching.current = true
-      loadNodeLocations(nodesWithoutLocation)
-        .then(() => {
-          fetching.current = false
-        })
-    }
-  }, [visibleNodes, loadNodeLocations])
-
-  return null
-}
-
 interface ParamTypes {
   nodeId: string
   streamId: string
@@ -107,7 +86,6 @@ export default () => {
       <StreamLoader id={streamId} />
       <ActiveNodeSetter id={nodeId} />
       <TopologyList id={streamId} />
-      <ReverseGeoCodingLoader />
     </>
   )
 }

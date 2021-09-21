@@ -1,9 +1,14 @@
-import React, { useState, useReducer, useCallback } from 'react'
+import React, {
+  useState,
+  useReducer,
+  useCallback,
+} from 'react'
 import styled from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
 
 import Stats from '../Stats'
 import Error from '../Error'
+import usePaged from '../../hooks/usePaged'
 
 import NodeList from '.'
 
@@ -212,6 +217,57 @@ export const WithStatsAndError = () => {
           </Stats>
           {!!error && <Error>{error}</Error>}
         </NodeList.Node>
+      ))}
+    </NodeList>
+  )
+}
+
+type Node = {
+  id: string
+  title: string
+  address: string,
+  placeName: string
+}
+
+const longList: Array<Node> = Array.from({
+  length: 150,
+}, (v, i) => ({
+  id: `node-${i + 1}`,
+  title: `Node ${i + 1}`,
+  address: `node-${i + 1}`,
+  placeName: 'Helsinki',
+}))
+
+const PAGE_SIZE = 4
+
+export const Paged = () => {
+  const {
+    currentPage,
+    setPage,
+    items,
+    pages,
+  } = usePaged<Node>({ items: longList, limit: PAGE_SIZE })
+
+  return (
+    <NodeList>
+      <NodeList.Pager
+        currentPage={currentPage}
+        lastPage={pages}
+        onChange={setPage}
+      />
+      {items.map(({
+        id,
+        title,
+        address,
+        placeName,
+      }) => (
+        <NodeList.Node
+          key={id}
+          nodeId={id}
+          title={title}
+          address={address}
+          placeName={placeName}
+        />
       ))}
     </NodeList>
   )
