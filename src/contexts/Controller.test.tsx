@@ -32,7 +32,7 @@ describe('Controller', () => {
   })
 
   describe('loadTrackers', () => {
-    it('sets trackers and nodes', async () => {
+    it('loads trackers and nodes', async () => {
       let store
       let controller
 
@@ -74,15 +74,16 @@ describe('Controller', () => {
       jest.spyOn(trackerApi, 'getTrackers').mockImplementation(getTrackersMock)
       jest.spyOn(trackerApi, 'getNodes').mockImplementation(getNodesMock)
 
+      let result
       await act(async () => {
-        await controller.loadTrackers()
+        result = await controller.loadTrackers()
       })
 
-      expect(store.trackers).toStrictEqual([
+      expect(result.trackers).toStrictEqual([
         'tracker1',
         'tracker2',
       ])
-      expect(store.nodes).toStrictEqual([{
+      expect(result.nodes).toStrictEqual([{
         id: '1',
       }, {
         id: '2',
