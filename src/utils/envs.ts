@@ -11,13 +11,21 @@ type TrackerConfig =
     trackers: SmartContractRecord[]
   }
 
+export type StreamrConfig = {
+  http: string
+  ws: string
+}
+
 export type EnvConfig = {
   title: string,
   tracker: TrackerConfig
-  streamr: {
-    http: string
-    ws: string
-  }
+  streamr: Array<StreamrConfig>
+}
+
+export type EnvConfigResult = {
+  title: string,
+  tracker: TrackerConfig
+  streamr: StreamrConfig
 }
 
 type Envs = Record<string, EnvConfig>
@@ -29,10 +37,10 @@ const envs: Envs = {
       contractAddress: '0xb21df4018dee577cd33f5b99f269ea7b23b8e6eb',
       jsonRpcProvider: 'https://mainnet.infura.io/v3/17c3985baecb4c4d94a1edc2c4d23206',
     },
-    streamr: {
+    streamr: [{
       http: 'https://streamr.network/api/v1',
       ws: 'wss://streamr.network/api/v1/ws',
-    },
+    }],
   }, */
   testnet2: {
     title: 'Testnet 2',
@@ -89,10 +97,10 @@ const envs: Envs = {
         http: 'https://testnet4.streamr.network:30405',
       }],
     },
-    streamr: {
+    streamr: [{
       http: 'https://streamr.network/api/v1',
       ws: 'wss://testnet1.streamr.network:7006',
-    },
+    }],
   },
 }
 
