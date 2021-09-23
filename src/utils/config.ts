@@ -1,5 +1,7 @@
+import sample from 'lodash/sample'
+
 import { isLocalStorageAvailable } from './storage'
-import envs, { EnvConfig } from './envs'
+import envs, { StreamrConfig, EnvConfigResult } from './envs'
 
 export const APP_ENV_KEY = 'network-explorer.env'
 const storage = isLocalStorageAvailable() ? window.localStorage : null
@@ -41,16 +43,29 @@ export function getEnvironment() {
   return env
 }
 
-function getConfig(options = {}): EnvConfig {
+const cachedStreamrConfig: Record<string, StreamrConfig> = {}
+
+function getConfig(options = {}): EnvConfigResult {
   const envNames = Object.keys(envs)
-  const { env } = {
+  const { env, reload } = {
     ...{
       env: getEnvironment() || (envNames.length > 0 && envNames[0]),
+      reload: false,
     },
     ...(options || {}),
   }
 
-  return envs[env]
+  const { title, tracker, streamr } = envs[env]
+
+  if (!cachedStreamrConfig[env] || !!reload) {
+    cachedStreamrConfig[env] = (sample(streamr) as StreamrConfig)
+  }
+
+  return {
+    title,
+    tracker,
+    streamr: cachedStreamrConfig[env],
+  }
 }
 
 export default getConfig
