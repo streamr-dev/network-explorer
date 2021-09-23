@@ -25,6 +25,12 @@ type ContextProps = {
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
 
+class RequestCanceledError extends Error {
+  constructor(message: string = 'Cancelled') {
+    super(message)
+  }
+}
+
 function useControllerContext() {
   const {
     nodes,
@@ -322,7 +328,7 @@ function useControllerContext() {
             const cancelPromise = new Promise<undefined>((resolve, reject) => {
               cancelRef.current = () => {
                 source.cancel()
-                reject()
+                reject(new RequestCanceledError())
               }
             })
 
@@ -334,10 +340,15 @@ function useControllerContext() {
             if (!isMounted()) {
               return
             }
-          } catch (e) {
-            // todo
-          } finally {
+
             endSearch()
+          } catch (e) {
+            // end search if not cancelled, otherwise status
+            // will be updated when latest request completes
+            if (!(e instanceof RequestCanceledError)) {
+              endSearch()
+            }
+          } finally {
             cancelRef.current = undefined
           }
         }
