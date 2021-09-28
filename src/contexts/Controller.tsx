@@ -355,7 +355,7 @@ function useControllerContext() {
       },
       [isMounted, endSearch, searchNodes, resetSearchResults, addSearchResults],
     ),
-    250,
+    1000,
   )
 
   const updateSearch = useCallback(
