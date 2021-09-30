@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
 import { useParams, useHistory, useLocation } from 'react-router-dom'
 
-import { useStore } from '../../contexts/Store'
+import { useStore, ActiveRoute } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
@@ -29,14 +29,12 @@ type NodeProps = {
   id: string
 }
 
-const SearchTextSetter = () => {
-  const { updateSearch: updateSearchText, activeNode } = useStore()
-
-  const activeNodeTitle = activeNode && activeNode.title
+const ActiveRouteSetter = () => {
+  const { setActiveRoute } = useStore()
 
   useEffect(() => {
-    updateSearchText(activeNodeTitle || '')
-  }, [updateSearchText, activeNodeTitle])
+    setActiveRoute(ActiveRoute.Network)
+  }, [setActiveRoute])
 
   return null
 }
@@ -95,7 +93,7 @@ export default () => {
 
   return (
     <>
-      <SearchTextSetter />
+      <ActiveRouteSetter />
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
       {!!nodeId && <TopologyList id={nodeId} key={nodeId} />}

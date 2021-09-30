@@ -19,6 +19,11 @@ const streamSchema = new schema.Entity('streams')
 const searchResultSchema = new schema.Entity('searchResults')
 const searchResultsSchema = [searchResultSchema]
 
+export enum ActiveRoute {
+  Network = 'network',
+  Stream = 'stream'
+}
+
 export enum ActiveView {
   Map = 'map',
   List = 'list',
@@ -34,6 +39,7 @@ export enum ConnectionsMode {
 
 type Store = {
   env: string | undefined
+  activeRoute: ActiveRoute
   activeView: ActiveView
   search: string
   searchResults: Array<SearchResult>
@@ -56,8 +62,9 @@ type SetTopology = {
 
 type ContextProps = {
   env: string | undefined
+  activeRoute: ActiveRoute
+  setActiveRoute: (activeRoute: ActiveRoute) => void
   activeView: ActiveView
-  toggleActiveView: () => void
   setActiveView: (activeView: ActiveView) => void
   search: string
   updateSearch: (search: string) => void
@@ -91,6 +98,7 @@ const StoreContext = React.createContext<ContextProps | undefined>(undefined)
 
 const getInitialState = (): Store => ({
   env: getEnvironment(),
+  activeRoute: ActiveRoute.Network,
   activeView: ActiveView.Map,
   search: '',
   searchResults: [],
@@ -120,8 +128,8 @@ type Action =
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
   | { type: 'setActiveLocation'; activeLocationId: string | undefined }
   | { type: 'setStream'; streamId: string | undefined }
+  | { type: 'setActiveRoute'; activeRoute: ActiveRoute }
   | { type: 'setActiveView'; activeView: ActiveView }
-  | { type: 'toggleActiveView' }
   | { type: 'toggleShowConnections' }
   | { type: 'updateSearch'; search: string }
   | { type: 'addSearchResults'; ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -213,13 +221,6 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
-    case 'toggleActiveView': {
-      return {
-        ...state,
-        activeView: state.activeView === ActiveView.Map ? ActiveView.List : ActiveView.Map,
-      }
-    }
-
     case 'toggleShowConnections': {
       // handle initial special case
       if (state.showConnections === ConnectionsMode.Auto) {
@@ -235,6 +236,13 @@ const reducer = (state: Store, action: Action) => {
           state.showConnections !== ConnectionsMode.Off
             ? ConnectionsMode.Off
             : ConnectionsMode.Always,
+      }
+    }
+
+    case 'setActiveRoute': {
+      return {
+        ...state,
+        activeRoute: action.activeRoute,
       }
     }
 
@@ -373,16 +381,17 @@ function useStoreContext() {
     [dispatch],
   )
 
+  const setActiveRoute = useCallback((activeRoute: ActiveRoute) => {
+    dispatch({
+      type: 'setActiveRoute',
+      activeRoute,
+    })
+  }, [])
+
   const setActiveView = useCallback((activeView: ActiveView) => {
     dispatch({
       type: 'setActiveView',
       activeView,
-    })
-  }, [])
-
-  const toggleActiveView = useCallback(() => {
-    dispatch({
-      type: 'toggleActiveView',
     })
   }, [])
 
@@ -433,6 +442,7 @@ function useStoreContext() {
 
   const {
     env,
+    activeRoute,
     activeView,
     search,
     searchResults: searchResultIds,
@@ -504,8 +514,9 @@ function useStoreContext() {
   return useMemo(
     () => ({
       env,
+      activeRoute,
+      setActiveRoute,
       activeView,
-      toggleActiveView,
       setActiveView,
       search,
       updateSearch,
@@ -536,8 +547,9 @@ function useStoreContext() {
     }),
     [
       env,
+      activeRoute,
+      setActiveRoute,
       activeView,
-      toggleActiveView,
       setActiveView,
       search,
       updateSearch,

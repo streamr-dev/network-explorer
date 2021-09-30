@@ -1,10 +1,15 @@
-import React, { useCallback, useRef, useEffect } from 'react'
+import React, {
+  useCallback,
+  useRef,
+  useEffect,
+  useState,
+} from 'react'
 import { useHistory } from 'react-router-dom'
 
-import { useStore, ActiveView } from '../../contexts/Store'
+import { useStore, ActiveView, ActiveRoute } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
-import { useController } from '../../contexts/Controller'
 
+import useSearch from './useSearch'
 import Search from './Search'
 import StreamStats from '../StreamStats'
 import NetworkStats from '../NetworkStats'
@@ -12,37 +17,40 @@ import NetworkStats from '../NetworkStats'
 const SearchBox = () => {
   const {
     streamId,
+    activeRoute,
     activeView,
     setActiveView,
-    setActiveLocationId,
-    search,
-    updateSearch: updateSearchText,
-    searchResults,
-    resetSearchResults,
     env,
     activeNode,
   } = useStore()
-  const { updateSearch } = useController()
   const { isPending: isStreamLoading } = usePending('streams')
-  const { isPending: isSearchPending } = usePending('search')
-  const history = useHistory()
+  const { isPending: isSearchPending, start: startSearch, end: endSearch } = usePending('search')
+  const [searchInputValue, setSearchInputValue] = useState<string>('')
+  const { results: searchResults, reset } = useSearch({
+    search: searchInputValue,
+    onStart: startSearch,
+    onEnd: endSearch,
+  })
   const searchRef = useRef<HTMLDivElement>(null)
+  const history = useHistory()
 
-  const hasStream = !!streamId
+  const hasStream = !!(activeRoute === ActiveRoute.Stream)
   const isDisabled = hasStream && !!isStreamLoading
   const isNodeSelected = activeNode && search === activeNode.title
 
   const onClear = useCallback(() => {
-    updateSearchText('')
-    resetSearchResults()
+    setSearchInputValue('')
+    reset()
+    endSearch()
     history.push('/')
-  }, [history, updateSearchText, resetSearchResults])
+  }, [history, reset, endSearch])
 
   const onSearch = useCallback(
     (value: string) => {
-      updateSearch({ search: value })
+      setSearchInputValue(value)
+      startSearch()
     },
-    [updateSearch],
+    [startSearch],
   )
 
   const onResultClick = useCallback(
@@ -50,24 +58,22 @@ const SearchBox = () => {
       setActiveView(ActiveView.Map)
       switch (type) {
         case 'streams':
-          resetSearchResults()
+          onClear()
           history.push(`/streams/${encodeURIComponent(id)}`)
           break
 
         case 'nodes':
-          resetSearchResults()
           history.push(`/nodes/${encodeURIComponent(id)}`)
           break
 
         case 'locations':
-          setActiveLocationId(id)
           break
 
         default:
           break
       }
     },
-    [history, setActiveView, setActiveLocationId, resetSearchResults],
+    [history, setActiveView, onClear],
   )
 
   useEffect(() => {
@@ -94,6 +100,10 @@ const SearchBox = () => {
     }
   }, [activeView, setActiveView])
 
+  useEffect(() => {
+    console.log(activeRoute)
+  }, [activeRoute])
+
   return (
     <>
       <Search
@@ -107,7 +117,7 @@ const SearchBox = () => {
       >
         <Search.SlideHandle />
         <Search.Input
-          value={search}
+          value={searchInputValue}
           onChange={onSearch}
           onClear={onClear}
           disabled={!!isDisabled}
@@ -126,7 +136,11 @@ const SearchBox = () => {
         {!!hasStream && <StreamStats />}
         {!hasStream && <NetworkStats />}
         {searchResults.length > 0 && (
-          <Search.Results results={searchResults} onClick={onResultClick} highlight={search} />
+          <Search.Results
+            results={searchResults}
+            onClick={onResultClick}
+            highlight={searchInputValue}
+          />
         )}
       </Search>
       {(!isSearchPending &&

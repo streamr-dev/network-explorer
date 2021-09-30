@@ -97,7 +97,7 @@ const searchPadding = 70
 const searchElementHeight = 164
 
 const Layout = ({ children, ...props }: Props) => {
-  const { activeView, searchResults } = useStore()
+  const { activeView } = useStore()
   const [top, setTopState] = useState<number>(defaultTop)
   const ref = useRef<HTMLDivElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
@@ -136,8 +136,6 @@ const Layout = ({ children, ...props }: Props) => {
       <LayoutComponent
         theme={{
           activeView,
-          top,
-          hasResults: !!(searchResults && searchResults.length),
         }}
         ref={dragRef}
         style={{
