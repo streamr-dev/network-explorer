@@ -1,7 +1,14 @@
 import React, {
-  useMemo, useContext, useCallback, useRef,
+  useMemo, useContext, useCallback, useRef, useState,
 } from 'react'
 import axios from 'axios'
+import {
+  ViewportProps,
+  FlyToInterpolator,
+  LinearInterpolator,
+  TRANSITION_EVENTS,
+} from 'react-map-gl'
+import { useHistory } from 'react-router-dom'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
@@ -12,8 +19,20 @@ import useIsMounted from '../hooks/useIsMounted'
 import { useDebounced } from '../hooks/wrapCallback'
 import { setEnvironment } from '../utils/config'
 
+type FocusLocationParams = {
+  longitude: number
+  latitude: number
+}
+
 type ContextProps = {
   changeEnv: Function
+  viewport: ViewportProps
+  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>
+  zoomIn: () => void
+  zoomOut: () => void
+  reset: () => void
+  focusLocation: (location: FocusLocationParams) => void
+  showNode: Function
   loadTrackers: () => Promise<void>
   loadStream: Function
   resetStream: Function
@@ -31,6 +50,28 @@ class RequestCanceledError extends Error {
   }
 }
 
+const defaultViewport = {
+  width: 0,
+  height: 0,
+  latitude: 53.86859,
+  longitude: -0.36616,
+  zoom: 3,
+  bearing: 0,
+  pitch: 0,
+  altitude: 0,
+  maxZoom: 20,
+  minZoom: 0,
+  maxPitch: 60,
+  minPitch: 0,
+}
+
+const LINEAR_TRANSITION_PROPS = {
+  transitionDuration: 300,
+  transitionEasing: (t: number) => t,
+  transitionInterpolator: new LinearInterpolator(),
+  transitionInterruption: TRANSITION_EVENTS.BREAK,
+}
+
 function useControllerContext() {
   const {
     nodes,
@@ -44,7 +85,16 @@ function useControllerContext() {
     setTopology,
     setStream,
     resetStore,
+    streamId: activeStreamId,
   } = useStore()
+  const [viewport, setViewport] = useState<ViewportProps>({
+    ...defaultViewport,
+    transitionInterpolator: new FlyToInterpolator({
+      speed: 3,
+    }),
+    transitionDuration: 2000,
+  })
+  const history = useHistory()
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
@@ -53,6 +103,65 @@ function useControllerContext() {
   const nodesRef = useRef(visibleNodes)
   nodesRef.current = visibleNodes
   const cancelRef = useRef<undefined | Function>()
+
+  const showNode = useCallback(
+    (nodeId?: string) => {
+      let path = '/'
+
+      if (activeStreamId) {
+        path += `streams/${encodeURIComponent(activeStreamId)}/`
+      }
+
+      if (nodeId) {
+        path += `nodes/${encodeURIComponent(nodeId)}`
+      }
+
+      history.replace(path)
+    },
+    [activeStreamId, history],
+  )
+
+  const debouncedSetViewport = useDebounced(
+    useCallback(async (nextViewport: ViewportProps) => setViewport(nextViewport), []),
+    250,
+  )
+
+  const zoomIn = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: (prev.zoom || 0) + 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const zoomOut = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: (prev.zoom || 0) - 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const reset = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => {
+      const nextViewport = defaultViewport
+      return {
+        ...prev,
+        ...nextViewport,
+        LINEAR_TRANSITION_PROPS,
+      }
+    })
+  }, [debouncedSetViewport])
+
+  const focusLocation = useCallback(({ latitude, longitude }: FocusLocationParams) => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      longitude,
+      latitude,
+      zoom: 10,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
 
   const loadTrackers = useCallback(
     async () =>
@@ -370,6 +479,13 @@ function useControllerContext() {
   return useMemo(
     () => ({
       changeEnv,
+      viewport,
+      setViewport,
+      zoomIn,
+      zoomOut,
+      reset,
+      focusLocation,
+      showNode,
       loadTrackers,
       loadStream,
       resetStream,
@@ -380,6 +496,13 @@ function useControllerContext() {
     }),
     [
       changeEnv,
+      viewport,
+      setViewport,
+      zoomIn,
+      zoomOut,
+      reset,
+      focusLocation,
+      showNode,
       loadTrackers,
       loadStream,
       resetStream,

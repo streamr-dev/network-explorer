@@ -13,6 +13,9 @@ import { useDebounced } from '../../hooks/wrapCallback'
 import useIsMounted from '../../hooks/useIsMounted'
 import useEffectAfterMount from '../../hooks/useEffectAfterMount'
 
+// const searchResultSchema = new schema.Entity('searchResults')
+// const searchResultsSchema = [searchResultSchema]
+
 type Action =
   | { type: 'updateSearch'; search: string }
   | { type: 'addSearchResults'; results: Array<SearchResult> }

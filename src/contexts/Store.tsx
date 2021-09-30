@@ -49,7 +49,6 @@ type Store = {
   latencies: trackerApi.Topology
   streamId: string | undefined
   activeNodeId: string | undefined
-  activeLocationId: string | undefined
   entities: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
   showConnections: ConnectionsMode
   updateMap: boolean,
@@ -82,10 +81,8 @@ type ContextProps = {
   latencies: trackerApi.Topology
   setTopology: (params: SetTopology) => void
   setActiveNodeId: (activeNodeId?: string) => void
-  setActiveLocationId: (activeLocationId?: string) => void
   visibleNodes: trackerApi.Node[]
   activeNode: trackerApi.Node | undefined
-  activeLocation: SearchResult
   streamId: string | undefined
   stream: streamrApi.Stream | undefined
   setStream: (stream: streamrApi.Stream | undefined) => void
@@ -108,7 +105,6 @@ const getInitialState = (): Store => ({
   latencies: {},
   streamId: undefined,
   activeNodeId: undefined,
-  activeLocationId: undefined,
   entities: {
     nodes: {},
     streams: {},
@@ -126,7 +122,6 @@ type Action =
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
   | { type: 'setTopology'; latencies: trackerApi.Topology, updateMap: boolean }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
-  | { type: 'setActiveLocation'; activeLocationId: string | undefined }
   | { type: 'setStream'; streamId: string | undefined }
   | { type: 'setActiveRoute'; activeRoute: ActiveRoute }
   | { type: 'setActiveView'; activeView: ActiveView }
@@ -204,13 +199,6 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         activeNodeId: action.activeNodeId,
-      }
-    }
-
-    case 'setActiveLocation': {
-      return {
-        ...state,
-        activeLocationId: action.activeLocationId,
       }
     }
 
@@ -352,16 +340,6 @@ function useStoreContext() {
     [dispatch],
   )
 
-  const setActiveLocationId = useCallback(
-    (activeLocationId?: string) => {
-      dispatch({
-        type: 'setActiveLocation',
-        activeLocationId,
-      })
-    },
-    [dispatch],
-  )
-
   const setStream = useCallback(
     (stream: streamrApi.Stream | undefined) => {
       if (stream) {
@@ -447,7 +425,6 @@ function useStoreContext() {
     search,
     searchResults: searchResultIds,
     activeNodeId,
-    activeLocationId,
     streamId,
     nodes: nodeIds,
     trackers,
@@ -499,11 +476,6 @@ function useStoreContext() {
     [activeNodeId, nodes],
   )
 
-  const activeLocation = useMemo(
-    () => denormalize(activeLocationId, searchResultSchema, entitiesRef.current),
-    [activeLocationId],
-  )
-
   const stream = useMemo(() => denormalize(streamId, streamSchema, entitiesRef.current), [streamId])
 
   const searchResults = useMemo(
@@ -535,9 +507,7 @@ function useStoreContext() {
       showConnections,
       toggleShowConnections,
       activeNode,
-      activeLocation,
       setActiveNodeId,
-      setActiveLocationId,
       streamId,
       stream,
       setStream,
@@ -568,9 +538,7 @@ function useStoreContext() {
       showConnections,
       toggleShowConnections,
       activeNode,
-      activeLocation,
       setActiveNodeId,
-      setActiveLocationId,
       streamId,
       stream,
       setStream,

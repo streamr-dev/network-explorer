@@ -8,6 +8,7 @@ import { useHistory } from 'react-router-dom'
 
 import { useStore, ActiveView, ActiveRoute } from '../../contexts/Store'
 import { usePending } from '../../contexts/Pending'
+import { useController } from '../../contexts/Controller'
 
 import useSearch from './useSearch'
 import Search from './Search'
@@ -33,6 +34,7 @@ const SearchBox = () => {
   })
   const searchRef = useRef<HTMLDivElement>(null)
   const history = useHistory()
+  const { focusLocation } = useController()
 
   const hasStream = !!(activeRoute === ActiveRoute.Stream)
   const isDisabled = hasStream && !!isStreamLoading
@@ -54,7 +56,7 @@ const SearchBox = () => {
   )
 
   const onResultClick = useCallback(
-    ({ id, type }) => {
+    ({ id, type, longitude, latitude }) => {
       setActiveView(ActiveView.Map)
       switch (type) {
         case 'streams':
@@ -67,13 +69,17 @@ const SearchBox = () => {
           break
 
         case 'locations':
+          focusLocation({
+            longitude,
+            latitude,
+          })
           break
 
         default:
           break
       }
     },
-    [history, setActiveView, onClear],
+    [history, setActiveView, onClear, focusLocation],
   )
 
   useEffect(() => {

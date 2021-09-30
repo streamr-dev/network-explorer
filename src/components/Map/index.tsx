@@ -1,15 +1,11 @@
 import React, {
-  useState, useEffect, useRef, useMemo, useCallback,
+  useEffect, useRef, useMemo, useCallback,
 } from 'react'
 import ReactMapGL, {
   ViewportProps,
-  FlyToInterpolator,
-  LinearInterpolator,
   MapRef,
-  TRANSITION_EVENTS,
 } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
 
 import ConnectionLayer from './ConnectionLayer'
@@ -17,9 +13,9 @@ import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
 
 import { useStore, Topology } from '../../contexts/Store'
+import { useController } from '../../contexts/Controller'
 import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
 import { Node } from '../../utils/api/tracker'
-import { useDebounced } from '../../hooks/wrapCallback'
 import useKeyDown from '../../hooks/useKeyDown'
 
 type Props = {
@@ -190,13 +186,6 @@ export const Map = ({
   )
 }
 
-const LINEAR_TRANSITION_PROPS = {
-  transitionDuration: 300,
-  transitionEasing: (t: number) => t,
-  transitionInterpolator: new LinearInterpolator(),
-  transitionInterruption: TRANSITION_EVENTS.BREAK,
-}
-
 const MapContainer = styled.div`
   position: relative;
   width: 100vw;
@@ -208,55 +197,20 @@ export const ConnectedMap = () => {
     visibleNodes,
     topology,
     activeNode,
-    activeLocation,
     streamId,
     showConnections,
     toggleShowConnections,
   } = useStore()
-  const history = useHistory()
-  const [viewport, setViewport] = useState<ViewportProps>({
-    ...defaultViewport,
-    transitionInterpolator: new FlyToInterpolator({
-      speed: 3,
-    }),
-    transitionDuration: 2000,
-  })
-
-  const debouncedSetViewport = useDebounced(
-    useCallback(async (viewPort: ViewportProps) => setViewport(viewPort), []),
-    250,
-  )
-
-  // zoom selected location into view
-  useEffect(() => {
-    if (activeLocation) {
-      debouncedSetViewport((prev: ViewportProps) => ({
-        ...prev,
-        longitude: activeLocation.longitude,
-        latitude: activeLocation.latitude,
-        zoom: 10,
-      }))
-    }
-  }, [debouncedSetViewport, activeLocation])
+  const {
+    viewport,
+    setViewport,
+    showNode,
+    zoomIn,
+    zoomOut,
+    reset,
+  } = useController()
 
   const { id: activeNodeId } = activeNode || {}
-
-  const showNode = useCallback(
-    (nodeId?: string) => {
-      let path = '/'
-
-      if (streamId) {
-        path += `streams/${encodeURIComponent(streamId)}/`
-      }
-
-      if (nodeId) {
-        path += `nodes/${encodeURIComponent(nodeId)}`
-      }
-
-      history.replace(path)
-    },
-    [streamId, history],
-  )
 
   const onNodeClick = useCallback(
     (nodeId: string) => {
@@ -270,33 +224,6 @@ export const ConnectedMap = () => {
     // unselect active node
     showNode(undefined)
   }, [showNode])
-
-  const zoomIn = useCallback(() => {
-    debouncedSetViewport((prev: ViewportProps) => ({
-      ...prev,
-      zoom: (prev.zoom || 0) + 1,
-      LINEAR_TRANSITION_PROPS,
-    }))
-  }, [debouncedSetViewport])
-
-  const zoomOut = useCallback(() => {
-    debouncedSetViewport((prev: ViewportProps) => ({
-      ...prev,
-      zoom: (prev.zoom || 0) - 1,
-      LINEAR_TRANSITION_PROPS,
-    }))
-  }, [debouncedSetViewport])
-
-  const reset = useCallback(() => {
-    debouncedSetViewport((prev: ViewportProps) => {
-      const nextViewport = defaultViewport
-      return {
-        ...prev,
-        ...nextViewport,
-        LINEAR_TRANSITION_PROPS,
-      }
-    })
-  }, [debouncedSetViewport])
 
   useKeyDown(
     useMemo(
