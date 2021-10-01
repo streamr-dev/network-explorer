@@ -1,7 +1,6 @@
 import React, {
   useMemo, useContext, useCallback, useRef, useState,
 } from 'react'
-import axios from 'axios'
 import {
   ViewportProps,
   FlyToInterpolator,
@@ -38,17 +37,10 @@ type ContextProps = {
   resetStream: Function
   loadTopology: Function
   resetTopology: Function
-  updateSearch: Function
   loadNodeLocations: Function
 }
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
-
-class RequestCanceledError extends Error {
-  constructor(message: string = 'Cancelled') {
-    super(message)
-  }
-}
 
 const defaultViewport = {
   width: 0,
@@ -75,12 +67,8 @@ const LINEAR_TRANSITION_PROPS = {
 function useControllerContext() {
   const {
     nodes,
-    visibleNodes,
     updateLocations,
     setTrackers,
-    updateSearch: updateSearchText,
-    resetSearchResults,
-    addSearchResults,
     setNodes,
     setTopology,
     setStream,
@@ -98,11 +86,10 @@ function useControllerContext() {
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
-  const { start: startSearch, end: endSearch } = usePending('search')
   const isMounted = useIsMounted()
-  const nodesRef = useRef(visibleNodes)
-  nodesRef.current = visibleNodes
-  const cancelRef = useRef<undefined | Function>()
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+  const trackersLoadedOnce = useRef<boolean>(false)
 
   const showNode = useCallback(
     (nodeId?: string) => {
@@ -272,12 +259,17 @@ function useControllerContext() {
         }
 
         // Load trackers again if topology changes
-        const incomingNodes = new Set(Object.keys(newTopology))
-        const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
+        if (trackersLoadedOnce.current) {
+          const incomingNodes = new Set(Object.keys(newTopology))
+          const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
 
-        const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
-        const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
-        didChange = !!(added.size > 0 || removed.size > 0)
+          const missingNodes = new Set([...incomingNodes].filter(
+            (nodeId) => !existingNodes.has(nodeId)),
+          )
+          didChange = !!(missingNodes.size > 0)
+        } else {
+          didChange = true
+        }
 
         if (didChange) {
           if (!didFetchTrackers) {
@@ -292,6 +284,8 @@ function useControllerContext() {
 
           setTrackers(newTrackers)
           setNodes(newNodes)
+
+          trackersLoadedOnce.current = true
         }
 
         setTopology({
@@ -349,133 +343,6 @@ function useControllerContext() {
     [resetStore],
   )
 
-  const searchNodes = useCallback(
-    (rawSearchString: string): streamrApi.SearchResult[] => {
-      const search = rawSearchString.toLowerCase()
-
-      return nodes
-        .filter(
-          ({ id, title }) =>
-            id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0,
-        )
-        .map(({ id, title }) => ({
-          id,
-          type: 'nodes',
-          name: title,
-          description: id,
-        }))
-    },
-    [nodes],
-  )
-
-  const debouncedUpdateSearch = useDebounced(
-    useCallback(
-      async ({ search }: { search: string }) => {
-        resetSearchResults()
-
-        if (cancelRef.current !== undefined) {
-          cancelRef.current()
-          cancelRef.current = undefined
-        }
-
-        if (!search) {
-          endSearch()
-        } else {
-          try {
-            addSearchResults(searchNodes(search))
-
-            const source = axios.CancelToken.source()
-
-            const streamPromise = new Promise<{
-              results: streamrApi.SearchResult[],
-              cancelled: boolean,
-            }>((resolve, reject) => {
-              return streamrApi.searchStreams({
-                search,
-                cancelToken: source.token,
-              }).then((results) => {
-                resolve({
-                  results,
-                  cancelled: false,
-                })
-              }, () => resolve({
-                results: [],
-                cancelled: true,
-              }))
-            }).then(({ results: nextResults, cancelled }) => {
-              if (!isMounted() || cancelled) {
-                return
-              }
-
-              addSearchResults(nextResults)
-            })
-
-            const mapPromise = new Promise<{
-              results: streamrApi.SearchResult[],
-              cancelled: boolean,
-            }>((resolve, reject) => {
-              return mapApi.getLocations({
-                search,
-                cancelToken: source.token,
-              }).then((results) => {
-                resolve({
-                  results,
-                  cancelled: false,
-                })
-              }, () => resolve({
-                results: [],
-                cancelled: true,
-              }))
-            }).then(({ results: nextResults, cancelled }) => {
-              if (!isMounted() || cancelled) {
-                return
-              }
-
-              addSearchResults(nextResults)
-            })
-
-            const cancelPromise = new Promise<undefined>((resolve, reject) => {
-              cancelRef.current = () => {
-                source.cancel()
-                reject(new RequestCanceledError())
-              }
-            })
-
-            // wait for all searches to complete before ending progress status
-            await Promise.race([
-              Promise.all([streamPromise, mapPromise]),
-              cancelPromise,
-            ])
-            if (!isMounted()) {
-              return
-            }
-
-            endSearch()
-          } catch (e) {
-            // end search if not cancelled, otherwise status
-            // will be updated when latest request completes
-            if (!(e instanceof RequestCanceledError)) {
-              endSearch()
-            }
-          } finally {
-            cancelRef.current = undefined
-          }
-        }
-      },
-      [isMounted, endSearch, searchNodes, resetSearchResults, addSearchResults],
-    ),
-    1000,
-  )
-
-  const updateSearch = useCallback(
-    ({ search }: { search: string }) => {
-      startSearch()
-      updateSearchText(search)
-      debouncedUpdateSearch({ search })
-    },
-    [startSearch, updateSearchText, debouncedUpdateSearch],
-  )
-
   return useMemo(
     () => ({
       changeEnv,
@@ -491,7 +358,6 @@ function useControllerContext() {
       resetStream,
       loadTopology,
       resetTopology,
-      updateSearch,
       loadNodeLocations,
     }),
     [
@@ -508,7 +374,6 @@ function useControllerContext() {
       resetStream,
       loadTopology,
       resetTopology,
-      updateSearch,
       loadNodeLocations,
     ],
   )

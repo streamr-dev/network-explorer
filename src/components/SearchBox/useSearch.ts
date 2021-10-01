@@ -2,8 +2,12 @@ import {
   useReducer,
   useMemo,
   useCallback,
+  useRef,
+  useEffect,
 } from 'react'
+import mergeWith from 'lodash/mergeWith'
 import axios from 'axios'
+import { schema, normalize, denormalize } from 'normalizr'
 
 import { SearchResult } from '../../utils/api/streamr'
 import * as streamrApi from '../../utils/api/streamr'
@@ -13,23 +17,27 @@ import { useDebounced } from '../../hooks/wrapCallback'
 import useIsMounted from '../../hooks/useIsMounted'
 import useEffectAfterMount from '../../hooks/useEffectAfterMount'
 
-// const searchResultSchema = new schema.Entity('searchResults')
-// const searchResultsSchema = [searchResultSchema]
+const searchResultSchema = new schema.Entity('searchResults')
+const searchResultsSchema = [searchResultSchema]
 
 type Action =
   | { type: 'updateSearch'; search: string }
-  | { type: 'addSearchResults'; results: Array<SearchResult> }
+  | { type: 'addSearchResults'; results: Array<SearchResult>, entitiesOnly?: boolean }
   | { type: 'resetSearchResults' }
   | { type: 'reset' }
 
 type SearchState = {
   search: string | undefined
-  results: Array<SearchResult>
+  ids: Array<SearchResult>
+  entities: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 const initialState = {
   search: undefined,
-  results: [],
+  ids: [],
+  entities: {
+    searchResults: {},
+  },
 }
 
 const reducer = (state: SearchState, action: Action) => {
@@ -42,21 +50,30 @@ const reducer = (state: SearchState, action: Action) => {
     }
 
     case 'addSearchResults': {
+      const { result: ids, entities } = normalize(action.results, searchResultsSchema)
+
+      const nextIds = action.entitiesOnly ? state.ids : [...(new Set([...state.ids, ...ids]))]
+
       return {
         ...state,
-        results: [...state.results, ...action.results],
+        ids: nextIds,
+        entities: mergeWith({}, state.entities, entities),
       }
     }
 
     case 'resetSearchResults': {
       return {
         ...state,
-        results: [],
+        ids: [],
       }
     }
 
     case 'reset': {
-      return initialState
+      return {
+        ...state,
+        search: undefined,
+        ids: [],
+      }
     }
   }
 
@@ -67,15 +84,33 @@ type UseSearch = {
   search: string,
   onStart?: Function,
   onEnd?: Function,
+  existingResults?: SearchResult[],
 }
 
 function useSearch({
   search: searchProp,
   onStart,
   onEnd,
+  existingResults,
 }: UseSearch) {
-  const [{ search, results }, dispatch] = useReducer(reducer, initialState)
+  const [{ search, ids: resultIds, entities }, dispatch] = useReducer(reducer, initialState)
   const isMounted = useIsMounted()
+
+  const entitiesRef = useRef(entities)
+  entitiesRef.current = entities
+
+  // Adds any exisiting entities to cached results so they can be search fast
+  useEffect(() => {
+    if (!existingResults || existingResults.length <= 0) {
+      return
+    }
+
+    dispatch({
+      type: 'addSearchResults',
+      results: existingResults,
+      entitiesOnly: true,
+    })
+  }, [existingResults])
 
   const updateSearch = useDebounced(
     useCallback(
@@ -109,11 +144,41 @@ function useSearch({
     const source = axios.CancelToken.source()
 
     const searchFetch = async () => {
-      const query = search || ''
+      const query = (search || '').trim().toLowerCase()
 
       if (query.length <= 0) {
         return Promise.resolve()
       }
+
+      // search from cached entities
+      const entitiesPromise = new Promise((resolve) => {
+        const { searchResults } = entitiesRef.current || {}
+        const values = (Object.values(searchResults || {}) as SearchResult[])
+
+        if (values.length > 0) {
+          const results = []
+
+          for (let i = 0; i < values.length; ++i) {
+            try {
+              const { name, description } = values[i]
+              const haystack = `${name}::${description}`.trim().toLowerCase()
+
+              if (haystack.indexOf(query) >= 0) {
+                results.push(values[i])
+              }
+            } catch (e) {
+              // ignore error
+            }
+          }
+
+          dispatch({
+            type: 'addSearchResults',
+            results,
+          })
+        }
+
+        resolve()
+      })
 
       // fetch new streams
       const streamPromise = new Promise((resolve) => {
@@ -147,7 +212,7 @@ function useSearch({
         }, resolve)
       })
 
-      return Promise.all([streamPromise, mapPromise])
+      return Promise.all([entitiesPromise, streamPromise, mapPromise])
     }
 
     dispatch({
@@ -175,12 +240,17 @@ function useSearch({
     })
   }, [updateSearch, dispatch])
 
+  const searchResults = useMemo(
+    () => denormalize(resultIds, searchResultsSchema, entitiesRef.current) || [],
+    [resultIds],
+  )
+
   return useMemo(() => ({
     reset,
-    results,
+    results: searchResults,
   }), [
     reset,
-    results,
+    searchResults,
   ])
 }
 

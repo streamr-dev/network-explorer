@@ -14,7 +14,7 @@ const ActiveRouteSetter = () => {
   const { setActiveRoute } = useStore()
 
   useEffect(() => {
-    setActiveRoute(ActiveRoute.Network)
+    setActiveRoute(ActiveRoute.Stream)
   }, [setActiveRoute])
 
   return null

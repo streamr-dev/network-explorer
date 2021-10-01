@@ -7,7 +7,6 @@ import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
 import * as mapboxApi from '../utils/api/mapbox'
 import { getEnvironment } from '../utils/config'
-import { SearchResult } from '../utils/api/streamr'
 
 const locationSchema = new schema.Entity('locations')
 const locationsSchema = [locationSchema]
@@ -16,8 +15,6 @@ const nodeSchema = new schema.Entity('nodes', {
 })
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
-const searchResultSchema = new schema.Entity('searchResults')
-const searchResultsSchema = [searchResultSchema]
 
 export enum ActiveRoute {
   Network = 'network',
@@ -41,8 +38,6 @@ type Store = {
   env: string | undefined
   activeRoute: ActiveRoute
   activeView: ActiveView
-  search: string
-  searchResults: Array<SearchResult>
   nodes: string[]
   trackers: string[]
   fetchedLocations: string[],
@@ -65,11 +60,6 @@ type ContextProps = {
   setActiveRoute: (activeRoute: ActiveRoute) => void
   activeView: ActiveView
   setActiveView: (activeView: ActiveView) => void
-  search: string
-  updateSearch: (search: string) => void
-  searchResults: Array<SearchResult>
-  addSearchResults: (results: Array<SearchResult>) => void
-  resetSearchResults: () => void
   nodes: trackerApi.Node[]
   setNodes: (nodes: trackerApi.Node[]) => void
   trackers: string[]
@@ -97,8 +87,6 @@ const getInitialState = (): Store => ({
   env: getEnvironment(),
   activeRoute: ActiveRoute.Network,
   activeView: ActiveView.Map,
-  search: '',
-  searchResults: [],
   nodes: [],
   trackers: [],
   fetchedLocations: [],
@@ -108,7 +96,6 @@ const getInitialState = (): Store => ({
   entities: {
     nodes: {},
     streams: {},
-    searchResults: {},
     locations: {},
   },
   showConnections: ConnectionsMode.Auto,
@@ -126,9 +113,6 @@ type Action =
   | { type: 'setActiveRoute'; activeRoute: ActiveRoute }
   | { type: 'setActiveView'; activeView: ActiveView }
   | { type: 'toggleShowConnections' }
-  | { type: 'updateSearch'; search: string }
-  | { type: 'addSearchResults'; ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
-  | { type: 'resetSearchResults' }
   | { type: 'reset' }
 
 const reducer = (state: Store, action: Action) => {
@@ -238,29 +222,6 @@ const reducer = (state: Store, action: Action) => {
       return {
         ...state,
         activeView: action.activeView,
-      }
-    }
-
-    case 'updateSearch': {
-      return {
-        ...state,
-        search: action.search,
-      }
-    }
-
-    case 'addSearchResults': {
-      const nextResults = new Set([...state.searchResults, ...action.ids])
-
-      return {
-        ...state,
-        searchResults: [...nextResults],
-      }
-    }
-
-    case 'resetSearchResults': {
-      return {
-        ...state,
-        searchResults: [],
       }
     }
 
@@ -385,45 +346,10 @@ function useStoreContext() {
     })
   }, [dispatch])
 
-  const updateSearch = useCallback(
-    (search: string) => {
-      dispatch({
-        type: 'updateSearch',
-        search,
-      })
-    },
-    [dispatch],
-  )
-
-  const resetSearchResults = useCallback(() => {
-    dispatch({
-      type: 'resetSearchResults',
-    })
-  }, [dispatch])
-
-  const addSearchResults = useCallback(
-    (results: Array<SearchResult>) => {
-      const { result: ids, entities } = normalize(results, searchResultsSchema)
-
-      dispatch({
-        type: 'updateEntities',
-        entities,
-      })
-
-      dispatch({
-        type: 'addSearchResults',
-        ids,
-      })
-    },
-    [dispatch],
-  )
-
   const {
     env,
     activeRoute,
     activeView,
-    search,
-    searchResults: searchResultIds,
     activeNodeId,
     streamId,
     nodes: nodeIds,
@@ -478,11 +404,6 @@ function useStoreContext() {
 
   const stream = useMemo(() => denormalize(streamId, streamSchema, entitiesRef.current), [streamId])
 
-  const searchResults = useMemo(
-    () => denormalize(searchResultIds, searchResultsSchema, entitiesRef.current) || [],
-    [searchResultIds],
-  )
-
   return useMemo(
     () => ({
       env,
@@ -490,11 +411,6 @@ function useStoreContext() {
       setActiveRoute,
       activeView,
       setActiveView,
-      search,
-      updateSearch,
-      searchResults,
-      addSearchResults,
-      resetSearchResults,
       nodes,
       setNodes,
       trackers,
@@ -521,11 +437,6 @@ function useStoreContext() {
       setActiveRoute,
       activeView,
       setActiveView,
-      search,
-      updateSearch,
-      searchResults,
-      addSearchResults,
-      resetSearchResults,
       nodes,
       setNodes,
       trackers,

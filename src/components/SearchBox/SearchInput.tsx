@@ -164,6 +164,7 @@ const ClearIcon = () => (
 
 type Props = {
   value: string
+  defaultValue?: string | undefined
   onChange: (text: string) => void
   onClear: () => void
   onFocus?: Function
@@ -173,7 +174,8 @@ type Props = {
 
 const UnstyledSearchInput = ({
   value,
-  onChange,
+  defaultValue,
+  onChange: onChangeProp,
   onClear,
   onFocus: onFocusProp,
   onBlur: onBlurProp,
@@ -181,16 +183,23 @@ const UnstyledSearchInput = ({
   ...props
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null)
-  const displayValue = useMemo(() => truncate(value), [value])
+  const [inputValue, setInputValue] = useState<string>('')
+  const displayValue = useMemo(() => truncate(value || defaultValue || ''), [value, defaultValue])
   const [focused, setFocused] = useState(false)
+
+  useEffect(() => {
+    setInputValue(defaultValue || '')
+  }, [defaultValue])
 
   const onFocus = useCallback(() => {
     setFocused(true)
 
+    setInputValue((prevValue) => !prevValue ? (defaultValue || '') : prevValue)
+
     if (typeof onFocusProp === 'function') {
       onFocusProp()
     }
-  }, [onFocusProp])
+  }, [onFocusProp, defaultValue])
 
   const onBlur = useCallback(() => {
     setFocused(false)
@@ -199,6 +208,11 @@ const UnstyledSearchInput = ({
       onBlurProp()
     }
   }, [onBlurProp])
+
+  const onChange = useCallback((nextValue: string) => {
+    onChangeProp(nextValue)
+    setInputValue(nextValue)
+  }, [onChangeProp])
 
   useEffect(() => {
     if (focused && inputRef.current) {
@@ -217,7 +231,7 @@ const UnstyledSearchInput = ({
         <Input
           id="input"
           placeholder="Search Streamr Network"
-          value={focused ? value : displayValue}
+          value={focused ? inputValue : displayValue}
           onChange={(e) => onChange(e.target.value)}
           disabled={!!disabled}
           autoComplete="off"
@@ -231,7 +245,7 @@ const UnstyledSearchInput = ({
               <SearchIcon />
             </InputLabel>
           )}
-          {!!value && (
+          {!!inputValue && (
             <IconButton type="button" onClick={onClear}>
               <ClearIcon />
             </IconButton>
