@@ -179,8 +179,13 @@ const UnstyledSearchResults = ({
     const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
     const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
 
+    const overriddenStyle = {
+      ...style,
+      width: 'calc(100% - 2px)', // make sure we take borders into account
+    }
+
     return (
-      <Row style={style} onClick={() => typeof onClick === 'function' && onClick(result)}>
+      <Row style={overriddenStyle} onClick={() => typeof onClick === 'function' && onClick(result)}>
         <IconWrapper>
           <Icon>
             <ResultIcon type={result.type} />
@@ -233,6 +238,7 @@ const SearchResults = styled(UnstyledSearchResults)`
     ${Row} {
       border: 1px solid #efefef;
       border-radius: 4px;
+      width: calc(100% - 2px);
     }
   }
 

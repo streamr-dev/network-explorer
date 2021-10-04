@@ -18,7 +18,7 @@
     <link href="https://streamr.network/resources/apple-icon-180x180.png" rel="apple-touch-icon" size="180" type="image/png">
     <link href="https://streamr.network/resources/android-icon-192x192.png" rel="icon" size="192" type="image/png">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="description" content="Explore streams and nodes in the Streamr decentralized network via search and geo map with live and historical metrics">
     <meta property="og:title" content="Streamr Network Explorer">
     <meta property="og:description" content="Explore streams and nodes in the Streamr decentralized network via search and geo map with live and historical metrics">
@@ -32,6 +32,11 @@
 
     <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
     <style>@-ms-viewport { width: device-width; }</style>
+    <style>
+      html, body, div#root {
+        height: 100%;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

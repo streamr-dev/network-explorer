@@ -29,7 +29,7 @@ const LayoutComponent = styled.div`
 
   ${NodeList.Inner} {
     overflow-y: scroll;
-    max-height: calc(100vh - 245px);
+    max-height: calc(100% - 245px);
   }
 
   @media (min-width: ${SM}px) {
@@ -68,7 +68,8 @@ const LayoutComponent = styled.div`
     ${({ theme }) =>
     theme.activeView === 'list' &&
       css`
-        top: 40px;
+        top: ${searchPadding}px;
+        // bottom: 0;
 
         div > ${ControlBox} + * {
           display: block;
@@ -77,11 +78,18 @@ const LayoutComponent = styled.div`
   }
 `
 
+const LayoutComponentWrapper = styled.div`
+  height: 100%;
+  touch-action: none;
+`
+
 type Props = {
   children: React.ReactNode
 }
 
 const defaultTop = -170
+const searchPadding = 70
+const searchElementHeight = 164
 
 const Layout = ({ children, ...props }: Props) => {
   const { activeView, searchResults } = useStore()
@@ -101,39 +109,17 @@ const Layout = ({ children, ...props }: Props) => {
     [isMounted],
   )
 
-  const onTouchStart = (startEvent: React.TouchEvent) => {
-    const { current: el } = dragRef
-    if (!el) {
-      return
-    }
-    const currentTop = el.offsetHeight
-
-    const y0 = startEvent.touches[0].clientY
-
-    const onMove = (moveEvent: TouchEvent) => {
-      setTop(currentTop + (y0 - moveEvent.touches[0].clientY))
-    }
-
-    const onUp = () => {
-      window.removeEventListener('touchmove', onMove)
-      window.removeEventListener('touchend', onUp)
-    }
-
-    window.addEventListener('touchmove', onMove)
-    window.addEventListener('touchend', onUp)
-  }
-
   useEffect(() => {
     setTop(height || 0)
   }, [height, setTop])
 
   const currentTop = useMemo(() => {
     if (activeView === 'list') {
-      return '40px'
+      return `${searchPadding}px`
     }
 
-    return top > 0 ? `${top}px` : `calc(100vh - min(100vh - 40px, ${-top}px))`
-  }, [activeView, top])
+    return `calc(100% - ${searchElementHeight}px)`
+  }, [activeView])
 
   return (
     <>
@@ -149,13 +135,14 @@ const Layout = ({ children, ...props }: Props) => {
           hasResults: !!(searchResults && searchResults.length),
         }}
         ref={dragRef}
-        onTouchStart={onTouchStart}
         style={{
           top: currentTop,
         }}
         {...props}
       >
-        <div ref={ref}>{children}</div>
+        <LayoutComponentWrapper ref={ref}>
+          {children}
+        </LayoutComponentWrapper>
       </LayoutComponent>
     </>
   )

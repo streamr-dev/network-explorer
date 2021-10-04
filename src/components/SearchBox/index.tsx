@@ -107,7 +107,17 @@ const SearchBox = () => {
         onChange={onSearch}
         onClear={onClear}
         disabled={!!isDisabled}
-        onFocus={() => setActiveView(ActiveView.List)}
+        onFocus={() => {
+          setActiveView(ActiveView.List)
+
+          // For mobile Safari 14 this scrollTo(0, 0) is needed to make input element
+          // visible on screen. This has something to do with Safari calculating
+          // element position at focus time but since we animate that position, it's
+          // not correct after animation without this.
+          setTimeout(() => {
+            window.scrollTo(0, 0)
+          }, 100)
+        }}
       />
       {!!hasStream && <StreamStats />}
       {!hasStream && <NetworkStats />}

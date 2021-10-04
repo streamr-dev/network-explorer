@@ -80,7 +80,7 @@ const DebugContainer = styled.div`
     border-radius: 4px;
     cursor: pointer;
     outline: none;
-    apperance: none;
+    appearance: none;
     height: 20px;
     min-width: 20px;
 
