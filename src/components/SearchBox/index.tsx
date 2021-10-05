@@ -25,7 +25,6 @@ const SearchBox = () => {
     activeView,
     setActiveView,
     env,
-    activeNode,
     nodes,
   } = useStore()
   const { isPending: isStreamLoading } = usePending('streams')
@@ -52,7 +51,7 @@ const SearchBox = () => {
 
   const hasStream = !!(activeRoute === ActiveRoute.Stream)
   const isDisabled = hasStream && !!isStreamLoading
-  const isNodeSelected = activeNode && search === activeNode.title
+  const isNodeSelected = activeNode && searchInputValue === activeNode.title
 
   const { id: activeNodeId } = activeNode || {}
 
@@ -175,9 +174,9 @@ const SearchBox = () => {
       {(!isSearchPending &&
         !isNodeSelected &&
         !hasStream &&
-        search && search.length > 0 &&
+        searchInputValue && searchInputValue.length > 0 &&
         searchResults.length === 0) && (
-          <Search.NoResults search={search} />
+          <Search.NoResults search={searchInputValue} />
       )}
     </>
   )

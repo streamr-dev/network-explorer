@@ -101,7 +101,7 @@ function useSearch({
   const entitiesRef = useRef(entities)
   entitiesRef.current = entities
 
-  // Adds any existing entities to cached results so they can be search fast
+  // Adds any existing entities to cached results so they can be searched fast
   useEffect(() => {
     if (!existingResults || existingResults.length <= 0) {
       return
