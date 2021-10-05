@@ -5,7 +5,6 @@ import { act } from 'react-dom/test-utils'
 import { Provider as PendingProvider } from './Pending'
 import { Provider as StoreProvider, useStore } from './Store'
 import { Provider as ControllerProvider, useController } from './Controller'
-import * as streamrApi from '../utils/api/streamr'
 import * as mapApi from '../utils/api/mapbox'
 import * as trackerApi from '../utils/api/tracker'
 

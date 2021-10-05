@@ -81,25 +81,27 @@ const reducer = (state: SearchState, action: Action) => {
 }
 
 type UseSearch = {
-  search: string,
+  search?: string,
   onStart?: Function,
   onEnd?: Function,
   existingResults?: SearchResult[],
 }
 
 function useSearch({
-  search: searchProp,
+  search: searchProp = '',
   onStart,
   onEnd,
   existingResults,
-}: UseSearch) {
+}: UseSearch = {}) {
   const [{ search, ids: resultIds, entities }, dispatch] = useReducer(reducer, initialState)
   const isMounted = useIsMounted()
 
+  const searchRequests = useRef(0)
+  const searchStarted = useRef(false)
   const entitiesRef = useRef(entities)
   entitiesRef.current = entities
 
-  // Adds any exisiting entities to cached results so they can be search fast
+  // Adds any existing entities to cached results so they can be search fast
   useEffect(() => {
     if (!existingResults || existingResults.length <= 0) {
       return
@@ -128,7 +130,8 @@ function useSearch({
   )
 
   useEffectAfterMount(() => {
-    if (onStart && typeof onStart === 'function') {
+    if (!searchStarted.current && onStart && typeof onStart === 'function') {
+      searchStarted.current = true
       onStart()
     }
 
@@ -149,6 +152,8 @@ function useSearch({
       if (query.length <= 0) {
         return Promise.resolve()
       }
+
+      searchRequests.current += 1
 
       // search from cached entities
       const entitiesPromise = new Promise((resolve) => {
@@ -221,8 +226,14 @@ function useSearch({
 
     searchFetch()
       .then(() => {
-        if (isMounted() && !didCancel && onEnd && typeof onEnd === 'function') {
-          onEnd()
+        searchRequests.current -= 1
+
+        if (searchRequests.current === 0) {
+          searchStarted.current = false
+
+          if (onEnd && typeof onEnd === 'function') {
+            onEnd()
+          }
         }
       })
 
