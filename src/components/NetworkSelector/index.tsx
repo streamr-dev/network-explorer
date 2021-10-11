@@ -40,7 +40,7 @@ const themes: Record<string, Object> = {
   mainnet: {
     color: '#0EAC1B',
   },
-  testnet2: {
+  testnet3: {
     color: '#FF7575',
   },
   default: {
