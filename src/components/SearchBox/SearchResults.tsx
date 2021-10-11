@@ -1,7 +1,6 @@
 import React from 'react'
 import styled from 'styled-components/macro'
-import { FixedSizeList } from 'react-window'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { Virtuoso } from 'react-virtuoso'
 
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import Highlight from '../Highlight'
@@ -161,15 +160,13 @@ const resultTypes = {
 }
 
 type ResultRowProps = {
-  index: number
-  style: Object
+  result: SearchResult
 }
 
 const UnstyledSearchResults = ({
   results, onClick, highlight, ...props
 }: Props) => {
-  const ResultRow = ({ index, style }: ResultRowProps) => {
-    const result = results[index]
+  const ResultRow = ({ result }: ResultRowProps) => {
     const fullname = truncate(result.name)
     const search = highlight && truncate(highlight)
 
@@ -179,13 +176,8 @@ const UnstyledSearchResults = ({
     const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
     const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
 
-    const overriddenStyle = {
-      ...style,
-      width: 'calc(100% - 2px)', // make sure we take borders into account
-    }
-
     return (
-      <Row style={overriddenStyle} onClick={() => typeof onClick === 'function' && onClick(result)}>
+      <Row onClick={() => typeof onClick === 'function' && onClick(result)}>
         <IconWrapper>
           <Icon>
             <ResultIcon type={result.type} />
@@ -210,21 +202,14 @@ const UnstyledSearchResults = ({
       </Row>
     )
   }
-
   return (
     <div {...props}>
-      <AutoSizer>
-        {({ height, width }) => (
-          <FixedSizeList
-            height={height}
-            width={width}
-            itemCount={results.length}
-            itemSize={40}
-          >
-            {ResultRow}
-          </FixedSizeList>
+      <Virtuoso
+        data={results}
+        itemContent={(index, result) => (
+          <ResultRow result={result} />
         )}
-      </AutoSizer>
+      />
     </div>
   )
 }
@@ -238,7 +223,8 @@ const SearchResults = styled(UnstyledSearchResults)`
     ${Row} {
       border: 1px solid #efefef;
       border-radius: 4px;
-      width: calc(100% - 2px);
+      height: 42px;
+      margin-bottom: 4px;
     }
   }
 
