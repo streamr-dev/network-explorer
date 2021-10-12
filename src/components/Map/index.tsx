@@ -200,7 +200,7 @@ const LINEAR_TRANSITION_PROPS = {
 const MapContainer = styled.div`
   position: relative;
   width: 100vw;
-  height: 100vh;
+  height: 100%;
 `
 
 export const ConnectedMap = () => {

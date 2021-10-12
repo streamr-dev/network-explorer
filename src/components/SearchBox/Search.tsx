@@ -22,6 +22,8 @@ const SlideHandle = styled.div`
 `
 
 const Search = styled(ControlBox)`
+  height: 100%;
+
   ${SearchInput} {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
@@ -41,6 +43,7 @@ const Search = styled(ControlBox)`
 
     ${SearchResults} {
       padding: 8px 16px;
+      height: 100%;
     }
 
     ${SlideHandle} {
