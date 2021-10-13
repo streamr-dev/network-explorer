@@ -37,11 +37,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set npm access token
         run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}
-      - name: Get version string from git tag name
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
-      - name: Print version string
-        run: echo ${{ steps.get_version.outputs.VERSION }}
       - name: Install dependencies
         run: npm ci
       - name: Build app
@@ -56,8 +51,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Push streamr/network-explorer:dev
         run: .ci_scripts/deploy_docker.sh dev
-      - name: Push streamr/network-explorer:${{ steps.get_version.outputs.VERSION }}
-        run: .ci_scripts/deploy_docker.sh production ${{ steps.get_version.outputs.VERSION }}
+      - name: Push streamr/network-explorer:version
+        run: .ci_scripts/deploy_docker.sh production ${GITHUB_REF#refs/tags/}
         if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'schedule'
     env:
       OWNER: streamr
