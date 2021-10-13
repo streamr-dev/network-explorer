@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # run job only for master and tags
-    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+    #if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
       - name: Set npm access token
@@ -52,8 +52,8 @@ jobs:
       - name: Push streamr/network-explorer:dev
         run: .ci_scripts/deploy_docker.sh dev
       - name: Push streamr/network-explorer:version
-        run: .ci_scripts/deploy_docker.sh production ${GITHUB_REF#refs/tags/}
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'schedule'
+        run: .ci_scripts/deploy_docker.sh production ${{ GITHUB_REF#refs/tags/ }}
+        #if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'schedule'
     env:
       OWNER: streamr
       IMAGE_NAME: network-explorer
