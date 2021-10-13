@@ -19,10 +19,8 @@ if [ "$1" == "dev" ]; then
         docker push "$OWNER/$IMAGE_NAME:$1"
     fi
 elif [ "$1" == "production" ]; then
-    echo "Tag Production latest/tag"
-    docker tag "$OWNER/$IMAGE_NAME:local" "$OWNER/$IMAGE_NAME:$TRAVIS_TAG"
-    docker tag "$OWNER/$IMAGE_NAME:local" "$OWNER/$IMAGE_NAME:$TAG"
+    echo "Tag Production with $2"
+    docker tag "$OWNER/$IMAGE_NAME:local" "$OWNER/$IMAGE_NAME:$2"
     ## Push Production
-    docker push "$OWNER/$IMAGE_NAME:$TRAVIS_TAG"
-    docker push "$OWNER/$IMAGE_NAME:$TAG"
+    docker push "$OWNER/$IMAGE_NAME:$2"
 fi
