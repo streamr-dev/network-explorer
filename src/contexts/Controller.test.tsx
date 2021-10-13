@@ -663,7 +663,7 @@ describe('Controller', () => {
 
       await act(async () => {
         await controller.updateSearch({ search: 'new' })
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
       })
 
       expect(store.search).toStrictEqual('new')
@@ -723,7 +723,7 @@ describe('Controller', () => {
 
       await act(async () => {
         await controller.updateSearch({ search: 'berlin' })
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
       })
 
       expect(store.search).toStrictEqual('berlin')
@@ -790,7 +790,7 @@ describe('Controller', () => {
 
       await act(async () => {
         await controller.updateSearch({ search: 'berlin' })
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
       })
 
       expect(store.search).toStrictEqual('berlin')
