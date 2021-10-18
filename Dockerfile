@@ -13,5 +13,6 @@ COPY . ./
 RUN npm config set //registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN} \
 	&& npm ci
 
-EXPOSE 3000
+HEALTHCHECK --interval=1m --timeout=10s --start-period=2m --retries=10 CMD /usr/bin/curl --fail --silent --show-error --max-time 9 http://localhost:3000
+EXPOSE 3000/tcp
 CMD ["npm", "start"]
