@@ -18,6 +18,8 @@ jobs:
         uses: actions/setup-node@v2.4.1
         with:
           node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: 'package-lock.json'
       - name: Install dependencies
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
