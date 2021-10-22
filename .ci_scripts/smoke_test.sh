@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-docker run -dit -p 3000:3000 --name=network-explorer $OWNER/$IMAGE_NAME:local
+docker run -dit -p 3000:80 --name=network-explorer $OWNER/$IMAGE_NAME:local
 
 ## Wait for the service to come online and test
 wait_time=10;
