@@ -42,6 +42,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build app
+        env:
+          REACT_APP_DEFAULT_ENV: testnet3
+          REACT_APP_BASENAME: /network-explorer
+          REACT_APP_MAPBOX_TOKEN: pk.eyJ1Ijoic3RyZWFtci1uZSIsImEiOiJja3Q0M29zOGkwNmt2MzFwN2d1OWthc2Z4In0.np5n6kX7ea0ig_5TUXdXbw
         run: npm run build --if-present
       - name: Build Docker image
         run: docker build -t $OWNER/$IMAGE_NAME:local --build-arg NPM_AUTH_TOKEN=${{ secrets.NPM_AUTH_TOKEN }} .

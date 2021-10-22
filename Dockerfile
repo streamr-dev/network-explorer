@@ -1,18 +1,11 @@
-FROM node:14-buster
+FROM nginx:alpine
 
-ARG NPM_AUTH_TOKEN
+# Install curl for running healthcheck
+RUN apk add --update curl
 
-WORKDIR /app
-COPY package*.json ./
-RUN apt-get update && apt-get --assume-yes --no-install-recommends install \
-	build-essential=12.6 \
-	curl=7.64.0-4+deb10u2 \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/*
-COPY . ./
-RUN npm config set //registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN} \
-	&& npm ci
+# Add nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
 
-HEALTHCHECK --interval=1m --timeout=10s --start-period=2m --retries=10 CMD /usr/bin/curl --fail --silent --show-error --max-time 9 http://localhost:3000
-EXPOSE 3000/tcp
-CMD ["npm", "start"]
+# Copy build artifacts
+COPY build /usr/share/nginx/html
