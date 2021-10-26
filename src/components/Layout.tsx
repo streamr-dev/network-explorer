@@ -35,8 +35,13 @@ const LayoutComponent = styled.div`
   @media (min-width: ${SM}px) {
     top: 32px !important;
     left: 32px !important;
+
     div > ${ControlBox} + * {
       margin-top: 24px;
+    }
+
+    ${NodeList.Inner} {
+      max-height: calc(100vh - 245px);
     }
   }
 

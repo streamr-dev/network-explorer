@@ -45,9 +45,12 @@ const NodeList = React.forwardRef<HTMLDivElement, Props>(({ children }, ref?) =>
   </ControlBox>
 ))
 
+const PAGE_SIZE = 10
+
 export default Object.assign(NodeList, {
   Inner,
   Header,
   Node: NodeListItem,
   Pager,
+  PAGE_SIZE,
 })

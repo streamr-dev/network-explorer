@@ -98,7 +98,7 @@ export default () => {
       <SearchTextSetter />
       <NodeConnectionsLoader />
       <ActiveNodeSetter id={nodeId} />
-      {!!nodeId && <TopologyList id={nodeId} />}
+      {!!nodeId && <TopologyList id={nodeId} key={nodeId} />}
     </>
   )
 }
