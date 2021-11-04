@@ -1,6 +1,12 @@
 name: Lint, test & deploy docker image
 
 on: [push]
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
 
 jobs:
   test:
