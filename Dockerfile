@@ -1,7 +1,7 @@
-FROM nginx:alpine
+FROM nginx:mainline
 
 # Install curl for running healthcheck
-RUN apk add --update curl
+RUN apt-get update && apt-get install -y curl
 
 # Add nginx configuration
 RUN rm /etc/nginx/conf.d/default.conf
