@@ -24,8 +24,6 @@ interface ParamTypes {
   nodeId: string
 }
 
-const PAGE_SIZE = 10
-
 const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
@@ -41,7 +39,7 @@ const TopologyList = ({ id }: Props) => {
     setPage,
     items,
     pages,
-  } = usePaged<Node>({ items: visibleNodes, limit: PAGE_SIZE })
+  } = usePaged<Node>({ items: visibleNodes, limit: NodeList.PAGE_SIZE })
 
   const activeNodeId = useMemo(() => (
     encodedNodeId && decodeURIComponent(encodedNodeId)
@@ -71,7 +69,7 @@ const TopologyList = ({ id }: Props) => {
     const index = visibleNodes.findIndex(({ id: nodeId }) => nodeId === activeNodeId)
 
     if (index >= 0) {
-      const page = Math.ceil((index + 1) / PAGE_SIZE)
+      const page = Math.ceil((index + 1) / NodeList.PAGE_SIZE)
 
       setPage(page)
       setPageChangedOnLoad(true)
