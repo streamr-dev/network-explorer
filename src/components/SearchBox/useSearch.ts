@@ -226,7 +226,7 @@ function useSearch({
 
     searchFetch()
       .then(() => {
-        searchRequests.current -= 1
+        searchRequests.current = Math.max(searchRequests.current - 1, 0)
 
         if (searchRequests.current === 0) {
           searchStarted.current = false

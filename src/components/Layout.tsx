@@ -1,12 +1,8 @@
-import React, {
-  useState, useEffect, useMemo, useRef, useCallback,
-} from 'react'
+import React, { useMemo, useRef } from 'react'
 import styled, { css } from 'styled-components/macro'
-import useResizeObserver from 'use-resize-observer'
 
 import { SM } from '../utils/styled'
 import { useStore } from '../contexts/Store'
-import useIsMounted from '../hooks/useIsMounted'
 
 import ControlBox from './ControlBox'
 import NodeList from './NodeList'
@@ -92,31 +88,13 @@ type Props = {
   children: React.ReactNode
 }
 
-const defaultTop = -170
 const searchPadding = 70
 const searchElementHeight = 164
 
 const Layout = ({ children, ...props }: Props) => {
   const { activeView } = useStore()
-  const [top, setTopState] = useState<number>(defaultTop)
   const ref = useRef<HTMLDivElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
-  const { height } = useResizeObserver({ ref })
-
-  const isMounted = useIsMounted()
-
-  const setTop = useCallback(
-    (y: number) => {
-      if (isMounted()) {
-        setTopState(-Math.max(y, 170))
-      }
-    },
-    [isMounted],
-  )
-
-  useEffect(() => {
-    setTop(height || 0)
-  }, [height, setTop])
 
   const currentTop = useMemo(() => {
     if (activeView === 'list') {
