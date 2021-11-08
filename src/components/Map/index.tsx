@@ -173,7 +173,12 @@ export const Map = ({
         inertia: INERTIA,
       }}
     >
-      <ConnectionLayer topology={topology} nodes={nodes} visible={!!showConnections} />
+      <ConnectionLayer
+        topology={topology}
+        nodes={nodes}
+        activeNode={activeNode}
+        visible={!!showConnections}
+      />
       <MarkerLayer
         nodes={nodes}
         sourceId={NODE_SOURCE_ID}
