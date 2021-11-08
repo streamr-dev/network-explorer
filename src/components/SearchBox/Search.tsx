@@ -5,6 +5,7 @@ import ControlBox from '../ControlBox'
 
 import SearchInput from './SearchInput'
 import SearchResults from './SearchResults'
+import NoSearchResults from './NoSearchResults'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
 import Error from '../Error'
@@ -122,5 +123,6 @@ const Search = styled(ControlBox)`
 export default Object.assign(Search, {
   Input: SearchInput,
   Results: SearchResults,
+  NoResults: NoSearchResults,
   SlideHandle,
 })
