@@ -7,7 +7,6 @@ import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
 import * as mapboxApi from '../utils/api/mapbox'
 import { getEnvironment } from '../utils/config'
-import { SearchResult } from '../utils/api/streamr'
 
 const locationSchema = new schema.Entity('locations')
 const locationsSchema = [locationSchema]
@@ -16,8 +15,11 @@ const nodeSchema = new schema.Entity('nodes', {
 })
 const nodesSchema = [nodeSchema]
 const streamSchema = new schema.Entity('streams')
-const searchResultSchema = new schema.Entity('searchResults')
-const searchResultsSchema = [searchResultSchema]
+
+export enum ActiveRoute {
+  Network = 'network',
+  Stream = 'stream'
+}
 
 export enum ActiveView {
   Map = 'map',
@@ -34,16 +36,14 @@ export enum ConnectionsMode {
 
 type Store = {
   env: string | undefined
+  activeRoute: ActiveRoute
   activeView: ActiveView
-  search: string
-  searchResults: Array<SearchResult>
   nodes: string[]
   trackers: string[]
   fetchedLocations: string[],
   latencies: trackerApi.Topology
   streamId: string | undefined
   activeNodeId: string | undefined
-  activeLocationId: string | undefined
   entities: { [key: string]: any } // eslint-disable-line @typescript-eslint/no-explicit-any
   showConnections: ConnectionsMode
   updateMap: boolean,
@@ -56,14 +56,10 @@ type SetTopology = {
 
 type ContextProps = {
   env: string | undefined
+  activeRoute: ActiveRoute
+  setActiveRoute: (activeRoute: ActiveRoute) => void
   activeView: ActiveView
-  toggleActiveView: () => void
   setActiveView: (activeView: ActiveView) => void
-  search: string
-  updateSearch: (search: string) => void
-  searchResults: Array<SearchResult>
-  addSearchResults: (results: Array<SearchResult>) => void
-  resetSearchResults: () => void
   nodes: trackerApi.Node[]
   setNodes: (nodes: trackerApi.Node[]) => void
   trackers: string[]
@@ -75,10 +71,8 @@ type ContextProps = {
   latencies: trackerApi.Topology
   setTopology: (params: SetTopology) => void
   setActiveNodeId: (activeNodeId?: string) => void
-  setActiveLocationId: (activeLocationId?: string) => void
   visibleNodes: trackerApi.Node[]
   activeNode: trackerApi.Node | undefined
-  activeLocation: SearchResult
   streamId: string | undefined
   stream: streamrApi.Stream | undefined
   setStream: (stream: streamrApi.Stream | undefined) => void
@@ -91,20 +85,17 @@ const StoreContext = React.createContext<ContextProps | undefined>(undefined)
 
 const getInitialState = (): Store => ({
   env: getEnvironment(),
+  activeRoute: ActiveRoute.Network,
   activeView: ActiveView.Map,
-  search: '',
-  searchResults: [],
   nodes: [],
   trackers: [],
   fetchedLocations: [],
   latencies: {},
   streamId: undefined,
   activeNodeId: undefined,
-  activeLocationId: undefined,
   entities: {
     nodes: {},
     streams: {},
-    searchResults: {},
     locations: {},
   },
   showConnections: ConnectionsMode.Auto,
@@ -118,14 +109,10 @@ type Action =
   | { type: 'updateEntities'; entities: { [key: string]: any } } // eslint-disable-line @typescript-eslint/no-explicit-any
   | { type: 'setTopology'; latencies: trackerApi.Topology, updateMap: boolean }
   | { type: 'setActiveNode'; activeNodeId: string | undefined }
-  | { type: 'setActiveLocation'; activeLocationId: string | undefined }
   | { type: 'setStream'; streamId: string | undefined }
+  | { type: 'setActiveRoute'; activeRoute: ActiveRoute }
   | { type: 'setActiveView'; activeView: ActiveView }
-  | { type: 'toggleActiveView' }
   | { type: 'toggleShowConnections' }
-  | { type: 'updateSearch'; search: string }
-  | { type: 'addSearchResults'; ids: Array<any> } // eslint-disable-line @typescript-eslint/no-explicit-any
-  | { type: 'resetSearchResults' }
   | { type: 'reset' }
 
 const reducer = (state: Store, action: Action) => {
@@ -199,24 +186,10 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
-    case 'setActiveLocation': {
-      return {
-        ...state,
-        activeLocationId: action.activeLocationId,
-      }
-    }
-
     case 'setStream': {
       return {
         ...state,
         streamId: action.streamId,
-      }
-    }
-
-    case 'toggleActiveView': {
-      return {
-        ...state,
-        activeView: state.activeView === ActiveView.Map ? ActiveView.List : ActiveView.Map,
       }
     }
 
@@ -238,33 +211,17 @@ const reducer = (state: Store, action: Action) => {
       }
     }
 
+    case 'setActiveRoute': {
+      return {
+        ...state,
+        activeRoute: action.activeRoute,
+      }
+    }
+
     case 'setActiveView': {
       return {
         ...state,
         activeView: action.activeView,
-      }
-    }
-
-    case 'updateSearch': {
-      return {
-        ...state,
-        search: action.search,
-      }
-    }
-
-    case 'addSearchResults': {
-      const nextResults = new Set([...state.searchResults, ...action.ids])
-
-      return {
-        ...state,
-        searchResults: [...nextResults],
-      }
-    }
-
-    case 'resetSearchResults': {
-      return {
-        ...state,
-        searchResults: [],
       }
     }
 
@@ -344,16 +301,6 @@ function useStoreContext() {
     [dispatch],
   )
 
-  const setActiveLocationId = useCallback(
-    (activeLocationId?: string) => {
-      dispatch({
-        type: 'setActiveLocation',
-        activeLocationId,
-      })
-    },
-    [dispatch],
-  )
-
   const setStream = useCallback(
     (stream: streamrApi.Stream | undefined) => {
       if (stream) {
@@ -373,16 +320,17 @@ function useStoreContext() {
     [dispatch],
   )
 
+  const setActiveRoute = useCallback((activeRoute: ActiveRoute) => {
+    dispatch({
+      type: 'setActiveRoute',
+      activeRoute,
+    })
+  }, [])
+
   const setActiveView = useCallback((activeView: ActiveView) => {
     dispatch({
       type: 'setActiveView',
       activeView,
-    })
-  }, [])
-
-  const toggleActiveView = useCallback(() => {
-    dispatch({
-      type: 'toggleActiveView',
     })
   }, [])
 
@@ -398,46 +346,11 @@ function useStoreContext() {
     })
   }, [dispatch])
 
-  const updateSearch = useCallback(
-    (search: string) => {
-      dispatch({
-        type: 'updateSearch',
-        search,
-      })
-    },
-    [dispatch],
-  )
-
-  const resetSearchResults = useCallback(() => {
-    dispatch({
-      type: 'resetSearchResults',
-    })
-  }, [dispatch])
-
-  const addSearchResults = useCallback(
-    (results: Array<SearchResult>) => {
-      const { result: ids, entities } = normalize(results, searchResultsSchema)
-
-      dispatch({
-        type: 'updateEntities',
-        entities,
-      })
-
-      dispatch({
-        type: 'addSearchResults',
-        ids,
-      })
-    },
-    [dispatch],
-  )
-
   const {
     env,
+    activeRoute,
     activeView,
-    search,
-    searchResults: searchResultIds,
     activeNodeId,
-    activeLocationId,
     streamId,
     nodes: nodeIds,
     trackers,
@@ -489,29 +402,15 @@ function useStoreContext() {
     [activeNodeId, nodes],
   )
 
-  const activeLocation = useMemo(
-    () => denormalize(activeLocationId, searchResultSchema, entitiesRef.current),
-    [activeLocationId],
-  )
-
   const stream = useMemo(() => denormalize(streamId, streamSchema, entitiesRef.current), [streamId])
-
-  const searchResults = useMemo(
-    () => denormalize(searchResultIds, searchResultsSchema, entitiesRef.current) || [],
-    [searchResultIds],
-  )
 
   return useMemo(
     () => ({
       env,
+      activeRoute,
+      setActiveRoute,
       activeView,
-      toggleActiveView,
       setActiveView,
-      search,
-      updateSearch,
-      searchResults,
-      addSearchResults,
-      resetSearchResults,
       nodes,
       setNodes,
       trackers,
@@ -524,9 +423,7 @@ function useStoreContext() {
       showConnections,
       toggleShowConnections,
       activeNode,
-      activeLocation,
       setActiveNodeId,
-      setActiveLocationId,
       streamId,
       stream,
       setStream,
@@ -536,14 +433,10 @@ function useStoreContext() {
     }),
     [
       env,
+      activeRoute,
+      setActiveRoute,
       activeView,
-      toggleActiveView,
       setActiveView,
-      search,
-      updateSearch,
-      searchResults,
-      addSearchResults,
-      resetSearchResults,
       nodes,
       setNodes,
       trackers,
@@ -556,9 +449,7 @@ function useStoreContext() {
       showConnections,
       toggleShowConnections,
       activeNode,
-      activeLocation,
       setActiveNodeId,
-      setActiveLocationId,
       streamId,
       stream,
       setStream,

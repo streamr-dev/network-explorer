@@ -1,7 +1,13 @@
 import React, {
-  useMemo, useContext, useCallback, useRef,
+  useMemo, useContext, useCallback, useRef, useState,
 } from 'react'
-import axios from 'axios'
+import {
+  ViewportProps,
+  FlyToInterpolator,
+  LinearInterpolator,
+  TRANSITION_EVENTS,
+} from 'react-map-gl'
+import { useHistory } from 'react-router-dom'
 
 import * as trackerApi from '../utils/api/tracker'
 import * as streamrApi from '../utils/api/streamr'
@@ -12,47 +18,137 @@ import useIsMounted from '../hooks/useIsMounted'
 import { useDebounced } from '../hooks/wrapCallback'
 import { setEnvironment } from '../utils/config'
 
+type FocusLocationParams = {
+  longitude: number
+  latitude: number
+}
+
 type ContextProps = {
   changeEnv: Function
+  viewport: ViewportProps
+  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>
+  zoomIn: () => void
+  zoomOut: () => void
+  reset: () => void
+  focusLocation: (location: FocusLocationParams) => void
+  showNode: Function
   loadTrackers: () => Promise<void>
   loadStream: Function
   resetStream: Function
   loadTopology: Function
   resetTopology: Function
-  updateSearch: Function
   loadNodeLocations: Function
 }
 
 const ControllerContext = React.createContext<ContextProps | undefined>(undefined)
 
-class RequestCanceledError extends Error {
-  constructor(message: string = 'Cancelled') {
-    super(message)
-  }
+const defaultViewport = {
+  width: 0,
+  height: 0,
+  latitude: 53.86859,
+  longitude: -0.36616,
+  zoom: 3,
+  bearing: 0,
+  pitch: 0,
+  altitude: 0,
+  maxZoom: 20,
+  minZoom: 0,
+  maxPitch: 60,
+  minPitch: 0,
+}
+
+const LINEAR_TRANSITION_PROPS = {
+  transitionDuration: 300,
+  transitionEasing: (t: number) => t,
+  transitionInterpolator: new LinearInterpolator(),
+  transitionInterruption: TRANSITION_EVENTS.BREAK,
 }
 
 function useControllerContext() {
   const {
     nodes,
-    visibleNodes,
     updateLocations,
     setTrackers,
-    updateSearch: updateSearchText,
-    resetSearchResults,
-    addSearchResults,
     setNodes,
     setTopology,
     setStream,
     resetStore,
+    streamId: activeStreamId,
   } = useStore()
+  const [viewport, setViewport] = useState<ViewportProps>({
+    ...defaultViewport,
+    transitionInterpolator: new FlyToInterpolator({
+      speed: 3,
+    }),
+    transitionDuration: 2000,
+  })
+  const history = useHistory()
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
-  const { start: startSearch, end: endSearch } = usePending('search')
   const isMounted = useIsMounted()
-  const nodesRef = useRef(visibleNodes)
-  nodesRef.current = visibleNodes
-  const cancelRef = useRef<undefined | Function>()
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+  const trackersLoadedOnce = useRef<boolean>(false)
+
+  const showNode = useCallback(
+    (nodeId?: string) => {
+      let path = '/'
+
+      if (activeStreamId) {
+        path += `streams/${encodeURIComponent(activeStreamId)}/`
+      }
+
+      if (nodeId) {
+        path += `nodes/${encodeURIComponent(nodeId)}`
+      }
+
+      history.replace(path)
+    },
+    [activeStreamId, history],
+  )
+
+  const debouncedSetViewport = useDebounced(
+    useCallback(async (nextViewport: ViewportProps) => setViewport(nextViewport), []),
+    250,
+  )
+
+  const zoomIn = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: (prev.zoom || 0) + 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const zoomOut = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      zoom: (prev.zoom || 0) - 1,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
+
+  const reset = useCallback(() => {
+    debouncedSetViewport((prev: ViewportProps) => {
+      const nextViewport = defaultViewport
+      return {
+        ...prev,
+        ...nextViewport,
+        LINEAR_TRANSITION_PROPS,
+      }
+    })
+  }, [debouncedSetViewport])
+
+  const focusLocation = useCallback(({ latitude, longitude }: FocusLocationParams) => {
+    debouncedSetViewport((prev: ViewportProps) => ({
+      ...prev,
+      longitude,
+      latitude,
+      zoom: 10,
+      LINEAR_TRANSITION_PROPS,
+    }))
+  }, [debouncedSetViewport])
 
   const loadTrackers = useCallback(
     async () =>
@@ -163,12 +259,17 @@ function useControllerContext() {
         }
 
         // Load trackers again if topology changes
-        const incomingNodes = new Set(Object.keys(newTopology))
-        const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
+        if (trackersLoadedOnce.current) {
+          const incomingNodes = new Set(Object.keys(newTopology))
+          const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
 
-        const added = new Set([...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)))
-        const removed = new Set([...existingNodes].filter((nodeId) => !incomingNodes.has(nodeId)))
-        didChange = !!(added.size > 0 || removed.size > 0)
+          const missingNodes = new Set([...incomingNodes].filter(
+            (nodeId) => !existingNodes.has(nodeId)),
+          )
+          didChange = !!(missingNodes.size > 0)
+        } else {
+          didChange = true
+        }
 
         if (didChange) {
           if (!didFetchTrackers) {
@@ -183,6 +284,8 @@ function useControllerContext() {
 
           setTrackers(newTrackers)
           setNodes(newNodes)
+
+          trackersLoadedOnce.current = true
         }
 
         setTopology({
@@ -240,152 +343,37 @@ function useControllerContext() {
     [resetStore],
   )
 
-  const searchNodes = useCallback(
-    (rawSearchString: string): streamrApi.SearchResult[] => {
-      const search = rawSearchString.toLowerCase()
-
-      return nodes
-        .filter(
-          ({ id, title }) =>
-            id.toLowerCase().indexOf(search) >= 0 || title.toLowerCase().indexOf(search) >= 0,
-        )
-        .map(({ id, title }) => ({
-          id,
-          type: 'nodes',
-          name: title,
-          description: id,
-        }))
-    },
-    [nodes],
-  )
-
-  const debouncedUpdateSearch = useDebounced(
-    useCallback(
-      async ({ search }: { search: string }) => {
-        resetSearchResults()
-
-        if (cancelRef.current !== undefined) {
-          cancelRef.current()
-          cancelRef.current = undefined
-        }
-
-        if (!search) {
-          endSearch()
-        } else {
-          try {
-            addSearchResults(searchNodes(search))
-
-            const source = axios.CancelToken.source()
-
-            const streamPromise = new Promise<{
-              results: streamrApi.SearchResult[],
-              cancelled: boolean,
-            }>((resolve, reject) => {
-              return streamrApi.searchStreams({
-                search,
-                cancelToken: source.token,
-              }).then((results) => {
-                resolve({
-                  results,
-                  cancelled: false,
-                })
-              }, () => resolve({
-                results: [],
-                cancelled: true,
-              }))
-            }).then(({ results: nextResults, cancelled }) => {
-              if (!isMounted() || cancelled) {
-                return
-              }
-
-              addSearchResults(nextResults)
-            })
-
-            const mapPromise = new Promise<{
-              results: streamrApi.SearchResult[],
-              cancelled: boolean,
-            }>((resolve, reject) => {
-              return mapApi.getLocations({
-                search,
-                cancelToken: source.token,
-              }).then((results) => {
-                resolve({
-                  results,
-                  cancelled: false,
-                })
-              }, () => resolve({
-                results: [],
-                cancelled: true,
-              }))
-            }).then(({ results: nextResults, cancelled }) => {
-              if (!isMounted() || cancelled) {
-                return
-              }
-
-              addSearchResults(nextResults)
-            })
-
-            const cancelPromise = new Promise<undefined>((resolve, reject) => {
-              cancelRef.current = () => {
-                source.cancel()
-                reject(new RequestCanceledError())
-              }
-            })
-
-            // wait for all searches to complete before ending progress status
-            await Promise.race([
-              Promise.all([streamPromise, mapPromise]),
-              cancelPromise,
-            ])
-            if (!isMounted()) {
-              return
-            }
-
-            endSearch()
-          } catch (e) {
-            // end search if not cancelled, otherwise status
-            // will be updated when latest request completes
-            if (!(e instanceof RequestCanceledError)) {
-              endSearch()
-            }
-          } finally {
-            cancelRef.current = undefined
-          }
-        }
-      },
-      [isMounted, endSearch, searchNodes, resetSearchResults, addSearchResults],
-    ),
-    1000,
-  )
-
-  const updateSearch = useCallback(
-    ({ search }: { search: string }) => {
-      startSearch()
-      updateSearchText(search)
-      debouncedUpdateSearch({ search })
-    },
-    [startSearch, updateSearchText, debouncedUpdateSearch],
-  )
-
   return useMemo(
     () => ({
       changeEnv,
+      viewport,
+      setViewport,
+      zoomIn,
+      zoomOut,
+      reset,
+      focusLocation,
+      showNode,
       loadTrackers,
       loadStream,
       resetStream,
       loadTopology,
       resetTopology,
-      updateSearch,
       loadNodeLocations,
     }),
     [
       changeEnv,
+      viewport,
+      setViewport,
+      zoomIn,
+      zoomOut,
+      reset,
+      focusLocation,
+      showNode,
       loadTrackers,
       loadStream,
       resetStream,
       loadTopology,
       resetTopology,
-      updateSearch,
       loadNodeLocations,
     ],
   )

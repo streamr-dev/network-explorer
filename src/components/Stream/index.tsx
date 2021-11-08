@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { useStore } from '../../contexts/Store'
+import { useStore, ActiveRoute } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 
 import TopologyList from './TopologyList'
@@ -10,12 +10,12 @@ type StreamProps = {
   id: string
 }
 
-const SearchTextSetter = ({ id }: StreamProps) => {
-  const { updateSearch } = useStore()
+const ActiveRouteSetter = () => {
+  const { setActiveRoute } = useStore()
 
   useEffect(() => {
-    updateSearch(id)
-  }, [updateSearch, id])
+    setActiveRoute(ActiveRoute.Stream)
+  }, [setActiveRoute])
 
   return null
 }
@@ -81,7 +81,7 @@ export default () => {
 
   return (
     <>
-      <SearchTextSetter id={streamId} />
+      <ActiveRouteSetter />
       <TopologyLoader id={streamId} />
       <StreamLoader id={streamId} />
       <ActiveNodeSetter id={nodeId} />

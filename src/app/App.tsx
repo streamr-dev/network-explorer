@@ -1,7 +1,5 @@
-import React, { useEffect } from 'react'
-import {
-  BrowserRouter, Route, Switch, useLocation,
-} from 'react-router-dom'
+import React from 'react'
+import { BrowserRouter, Route, Switch } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { ConnectedMap } from '../components/Map'
@@ -15,26 +13,9 @@ import Layout from '../components/Layout'
 import ErrorBoundary from '../components/ErrorBoundary'
 import StreamrClientProvider from '../components/StreamrClientProvider'
 
-import { Provider as StoreProvider, useStore } from '../contexts/Store'
+import { Provider as StoreProvider } from '../contexts/Store'
 import { Provider as ControllerProvider } from '../contexts/Controller'
 import { Provider as Pendingrovider, usePending } from '../contexts/Pending'
-
-function useResetSearchTextEffect() {
-  const { updateSearch: updateSearchText, resetSearchResults } = useStore()
-  const { pathname } = useLocation()
-
-  useEffect(() => {
-    if (pathname === '/') {
-      updateSearchText('')
-      resetSearchResults()
-    }
-  }, [updateSearchText, resetSearchResults, pathname])
-}
-
-const SearchTextResetter = () => {
-  useResetSearchTextEffect()
-  return null
-}
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -62,7 +43,6 @@ const App = () => (
             <LoadingBar />
             <Layout>
               <ErrorBoundary>
-                <SearchTextResetter />
                 <Debug />
                 <NetworkSelector />
                 <SearchBox />
