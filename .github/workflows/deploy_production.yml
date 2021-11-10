@@ -3,11 +3,17 @@ name: Deploy to production
 on:
   push:
     tags:
-     - v*
+      - v*
+concurrency:
+  group: production
+  cancel-in-progress: true
 
 jobs:  
   deploy:
     name: Build and deploy to production
+    environment:
+      name: production
+      url: https://streamr.network/network-explorer
     runs-on: ubuntu-latest
     strategy:
       matrix:
