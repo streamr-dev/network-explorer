@@ -12,12 +12,23 @@ type NodeConnection = {
 
 type UniqueConnection = Record<string, NodeConnection>
 
-const getNodeConnections = (topology: Topology, nodes: Node[]): Array<NodeConnection> => {
+const getNodeConnections = (
+  topology: Topology,
+  nodes: Node[],
+  activeNode: Node | undefined,
+): Array<NodeConnection> => {
   // Convert topology to a list of node connection pairs
-  const nodeConnections = Object.keys(topology || {}).flatMap((key) => {
-    const nodeList = topology[key]
-    return nodeList.map((n) => [key, n])
-  })
+  const nodeConnections = Object.keys(topology || {})
+    .flatMap((key) => {
+      const nodeList = topology[key]
+      return nodeList.map((n) => [key, n])
+    })
+    // Show only connections from active node if selected.
+    // Otherwise shows all connections.
+    .filter((nodeIds) => activeNode != null ?
+      (nodeIds[0] === activeNode.id || nodeIds[1] === activeNode.id ) :
+      true,
+    )
 
   const uniqueConnections: UniqueConnection = {}
   for (let i = 0; i < nodeConnections.length; ++i) {
@@ -46,12 +57,18 @@ const getNodeConnections = (topology: Topology, nodes: Node[]): Array<NodeConnec
 type Props = {
   topology: Topology
   nodes: Node[]
+  activeNode: Node | undefined
   visible?: boolean
 }
 
-const ConnectionLayer = ({ topology, nodes, visible }: Props) => {
+const ConnectionLayer = ({
+  topology,
+  nodes,
+  activeNode,
+  visible,
+}: Props) => {
   const geoJsonLines: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
-    const connections = getNodeConnections(topology, nodes)
+    const connections = getNodeConnections(topology, nodes, activeNode)
 
     return {
       type: 'FeatureCollection',
@@ -64,7 +81,7 @@ const ConnectionLayer = ({ topology, nodes, visible }: Props) => {
         properties: {},
       })),
     }
-  }, [topology, nodes])
+  }, [topology, nodes, activeNode])
 
   return (
     <Source id="node-connections-source" type="geojson" data={geoJsonLines}>
