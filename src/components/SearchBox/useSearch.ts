@@ -149,11 +149,11 @@ function useSearch({
     const searchFetch = async () => {
       const query = (search || '').trim().toLowerCase()
 
+      searchRequests.current += 1
+
       if (query.length <= 0) {
         return Promise.resolve()
       }
-
-      searchRequests.current += 1
 
       // search from cached entities
       const entitiesPromise = new Promise((resolve) => {
