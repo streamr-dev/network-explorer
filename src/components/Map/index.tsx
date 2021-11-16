@@ -38,8 +38,8 @@ const defaultViewport = {
   bearing: 0,
   pitch: 0,
   altitude: 0,
-  maxZoom: 20,
-  minZoom: 0,
+  maxZoom: 15,
+  minZoom: 2,
   maxPitch: 60,
   minPitch: 0,
 }
