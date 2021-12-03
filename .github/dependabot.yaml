@@ -21,6 +21,7 @@ updates:
       - mondoreale
       - juhah
       - kare
+      - daisydomergue
     labels:
       - ci
   - package-ecosystem: docker
