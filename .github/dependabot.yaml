@@ -17,11 +17,7 @@ updates:
     reviewers:
       - kare
     assignees:
-      - tumppi
-      - mondoreale
-      - juhah
-      - kare
-      - daisydomergue
+      - DaisyDomergue
     labels:
       - ci
   - package-ecosystem: docker
