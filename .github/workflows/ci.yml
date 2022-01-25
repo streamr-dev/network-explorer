@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: hadolint/hadolint-action@v1.6.0
+        with:
+          dockerfile: Dockerfile
       - name: Use Node.js
         uses: actions/setup-node@v2.5.1
         with:
