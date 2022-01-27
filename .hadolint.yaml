@@ -1,0 +1,10 @@
+failure-threshold: warning               # name of threshold level (error | warning | info | style | ignore | none)                        # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
+#ignored: [string]                       # list of rules
+# override:
+#   error: [string]                       # list of rules
+#   warning: [string]                     # list of rules
+#   info: [string]                        # list of rules
+#   style: [string]                       # list of rules
+strict-labels: true                  # true | false
+trustedRegistries:                      # registry or list of registries
+  - docker.io
