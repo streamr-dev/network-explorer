@@ -12,13 +12,12 @@ const StreamrClientProvider = ({ children }: Props) => {
   const { env } = useStore()
 
   const clientConfig = useMemo(() => {
-    const { http, ws } = getConfig().streamr
+    const { http } = getConfig().streamr
 
     return {
       autoConnect: true,
       autoDisconnect: false,
       restUrl: http,
-      url: ws,
       verifySignatures: 'never',
     }
   }, [env]) // eslint-disable-line react-hooks/exhaustive-deps

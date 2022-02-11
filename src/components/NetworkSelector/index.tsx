@@ -40,6 +40,9 @@ const themes: Record<string, Object> = {
   mainnet: {
     color: '#0EAC1B',
   },
+  brubeck: {
+    color: '#0EAC1B',
+  },
   testnet3: {
     color: '#FF7575',
   },

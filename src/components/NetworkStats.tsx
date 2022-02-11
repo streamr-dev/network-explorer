@@ -31,18 +31,18 @@ const NetworkStats = () => {
     setSelectedStat((prev) => (prev !== name ? name : undefined))
   }, [])
 
-  const onMessage = useCallback(
-    ({ broker, network, trackers }) => {
-      if (isMounted()) {
-        updateStats({
-          messagesPerSecond: broker && Math.round(broker.messagesToNetworkPerSec),
-          numberOfNodes: trackers && trackers.totalNumberOfNodes,
-          latency: network && Math.round(network.avgLatencyMs),
-        })
-      }
-    },
-    [isMounted],
-  )
+  const onMessage = useCallback((msg) => {
+    const { broker, network, trackers } = msg
+
+    if (isMounted()) {
+      updateStats({
+        messagesPerSecond: broker && Math.round(broker.messagesToNetworkPerSec),
+        numberOfNodes: trackers && trackers.totalNumberOfNodes,
+        latency: network && Math.round(network.avgLatencyMs),
+      })
+    }
+  },
+  [isMounted])
 
   useSubscription(
     {
