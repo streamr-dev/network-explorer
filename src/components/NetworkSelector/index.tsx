@@ -43,9 +43,6 @@ const themes: Record<string, Object> = {
   brubeck: {
     color: '#0EAC1B',
   },
-  testnet3: {
-    color: '#FF7575',
-  },
   default: {
     color: '#EFEFEF',
   },
