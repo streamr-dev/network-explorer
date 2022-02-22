@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 14.x ]
+        node-version: [ 16.x ]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
-          npm install -g npm@7
+          npm install -g npm@8
           npm ci
       - name: Get version string from git tag name
         id: get_version
