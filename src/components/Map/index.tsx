@@ -110,6 +110,18 @@ export const Map = ({
     }
   }, [activeNode, setNodeFeatureState])
 
+  // Bring active node into view if it's outside of map bounds
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (map && activeNode) {
+      const lngLat = [activeNode.location.longitude, activeNode.location.latitude]
+      const isInBounds = map.getBounds().contains(lngLat)
+      if (!isInBounds) {
+        map.panTo(lngLat)
+      }
+    }
+  }, [activeNode])
+
   return (
     <ReactMapGL
       {...viewport}
