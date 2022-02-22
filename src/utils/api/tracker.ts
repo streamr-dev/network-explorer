@@ -1,5 +1,6 @@
-import { SmartContractRecord, Utils } from 'streamr-client-protocol'
+import { SmartContractRecord, Utils, StreamPartIDUtils } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
+import { getTrackerRegistryFromContract } from 'streamr-client'
 
 import { Location } from './mapbox'
 
@@ -13,7 +14,7 @@ const getTrackerRegistry = async () => {
     return Utils.createTrackerRegistry<SmartContractRecord>(tracker.trackers)
   }
 
-  return Utils.getTrackerRegistryFromContract({
+  return getTrackerRegistryFromContract({
     contractAddress: tracker.contractAddress,
     jsonRpcProvider: tracker.jsonRpcProvider,
   })
@@ -29,14 +30,14 @@ export const getTrackers = async (): Promise<string[]> => {
   return result || []
 }
 
-export const getTrackerForStream = async (options: { id: string; partition?: number }) => {
-  const { id, partition } = {
-    ...{ id: undefined, partition: 0 },
+export const getTrackerForStream = async (options: { id: string }) => {
+  const { id } = {
+    ...{ id: undefined },
     ...options,
   }
   const trackerRegistry = await getTrackerRegistry()
 
-  const { http } = trackerRegistry.getTracker(id, partition)
+  const { http } = trackerRegistry.getTracker(StreamPartIDUtils.parse(id))
 
   return http
 }
@@ -239,7 +240,7 @@ export const getNodeConnections = async (): Promise<Topology> => {
     }, {})
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.warn(`Failed to load node connections: ${e.message}`)
+    console.warn(`Failed to load node connections: ${e}`)
   }
 
   return nodeConnections || {}
