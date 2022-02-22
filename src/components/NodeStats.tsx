@@ -3,13 +3,17 @@ import React, {
   useState,
   useReducer,
   useMemo,
+  useEffect,
 } from 'react'
-import { useSubscription } from 'streamr-client-react'
+import { useSubscription, useClient } from 'streamr-client-react'
+import { keyToArrayIndex } from 'streamr-client-protocol'
 
 import useIsMounted from '../hooks/useIsMounted'
 
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
+
+const FIREHOSE_STREAM = 'streamr.eth/metrics/nodes/firehose/sec'
 
 type Props = {
   id: string
@@ -22,7 +26,9 @@ type StatsState = {
 }
 
 const NodeStats = ({ id }: Props) => {
+  const client = useClient()
   const nodeId = useMemo(() => (id || '').toLowerCase(), [id])
+  const [partition, setPartition] = useState(0)
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
   const [{ messagesPerSecond, bytesPerSecond, latency }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
@@ -36,30 +42,39 @@ const NodeStats = ({ id }: Props) => {
     },
   )
 
+  useEffect(() => {
+    const load = async () => {
+      const stream = await client.getStream(FIREHOSE_STREAM)
+      setPartition(keyToArrayIndex(stream.partitions, nodeId))
+    }
+    load()
+  }, [client, nodeId])
+
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => (prev !== name ? name : undefined))
   }, [])
 
   const isMounted = useIsMounted()
 
-  const onMessage = useCallback(
-    ({ broker, network, trackers }) => {
-      if (isMounted()) {
-        updateStats({
-          messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
-          bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
-          latency: Math.round(network.avgLatencyMs),
-        })
-      }
-    },
-    [isMounted],
-  )
+  const onMessage = useCallback((msg) => {
+    const { broker, network } = msg
+
+    if (isMounted()) {
+      updateStats({
+        messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
+        bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
+        latency: Math.round(network.avgLatencyMs),
+      })
+    }
+  }, [isMounted])
 
   useSubscription(
     {
-      stream: `${nodeId}/streamr/node/metrics/sec`,
+      stream: FIREHOSE_STREAM,
+      partition,
       resend: {
         last: 1,
+        publishedId: nodeId,
       },
     }, {
       onMessage,
