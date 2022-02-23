@@ -156,7 +156,7 @@ function useSearch({
       }
 
       // search from cached entities
-      const entitiesPromise = new Promise((resolve) => {
+      const entitiesPromise = new Promise<void>((resolve) => {
         const { searchResults } = entitiesRef.current || {}
         const values = (Object.values(searchResults || {}) as SearchResult[])
 
@@ -186,7 +186,7 @@ function useSearch({
       })
 
       // fetch new streams
-      const streamPromise = new Promise((resolve) => {
+      const streamPromise = new Promise<void>((resolve) => {
         return streamrApi.searchStreams({
           search: query,
           cancelToken: source.token,
@@ -202,7 +202,7 @@ function useSearch({
       })
 
       // fetch places
-      const mapPromise = new Promise((resolve) => {
+      const mapPromise = new Promise<void>((resolve) => {
         return mapApi.getLocations({
           search: query,
           cancelToken: source.token,

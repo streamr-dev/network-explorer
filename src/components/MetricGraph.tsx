@@ -1,9 +1,9 @@
 import React, {
   useMemo, useCallback, useState, useEffect, useRef,
 } from 'react'
-import { useSubscription } from 'streamr-client-react'
+import { useSubscription, useClient } from 'streamr-client-react'
+import { keyToArrayIndex } from 'streamr-client-protocol'
 
-import { getStream } from '../utils/api/streamr'
 import useIsMounted from '../hooks/useIsMounted'
 
 import Graphs from './Graphs'
@@ -16,48 +16,29 @@ type MetricGraphProps = {
   streamId: string
   interval: Interval
   metric: MetricType
+  id: string | undefined,
+  partition: Number,
 }
 
 const HOUR = 60 * 60 * 1000
 const REALTIME_WINDOW = HOUR / 6
 
-const getResendOptionsForInterval = (interval: Interval) => {
+const getTimestampForInterval = (interval: Interval) => {
   switch (interval) {
     case 'realtime':
-      return {
-        from: {
-          timestamp: Date.now() - REALTIME_WINDOW,
-        },
-      }
+      return Date.now() - REALTIME_WINDOW
 
     case '24hours':
-      return {
-        // last: 100,
-        from: {
-          timestamp: Date.now() - 24 * HOUR,
-        },
-      }
+      return Date.now() - 24 * HOUR
 
     case '1month':
-      return {
-        from: {
-          timestamp: Date.now() - 30 * 24 * HOUR,
-        },
-      }
+      return Date.now() - 30 * 24 * HOUR
 
     case '3months':
-      return {
-        from: {
-          timestamp: Date.now() - 3 * 30 * 24 * HOUR,
-        },
-      }
+      return Date.now() - 3 * 30 * 24 * HOUR
 
     case 'all':
-      return {
-        from: {
-          timestamp: new Date(2021, 1, 1).getTime(),
-        },
-      }
+      return new Date(2021, 1, 1).getTime()
 
     default:
       break
@@ -88,13 +69,21 @@ type DataPoint = {
   y: number
 }
 
-const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
+const MetricGraph = ({
+  streamId,
+  interval,
+  metric,
+  id,
+  partition,
+}: MetricGraphProps) => {
   const isMounted = useIsMounted()
   const dataRef = useRef<RawValue[]>([])
   const [values, setValues] = useState<DataPoint[]>([])
 
   const onMessage = useCallback(
-    ({ broker, trackers, network }, { messageId }) => {
+    (msg, { messageId }) => {
+      const { broker, trackers, network } = msg
+
       if (isMounted()) {
         dataRef.current = [
           ...dataRef.current,
@@ -152,7 +141,13 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
     }
   }, [graphPoll, interval, metric])
 
-  const resend = useMemo(() => getResendOptionsForInterval(interval), [interval])
+  const resend = useMemo(() => (
+    {
+      from: {
+        timestamp: getTimestampForInterval(interval),
+        publishedId: id?.toLowerCase(),
+      },
+    }), [interval, id])
 
   const labelFormat = useCallback(
     (value: number): string => {
@@ -163,6 +158,7 @@ const MetricGraph = ({ streamId, interval, metric }: MetricGraphProps) => {
 
   useSubscription({
     stream: streamId,
+    partition,
     resend,
   }, {
     onMessage,
@@ -197,15 +193,21 @@ const getStreamFragmentForInterval = (interval: Interval) => {
     case '1month':
       return 'hour'
 
+    case '3months':
+      return 'day'
+
     default:
       return 'day'
   }
 }
 
 const MetricGraphLoader = ({ type, metric, id }: Props) => {
+  const client = useClient()
   const [hasLoaded, setHasLoaded] = useState(false)
+  const nodeId = useMemo(() => (id || '').toLowerCase(), [id])
   const [error, setError] = useState<string | undefined>(undefined)
   const [interval, setInterval] = useState<Interval>('realtime')
+  const [partition, setPartition] = useState(0)
   const isMounted = useIsMounted()
 
   const metricStreamId = useMemo(() => {
@@ -219,16 +221,17 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
       throw new (Error as any)('No node selected!')
     }
 
-    return `${encodeURIComponent(id)}/streamr/node/metrics/${getStreamFragmentForInterval(interval)}`
+    return `streamr.eth/metrics/nodes/firehose/${getStreamFragmentForInterval(interval)}`
   }, [type, id, interval])
 
   const loadStream = useCallback(
-    async (nodeId) => {
+    async (streamId) => {
       setHasLoaded(false)
       setError(undefined)
 
       try {
-        await getStream({ id: nodeId })
+        const stream = await client.getStream(streamId)
+        setPartition(keyToArrayIndex(stream.partitions, nodeId))
       } catch (e) {
         setError('Metric data not available')
       } finally {
@@ -237,7 +240,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
         }
       }
     },
-    [isMounted],
+    [isMounted, client, nodeId],
   )
 
   useEffect(() => {
@@ -259,7 +262,13 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
           </>
         )}
         {!!hasLoaded && !error && (
-          <MetricGraph streamId={metricStreamId} interval={interval} metric={metric} />
+          <MetricGraph
+            streamId={metricStreamId}
+            interval={interval}
+            metric={metric}
+            id={nodeId}
+            partition={partition}
+          />
         )}
         <Graphs.Intervals
           options={['realtime', '24hours', '1month', '3months', 'all']}
