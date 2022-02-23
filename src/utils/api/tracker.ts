@@ -1,4 +1,9 @@
-import { SmartContractRecord, Utils, toStreamID, toStreamPartID } from 'streamr-client-protocol'
+import {
+  SmartContractRecord,
+  Utils,
+  toStreamID,
+  toStreamPartID,
+} from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 import { getTrackerRegistryFromContract } from 'streamr-client'
 
