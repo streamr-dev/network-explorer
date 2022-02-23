@@ -1,4 +1,4 @@
-import { SmartContractRecord, Utils, StreamPartIDUtils } from 'streamr-client-protocol'
+import { SmartContractRecord, Utils, toStreamID, toStreamPartID } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 import { getTrackerRegistryFromContract } from 'streamr-client'
 
@@ -30,14 +30,18 @@ export const getTrackers = async (): Promise<string[]> => {
   return result || []
 }
 
-export const getTrackerForStream = async (options: { id: string }) => {
-  const { id } = {
-    ...{ id: undefined },
+export const getTrackerForStream = async (options: { id: string, partition?: number }) => {
+  const { id, partition } = {
+    ...{
+      id: undefined,
+      partition: 0,
+    },
     ...options,
   }
   const trackerRegistry = await getTrackerRegistry()
 
-  const { http } = trackerRegistry.getTracker(StreamPartIDUtils.parse(id))
+  const streamPartId = toStreamPartID(toStreamID(id), partition)
+  const { http } = trackerRegistry.getTracker(streamPartId)
 
   return http
 }

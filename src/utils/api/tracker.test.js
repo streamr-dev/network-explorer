@@ -1,4 +1,5 @@
 import * as trackerUtils from 'streamr-client-protocol'
+import * as client from 'streamr-client'
 
 import * as all from './tracker'
 import * as request from '../request'
@@ -15,6 +16,7 @@ jest.mock('streamr-client-protocol', () => {
     },
   }
 })
+jest.mock('streamr-client')
 jest.mock('../request')
 jest.mock('../config')
 
@@ -175,7 +177,7 @@ describe('tracker API', () => {
         }])
       })
 
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
       const result = await all.getTrackers()
@@ -238,13 +240,13 @@ describe('tracker API', () => {
         },
       })
       const getTrackerMock = jest.fn((id) => {
-        if (id === 'mystream') {
+        if (id === 'mystream#0') {
           return {
             http: 'http://streamr.network/:30301',
           }
         }
 
-        if (id === '0x1234/path/tostream') {
+        if (id === '0x1234/path/tostream#0') {
           return {
             http: 'http://streamr.network/:30302',
           }
@@ -253,7 +255,7 @@ describe('tracker API', () => {
         return undefined
       })
 
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
@@ -262,8 +264,8 @@ describe('tracker API', () => {
 
       expect(result1).toStrictEqual('http://streamr.network/:30301')
       expect(result2).toStrictEqual('http://streamr.network/:30302')
-      expect(getTrackerMock).toBeCalledWith('mystream', 0)
-      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream', 0)
+      expect(getTrackerMock).toBeCalledWith('mystream#0')
+      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream#0')
 
       configSpy.mockRestore()
       trackerSpy.mockRestore()
@@ -280,14 +282,14 @@ describe('tracker API', () => {
         http: 'http://streamr.network/:30301',
       }))
 
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
       const result1 = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
 
       expect(result1).toStrictEqual('http://streamr.network/:30301')
-      expect(getTrackerMock).toBeCalledWith('mystream', 3)
+      expect(getTrackerMock).toBeCalledWith('mystream#3')
 
       configSpy.mockRestore()
       trackerSpy.mockRestore()
@@ -325,7 +327,7 @@ describe('tracker API', () => {
       const result = await all.getTrackerForStream({ id: 'mystream', partition: 3 })
 
       expect(result).toStrictEqual(trackers[0].http)
-      expect(getTrackerMock).toBeCalledWith('mystream', 3)
+      expect(getTrackerMock).toBeCalledWith('mystream#3')
 
       configSpy.mockRestore()
       trackerSpy.mockRestore()
@@ -345,7 +347,7 @@ describe('tracker API', () => {
         http,
       }))
 
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getTracker: getTrackerMock,
       })
 
@@ -371,7 +373,7 @@ describe('tracker API', () => {
 
       const result = await all.getTopology({ id: '0x1234/path/tostream' })
 
-      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream', 0)
+      expect(getTrackerMock).toBeCalledWith('0x1234/path/tostream#0')
       expect(requestSpy).toBeCalledWith({
         url: `${http}/topology/0x1234%2Fpath%2Ftostream/`,
       })
@@ -451,7 +453,7 @@ describe('tracker API', () => {
           contractAddress: '0x123',
         },
       })
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
 
@@ -520,7 +522,7 @@ describe('tracker API', () => {
           contractAddress: '0x123',
         },
       })
-      const trackerSpy = jest.spyOn(trackerUtils.Utils, 'getTrackerRegistryFromContract').mockResolvedValue({
+      const trackerSpy = jest.spyOn(client, 'getTrackerRegistryFromContract').mockResolvedValue({
         getAllTrackers: getAllTrackersMock,
       })
 
