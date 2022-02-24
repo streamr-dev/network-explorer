@@ -7,22 +7,22 @@ import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
 
 type StatsState = {
-  messagesPerSecond?: number | undefined
   numberOfNodes?: number | undefined
-  latency?: number | undefined
+  apr?: number | undefined
+  apy?: number | undefined
 }
 
 const NetworkStats = () => {
   const isMounted = useIsMounted()
-  const [{ messagesPerSecond, numberOfNodes, latency }, updateStats] = useReducer(
+  const [{ numberOfNodes, apr, apy }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
       ...(prevState || {}),
       ...nextState,
     }),
     {
-      messagesPerSecond: undefined,
       numberOfNodes: undefined,
-      latency: undefined,
+      apr: undefined,
+      apy: undefined,
     },
   )
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
@@ -32,13 +32,13 @@ const NetworkStats = () => {
   }, [])
 
   const onMessage = useCallback((msg) => {
-    const { broker, network, trackers } = msg
+    const { trackers, staking } = msg
 
     if (isMounted()) {
       updateStats({
-        messagesPerSecond: broker && Math.round(broker.messagesToNetworkPerSec),
         numberOfNodes: trackers && trackers.totalNumberOfNodes,
-        latency: network && Math.round(network.avgLatencyMs),
+        apr: staking && staking['24h-APR'],
+        apy: staking && staking['24h-APY'],
       })
     }
   },
@@ -58,22 +58,24 @@ const NetworkStats = () => {
     <>
       <Stats active={selectedStat}>
         <Stats.Stat
-          id="messagesPerSecond"
-          label="Msgs / sec"
-          value={messagesPerSecond}
-          onClick={() => toggleStat('messagesPerSecond')}
-        />
-        <Stats.Stat
           id="numberOfNodes"
           label="Nodes"
           value={numberOfNodes}
           onClick={() => toggleStat('numberOfNodes')}
         />
         <Stats.Stat
-          id="latency"
-          label="Latency ms"
-          value={latency}
-          onClick={() => toggleStat('latency')}
+          id="apr"
+          label="APR"
+          value={apr}
+          unit='%'
+          onClick={() => toggleStat('apr')}
+        />
+        <Stats.Stat
+          id="apy"
+          label="APY"
+          value={apy}
+          unit='%'
+          onClick={() => toggleStat('apy')}
         />
       </Stats>
       {!!selectedStat && <MetricGraph type="network" metric={selectedStat} />}

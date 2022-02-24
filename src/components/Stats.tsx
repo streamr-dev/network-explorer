@@ -9,6 +9,7 @@ type StatProps = {
   id: string
   label: string
   value: number | string | undefined
+  unit?: string | undefined
   onClick?: () => void
   disabled?: boolean
   theme?: Record<string, number | string | boolean>
@@ -17,6 +18,7 @@ type StatProps = {
 const UnstyledStat = ({
   label,
   value,
+  unit,
   onClick: onClickProp,
   disabled,
   theme,
@@ -34,6 +36,7 @@ const UnstyledStat = ({
       <StatValue>
         {value !== undefined && value}
         {value === undefined && <InfinityIcon />}
+        {value !== undefined && unit && (` ${unit}`)}
       </StatValue>
     </button>
   )

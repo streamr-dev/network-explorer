@@ -27,9 +27,9 @@
     "react-spring": "^9.0.0",
     "react-virtuoso": "^2.2.2",
     "recharts": "^2.0.9",
-    "streamr-client": "^6.0.0-beta.3",
+    "streamr-client": "^6.0.0",
     "streamr-client-protocol": "^12.0.0",
-    "streamr-client-react": "^2.1.0-beta.4",
+    "streamr-client-react": "^2.1.0",
     "styled-components": "^5.1.1",
     "typescript": "^4.5.5"
   },
