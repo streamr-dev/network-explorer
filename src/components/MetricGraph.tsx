@@ -150,13 +150,22 @@ const MetricGraph = ({
     }
   }, [graphPoll, interval, metric])
 
-  const resend = useMemo(() => (
-    {
+  const resend = useMemo(() => {
+    if (id && id.length > 0) {
+      return {
+        from: {
+          timestamp: getTimestampForInterval(interval),
+          publishedId: id?.toLowerCase(),
+        },
+      }
+    }
+
+    return {
       from: {
         timestamp: getTimestampForInterval(interval),
-        publishedId: id?.toLowerCase(),
       },
-    }), [interval, id])
+    }
+  }, [interval, id])
 
   const labelFormat = useCallback(
     (value: number): string => {
@@ -240,7 +249,9 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
 
       try {
         const stream = await client.getStream(streamId)
-        setPartition(keyToArrayIndex(stream.partitions, nodeId))
+        if (nodeId.length > 0) {
+          setPartition(keyToArrayIndex(stream.partitions, nodeId))
+        }
       } catch (e) {
         setError('Metric data not available')
       } finally {
