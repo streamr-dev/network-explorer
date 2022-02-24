@@ -37,8 +37,8 @@ const NetworkStats = () => {
     if (isMounted()) {
       updateStats({
         numberOfNodes: trackers && trackers.totalNumberOfNodes,
-        apr: staking && staking['24h-APR'] || '-',
-        apy: staking && staking['24h-APY'] || '-',
+        apr: staking && staking['24h-APR'],
+        apy: staking && staking['24h-APY'],
       })
     }
   },
