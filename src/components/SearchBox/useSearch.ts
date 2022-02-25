@@ -8,9 +8,9 @@ import {
 import mergeWith from 'lodash/mergeWith'
 import axios from 'axios'
 import { schema, normalize, denormalize } from 'normalizr'
+import { useClient } from 'streamr-client-react'
 
 import { SearchResult } from '../../utils/api/streamr'
-import * as streamrApi from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
 import { useDebounced } from '../../hooks/wrapCallback'
 
@@ -95,6 +95,7 @@ function useSearch({
 }: UseSearch = {}) {
   const [{ search, ids: resultIds, entities }, dispatch] = useReducer(reducer, initialState)
   const isMounted = useIsMounted()
+  const client = useClient()
 
   const searchRequests = useRef(0)
   const searchStarted = useRef(false)
@@ -128,6 +129,29 @@ function useSearch({
     ),
     1000,
   )
+
+  const searchStreams = useCallback(async (query) => {
+    const results = []
+    const gen = client.searchStreams(query)
+
+    try {
+      // eslint-disable-next-line no-restricted-syntax
+      for await (const stream of gen) {
+        const item = {
+          type: 'streams',
+          id: stream.id,
+          name: stream.id,
+          description: stream.description,
+        } as SearchResult
+        results.push(item)
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e)
+    }
+
+    return results
+  }, [client])
 
   useEffectAfterMount(() => {
     if (!searchStarted.current && onStart && typeof onStart === 'function') {
@@ -187,10 +211,7 @@ function useSearch({
 
       // fetch new streams
       const streamPromise = new Promise<void>((resolve) => {
-        return streamrApi.searchStreams({
-          search: query,
-          cancelToken: source.token,
-        }).then((nextResults) => {
+        return searchStreams(query).then((nextResults) => {
           if (isMounted() && !didCancel) {
             dispatch({
               type: 'addSearchResults',
