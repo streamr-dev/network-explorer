@@ -6,6 +6,7 @@ import {
 } from 'streamr-client-protocol'
 import { GraphLink } from '@streamr/quick-dijkstra-wasm'
 import { getTrackerRegistryFromContract } from 'streamr-client'
+import { JsonRpcProvider } from '@ethersproject/providers'
 
 import { Location } from './mapbox'
 
@@ -21,7 +22,7 @@ const getTrackerRegistry = async () => {
 
   return getTrackerRegistryFromContract({
     contractAddress: tracker.contractAddress,
-    jsonRpcProvider: tracker.jsonRpcProvider,
+    jsonRpcProvider: new JsonRpcProvider(tracker.jsonRpcProvider),
   })
 }
 
