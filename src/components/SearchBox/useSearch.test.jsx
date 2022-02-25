@@ -1,11 +1,36 @@
 import React from 'react'
 import { render } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
+import { StreamrClient } from 'streamr-client'
 
-import * as streamrApi from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
-
 import useSearch from './useSearch'
+
+// Jest does not mock async generator functions so we need to add one
+// for searchStreams
+jest.mock('streamr-client', () => {
+  const originalModule = jest.requireActual('streamr-client')
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    StreamrClient: {
+      ...originalModule.StreamrClient,
+      searchStreams: jest.fn(() => 'mocked'),
+    },
+  }
+})
+
+jest.mock('streamr-client-react', () => {
+  const originalModule = jest.requireActual('streamr-client-react')
+  const originalClient = jest.requireMock('streamr-client')
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    useClient: () => originalClient.StreamrClient,
+  }
+})
 
 jest.mock('lodash/debounce', () => jest.fn((fn) => {
   // eslint-disable-next-line no-param-reassign
@@ -18,7 +43,7 @@ describe('search', () => {
     jest.restoreAllMocks()
   })
 
-  it ('has empty results by default', () => {
+  it('has empty results by default', () => {
     let search
     function Test() {
       search = useSearch()
@@ -36,7 +61,7 @@ describe('search', () => {
     const startMock = jest.fn()
     const endMock = jest.fn()
 
-    const streamsSpy = jest.spyOn(streamrApi, 'searchStreams').mockResolvedValue([])
+    const streamsSpy = jest.spyOn(StreamrClient, 'searchStreams').mockReturnValue([])
     const placesSpy = jest.spyOn(mapApi, 'getLocations').mockResolvedValue([])
 
     function Test() {
@@ -73,7 +98,7 @@ describe('search', () => {
 
     expect(search.results).toStrictEqual([])
 
-    const streamsSpy = jest.spyOn(streamrApi, 'searchStreams').mockResolvedValue([])
+    const streamsSpy = jest.spyOn(StreamrClient, 'searchStreams').mockReturnValue([])
     const placesSpy = jest.spyOn(mapApi, 'getLocations').mockResolvedValue([])
 
     await act(async () => {
@@ -105,13 +130,11 @@ describe('search', () => {
 
     expect(search.results).toStrictEqual([])
 
-    const streamsSpy = jest.spyOn(streamrApi, 'searchStreams').mockResolvedValue([{
+    const streamsSpy = jest.spyOn(StreamrClient, 'searchStreams').mockReturnValue([{
       type: 'streams',
       id: 'stream-1',
       name: 'stream-1',
       description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
     }])
     const placesSpy = jest.spyOn(mapApi, 'getLocations').mockResolvedValue([{
       type: 'locations',
@@ -131,19 +154,17 @@ describe('search', () => {
     expect(startMock).toHaveBeenCalled()
     expect(endMock).toHaveBeenCalled()
     expect(search.results).toStrictEqual([{
-      type: 'streams',
-      id: 'stream-1',
-      name: 'stream-1',
-      description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
-    }, {
       type: 'locations',
       id: 'location-1',
       name: 'location-1',
       description: 'location-1',
       longitude: 24,
       latitude: 32,
+    }, {
+      type: 'streams',
+      id: 'stream-1',
+      name: 'stream-1',
+      description: 'stream-1',
     }])
   })
 
@@ -182,13 +203,11 @@ describe('search', () => {
 
     expect(search.results).toStrictEqual([])
 
-    const streamsSpy = jest.spyOn(streamrApi, 'searchStreams').mockResolvedValue([{
+    const streamsSpy = jest.spyOn(StreamrClient, 'searchStreams').mockReturnValue([{
       type: 'streams',
       id: 'stream-1',
       name: 'stream-1',
       description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
     }])
     const placesSpy = jest.spyOn(mapApi, 'getLocations').mockResolvedValue([{
       type: 'locations',
@@ -215,19 +234,17 @@ describe('search', () => {
       longitude: 31,
       latitude: 12,
     }, {
-      type: 'streams',
-      id: 'stream-1',
-      name: 'stream-1',
-      description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
-    }, {
       type: 'locations',
       id: 'location-1',
       name: 'location-1',
       description: 'location-1',
       longitude: 24,
       latitude: 32,
+    }, {
+      type: 'streams',
+      id: 'stream-1',
+      name: 'stream-1',
+      description: 'stream-1',
     }])
   })
 
@@ -250,13 +267,11 @@ describe('search', () => {
 
     expect(search.results).toStrictEqual([])
 
-    const streamsSpy = jest.spyOn(streamrApi, 'searchStreams').mockResolvedValue([{
+    const streamsSpy = jest.spyOn(StreamrClient, 'searchStreams').mockReturnValue([{
       type: 'streams',
       id: 'stream-1',
       name: 'stream-1',
       description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
     }])
     const placesSpy = jest.spyOn(mapApi, 'getLocations').mockResolvedValue([{
       type: 'locations',
@@ -276,19 +291,17 @@ describe('search', () => {
     expect(startMock).toHaveBeenCalled()
     expect(endMock).toHaveBeenCalled()
     expect(search.results).toStrictEqual([{
-      type: 'streams',
-      id: 'stream-1',
-      name: 'stream-1',
-      description: 'stream-1',
-      longitude: 14,
-      latitude: 30,
-    }, {
       type: 'locations',
       id: 'location-1',
       name: 'location-1',
       description: 'location-1',
       longitude: 24,
       latitude: 32,
+    }, {
+      type: 'streams',
+      id: 'stream-1',
+      name: 'stream-1',
+      description: 'stream-1',
     }])
 
     act(() => {
