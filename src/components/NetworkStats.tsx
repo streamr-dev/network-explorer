@@ -8,21 +8,21 @@ import MetricGraph, { MetricType } from './MetricGraph'
 
 type StatsState = {
   numberOfNodes?: number | undefined
-  apr?: number | undefined
   apy?: number | undefined
+  tvl?: number | undefined
 }
 
 const NetworkStats = () => {
   const isMounted = useIsMounted()
-  const [{ numberOfNodes, apr, apy }, updateStats] = useReducer(
+  const [{ numberOfNodes, apy, tvl }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
       ...(prevState || {}),
       ...nextState,
     }),
     {
       numberOfNodes: undefined,
-      apr: undefined,
       apy: undefined,
+      tvl: undefined,
     },
   )
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>(undefined)
@@ -37,8 +37,8 @@ const NetworkStats = () => {
     if (isMounted()) {
       updateStats({
         numberOfNodes: trackers && trackers.totalNumberOfNodes,
-        apr: staking && staking['24h-APR'],
         apy: staking && staking['24h-APY'],
+        tvl: staking && staking['24h-data-staked'] * 10 ** -6,
       })
     }
   },
@@ -64,18 +64,18 @@ const NetworkStats = () => {
           onClick={() => toggleStat('numberOfNodes')}
         />
         <Stats.Stat
-          id="apr"
-          label="APR"
-          value={apr}
-          unit='%'
-          onClick={() => toggleStat('apr')}
-        />
-        <Stats.Stat
           id="apy"
           label="APY"
-          value={apy}
+          value={apy && Math.floor(apy)}
           unit='%'
           onClick={() => toggleStat('apy')}
+        />
+        <Stats.Stat
+          id="tvl"
+          label="TVL"
+          value={tvl?.toFixed(1)}
+          unit='M DATA'
+          onClick={() => toggleStat('tvl')}
         />
       </Stats>
       {!!selectedStat && <MetricGraph type="network" metric={selectedStat} />}

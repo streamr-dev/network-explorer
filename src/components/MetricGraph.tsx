@@ -10,7 +10,7 @@ import Graphs from './Graphs'
 import { Interval } from './Graphs/Graphs'
 import Error from './Error'
 
-export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond' | 'apr' | 'apy'
+export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond' | 'apr' | 'apy' | 'tvl'
 
 type MetricGraphProps = {
   streamId: string
@@ -64,6 +64,7 @@ type RawValue = {
   latency: number
   apy: number
   apr: number
+  tvl: number
 }
 
 type DataPoint = {
@@ -102,6 +103,7 @@ const MetricGraph = ({
             latency: Math.round(network.avgLatencyMs),
             apr: (staking && staking['24h-APR']) || 0,
             apy: (staking && staking['24h-APY']) || 0,
+            tvl: (staking && staking['24h-data-staked']) || 0,
           },
         ]
       }

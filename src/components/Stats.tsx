@@ -36,7 +36,7 @@ const UnstyledStat = ({
       <StatValue>
         {value !== undefined && value}
         {value === undefined && <InfinityIcon />}
-        {value !== undefined && unit && (` ${unit}`)}
+        {value !== undefined && unit}
       </StatValue>
     </button>
   )
