@@ -147,7 +147,7 @@ const TopologyList = ({ id }: Props) => {
           isActive={activeNodeId === nodeId}
           data-node-id={nodeId}
         >
-          <NodeStats id={address} />
+          <NodeStats id={nodeId} />
         </NodeList.Node>
       ))}
     </NodeList>

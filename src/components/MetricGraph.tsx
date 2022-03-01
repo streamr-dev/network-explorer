@@ -3,6 +3,7 @@ import React, {
 } from 'react'
 import { useSubscription, useClient } from 'streamr-client-react'
 import { keyToArrayIndex } from 'streamr-client-protocol'
+import { getAddressFromNodeId } from '../utils/api/tracker'
 
 import useIsMounted from '../hooks/useIsMounted'
 
@@ -82,15 +83,22 @@ const MetricGraph = ({
   const isMounted = useIsMounted()
   const dataRef = useRef<RawValue[]>([])
   const [values, setValues] = useState<DataPoint[]>([])
+  const nodeAddress = useMemo(() => (id ? getAddressFromNodeId(id) : null), [id])
 
   const onMessage = useCallback(
-    (msg, { messageId }) => {
+    (msg, metadata) => {
       const {
         broker,
         trackers,
         network,
         staking,
       } = msg
+      const { messageId } = metadata
+
+      // Filter out messages that were not sent by currently selected node
+      if (nodeAddress !== null && messageId.publisherId !== nodeAddress) {
+        return
+      }
 
       if (isMounted()) {
         dataRef.current = [
@@ -108,7 +116,7 @@ const MetricGraph = ({
         ]
       }
     },
-    [isMounted],
+    [isMounted, nodeAddress],
   )
 
   // Poll graph data
@@ -153,11 +161,11 @@ const MetricGraph = ({
   }, [graphPoll, interval, metric])
 
   const resend = useMemo(() => {
-    if (id && id.length > 0) {
+    if (nodeAddress && nodeAddress.length > 0) {
       return {
         from: {
           timestamp: getTimestampForInterval(interval),
-          publishedId: id?.toLowerCase(),
+          publisherId: nodeAddress,
         },
       }
     }
@@ -167,7 +175,7 @@ const MetricGraph = ({
         timestamp: getTimestampForInterval(interval),
       },
     }
-  }, [interval, id])
+  }, [interval, nodeAddress])
 
   const labelFormat = useCallback(
     (value: number): string => {
@@ -224,7 +232,6 @@ const getStreamFragmentForInterval = (interval: Interval) => {
 const MetricGraphLoader = ({ type, metric, id }: Props) => {
   const client = useClient()
   const [hasLoaded, setHasLoaded] = useState(false)
-  const nodeId = useMemo(() => (id || '').toLowerCase(), [id])
   const [error, setError] = useState<string | undefined>(undefined)
   const [interval, setInterval] = useState<Interval>('realtime')
   const [partition, setPartition] = useState(0)
@@ -251,8 +258,8 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
 
       try {
         const stream = await client.getStream(streamId)
-        if (nodeId.length > 0) {
-          setPartition(keyToArrayIndex(stream.partitions, nodeId))
+        if (id && id.length > 0) {
+          setPartition(keyToArrayIndex(stream.partitions, id.toLowerCase()))
         }
       } catch (e) {
         setError('Metric data not available')
@@ -262,7 +269,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
         }
       }
     },
-    [isMounted, client, nodeId],
+    [isMounted, client, id],
   )
 
   useEffect(() => {
@@ -288,7 +295,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
             streamId={metricStreamId}
             interval={interval}
             metric={metric}
-            id={nodeId}
+            id={id}
             partition={partition}
           />
         )}

@@ -2,11 +2,12 @@ import React, {
   useCallback,
   useState,
   useReducer,
-  useMemo,
   useEffect,
+  useMemo,
 } from 'react'
 import { useSubscription, useClient } from 'streamr-client-react'
 import { keyToArrayIndex } from 'streamr-client-protocol'
+import { getAddressFromNodeId } from '../utils/api/tracker'
 
 import useIsMounted from '../hooks/useIsMounted'
 
@@ -27,7 +28,7 @@ type StatsState = {
 
 const NodeStats = ({ id }: Props) => {
   const client = useClient()
-  const nodeId = useMemo(() => (id || '').toLowerCase(), [id])
+  const nodeAddress = useMemo(() => (getAddressFromNodeId(id)), [id])
   const [partition, setPartition] = useState(0)
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
   const [{ messagesPerSecond, bytesPerSecond, latency }, updateStats] = useReducer(
@@ -45,10 +46,10 @@ const NodeStats = ({ id }: Props) => {
   useEffect(() => {
     const load = async () => {
       const stream = await client.getStream(FIREHOSE_STREAM)
-      setPartition(keyToArrayIndex(stream.partitions, nodeId))
+      setPartition(keyToArrayIndex(stream.partitions, id))
     }
     load()
-  }, [client, nodeId])
+  }, [client, id])
 
   const toggleStat = useCallback((name) => {
     setSelectedStat((prev) => (prev !== name ? name : undefined))
@@ -56,8 +57,14 @@ const NodeStats = ({ id }: Props) => {
 
   const isMounted = useIsMounted()
 
-  const onMessage = useCallback((msg) => {
+  const onMessage = useCallback((msg, metadata) => {
     const { broker, network } = msg
+    const { messageId } = metadata
+
+    // Filter out messages that were not sent by currently selected node
+    if (messageId.publisherId !== nodeAddress) {
+      return
+    }
 
     if (isMounted()) {
       updateStats({
@@ -66,7 +73,7 @@ const NodeStats = ({ id }: Props) => {
         latency: Math.round(network.avgLatencyMs),
       })
     }
-  }, [isMounted])
+  }, [isMounted, nodeAddress])
 
   useSubscription(
     {
@@ -74,7 +81,7 @@ const NodeStats = ({ id }: Props) => {
       partition,
       resend: {
         last: 1,
-        publishedId: nodeId,
+        publisherId: id.toLowerCase(),
       },
     }, {
       onMessage,
@@ -102,7 +109,7 @@ const NodeStats = ({ id }: Props) => {
           onClick={() => toggleStat('latency')}
         />
       </Stats>
-      {!!selectedStat && <MetricGraph type="node" id={nodeId} metric={selectedStat} />}
+      {!!selectedStat && <MetricGraph type="node" id={id} metric={selectedStat} />}
     </>
   )
 }

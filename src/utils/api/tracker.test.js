@@ -603,4 +603,11 @@ describe('tracker API', () => {
       ])
     })
   })
+
+  describe('getAddressFromNodeId', () => {
+    it('gets address correctly from nodeId', () => {
+      const addr1 = '0xd836b6a0f42f683bc7e60b1b0c7e24e79b56b500#2eacd044-ed78-437e-adae-519c9a14e4451'
+      expect(all.getAddressFromNodeId(addr1)).toStrictEqual('0xd836b6a0f42f683bc7e60b1b0c7e24e79b56b500')
+    })
+  })
 })

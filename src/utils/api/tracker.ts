@@ -13,6 +13,8 @@ import { Location } from './mapbox'
 import { get } from '../request'
 import getConfig from '../config'
 
+export const getAddressFromNodeId = (nodeId: string) => (nodeId.substring(0, 42).toLowerCase())
+
 const getTrackerRegistry = async () => {
   const { tracker } = getConfig()
 
