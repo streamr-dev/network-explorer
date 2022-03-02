@@ -68,7 +68,7 @@ const NodeStats = ({ id }: Props) => {
 
     if (isMounted()) {
       updateStats({
-        messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
+        messagesPerSecond: broker.messagesToNetworkPerSec,
         bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
         latency: Math.round(network.avgLatencyMs),
       })
@@ -93,7 +93,7 @@ const NodeStats = ({ id }: Props) => {
         <Stats.Stat
           id="messagesPerSecond"
           label="Msgs / sec"
-          value={messagesPerSecond}
+          value={messagesPerSecond?.toFixed(3)}
           onClick={() => toggleStat('messagesPerSecond')}
         />
         <Stats.Stat

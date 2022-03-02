@@ -105,7 +105,7 @@ const MetricGraph = ({
           ...dataRef.current,
           {
             timestamp: messageId.timestamp,
-            messagesPerSecond: Math.round(broker.messagesToNetworkPerSec),
+            messagesPerSecond: broker.messagesToNetworkPerSec,
             numberOfNodes: (trackers && trackers.totalNumberOfNodes) || 0,
             bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
             latency: Math.round(network.avgLatencyMs),
