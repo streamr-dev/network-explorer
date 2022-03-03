@@ -22,8 +22,23 @@ type Props = {
 
 type StatsState = {
   messagesPerSecond?: number | undefined
-  bytesPerSecond?: number | undefined
-  latency?: number | undefined
+  upBytes?: number | undefined
+  downBytes?: number | undefined
+}
+
+const formatBytes = (bytes: number): [string, string] => {
+  let value = bytes.toString()
+  let unit = 'B / S'
+
+  if (bytes > 1024 * 1024) {
+    value = (bytes / (1024 * 1024)).toFixed(1)
+    unit = 'MB / S'
+  } else if (bytes > 1024) {
+    value = (bytes / 1024).toFixed(1)
+    unit = 'KB / S'
+  }
+
+  return [value, unit]
 }
 
 const NodeStats = ({ id }: Props) => {
@@ -31,17 +46,19 @@ const NodeStats = ({ id }: Props) => {
   const nodeAddress = useMemo(() => (getAddressFromNodeId(id)), [id])
   const [partition, setPartition] = useState(0)
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
-  const [{ messagesPerSecond, bytesPerSecond, latency }, updateStats] = useReducer(
+  const [{ messagesPerSecond, upBytes, downBytes }, updateStats] = useReducer(
     (prevState: StatsState, nextState: StatsState) => ({
       ...(prevState || {}),
       ...nextState,
     }),
     {
       messagesPerSecond: undefined,
-      bytesPerSecond: undefined,
-      latency: undefined,
+      upBytes: undefined,
+      downBytes: undefined,
     },
   )
+  const upBytesFormatted = useMemo(() => upBytes ? formatBytes(upBytes) : [undefined, ''], [upBytes])
+  const downBytesFormatted = useMemo(() => downBytes ? formatBytes(downBytes) : [undefined, ''], [downBytes])
 
   useEffect(() => {
     const load = async () => {
@@ -69,8 +86,8 @@ const NodeStats = ({ id }: Props) => {
     if (isMounted()) {
       updateStats({
         messagesPerSecond: broker.messagesToNetworkPerSec,
-        bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
-        latency: Math.round(network.avgLatencyMs),
+        upBytes: network.bytesToPeersPerSec,
+        downBytes: network.bytesFromPeersPerSec,
       })
     }
   }, [isMounted, nodeAddress])
@@ -92,21 +109,21 @@ const NodeStats = ({ id }: Props) => {
       <Stats active={selectedStat}>
         <Stats.Stat
           id="messagesPerSecond"
-          label="Msgs / sec"
+          label="Msg / sec"
           value={messagesPerSecond?.toFixed(3)}
           onClick={() => toggleStat('messagesPerSecond')}
         />
         <Stats.Stat
-          id="bytesPerSecond"
-          label="Mb / s"
-          value={bytesPerSecond && (bytesPerSecond / 1024 / 1024).toPrecision(2)}
-          onClick={() => toggleStat('bytesPerSecond')}
+          id="upBytes"
+          label={`Up ${upBytesFormatted[1]}`}
+          value={upBytesFormatted[0]}
+          onClick={() => toggleStat('upBytes')}
         />
         <Stats.Stat
-          id="latency"
-          label="Latency ms"
-          value={latency}
-          onClick={() => toggleStat('latency')}
+          id="downBytes"
+          label={`Down ${downBytesFormatted[1]}`}
+          value={downBytesFormatted[0]}
+          onClick={() => toggleStat('downBytes')}
         />
       </Stats>
       {!!selectedStat && <MetricGraph type="node" id={id} metric={selectedStat} />}

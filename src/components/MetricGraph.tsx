@@ -11,7 +11,7 @@ import Graphs from './Graphs'
 import { Interval } from './Graphs/Graphs'
 import Error from './Error'
 
-export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond' | 'apr' | 'apy' | 'tvl'
+export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond' | 'apr' | 'apy' | 'tvl' | 'upBytes' | 'downBytes'
 
 type MetricGraphProps = {
   streamId: string
@@ -66,6 +66,8 @@ type RawValue = {
   apy: number
   apr: number
   tvl: number
+  upBytes: number
+  downBytes: number
 }
 
 type DataPoint = {
@@ -112,6 +114,8 @@ const MetricGraph = ({
             apr: (staking && staking['24h-APR']) || 0,
             apy: (staking && staking['24h-APY']) || 0,
             tvl: (staking && staking['24h-data-staked']) || 0,
+            upBytes: (network && network.bytesToPeersPerSec) || 0,
+            downBytes: (network && network.bytesFromPeersPerSec) || 0,
           },
         ]
       }
