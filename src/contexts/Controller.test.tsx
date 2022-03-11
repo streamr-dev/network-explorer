@@ -8,7 +8,6 @@ import { Provider as ControllerProvider, useController } from './Controller'
 import * as mapApi from '../utils/api/mapbox'
 import * as trackerApi from '../utils/api/tracker'
 
-jest.mock('../utils/api/streamr')
 jest.mock('../utils/api/mapbox')
 jest.mock('../utils/api/tracker')
 

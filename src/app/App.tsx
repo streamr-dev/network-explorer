@@ -37,8 +37,8 @@ const App = () => (
   <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
     <Pendingrovider>
       <StoreProvider>
-        <ControllerProvider>
-          <StreamrClientProvider>
+        <StreamrClientProvider>
+          <ControllerProvider>
             <ConnectedMap />
             <LoadingBar />
             <Layout>
@@ -54,8 +54,8 @@ const App = () => (
                 </Switch>
               </ErrorBoundary>
             </Layout>
-          </StreamrClientProvider>
-        </ControllerProvider>
+          </ControllerProvider>
+        </StreamrClientProvider>
       </StoreProvider>
     </Pendingrovider>
   </BrowserRouter>
