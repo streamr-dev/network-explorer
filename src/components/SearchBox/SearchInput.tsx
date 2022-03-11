@@ -240,15 +240,14 @@ const UnstyledSearchInput = ({
           onBlur={onBlur}
         />
         <ButtonWrapper>
-          {!value && (
-            <InputLabel htmlFor="input">
-              <SearchIcon />
-            </InputLabel>
-          )}
-          {!!inputValue && (
+          {inputValue && inputValue.length > 0 ? (
             <IconButton type="button" onClick={onClear}>
               <ClearIcon />
             </IconButton>
+          ) : (
+            <InputLabel htmlFor="input">
+              <SearchIcon />
+            </InputLabel>
           )}
         </ButtonWrapper>
       </Inner>
