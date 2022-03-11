@@ -8,9 +8,9 @@ import {
   TRANSITION_EVENTS,
 } from 'react-map-gl'
 import { useHistory } from 'react-router-dom'
+import { useClient } from 'streamr-client-react'
 
 import * as trackerApi from '../utils/api/tracker'
-import * as streamrApi from '../utils/api/streamr'
 import * as mapApi from '../utils/api/mapbox'
 import { usePending } from './Pending'
 import { useStore } from './Store'
@@ -86,6 +86,7 @@ function useControllerContext() {
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
+  const client = useClient()
   const isMounted = useIsMounted()
   const nodesRef = useRef(nodes)
   nodesRef.current = nodes
@@ -177,7 +178,7 @@ function useControllerContext() {
     async (streamId: string) =>
       wrapStreams(async () => {
         try {
-          const nextStream = await streamrApi.getStream({ id: streamId })
+          const nextStream = await client.getStream(streamId)
 
           if (!isMounted()) {
             return
@@ -190,7 +191,7 @@ function useControllerContext() {
           throw e
         }
       }),
-    [wrapStreams, isMounted, setStream],
+    [wrapStreams, isMounted, setStream, client],
   )
 
   const resetStream = useCallback(() => {
