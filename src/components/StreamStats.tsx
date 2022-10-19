@@ -46,9 +46,12 @@ const StreamStats = () => {
   }, [])
 
   const onMessage = useCallback(
-    ({ broker }) => {
-      if (isMounted() && broker) {
-        setMessagesPerSecond(Math.round(broker.messagesToNetworkPerSec))
+    ({ broker, network }) => {
+      if (isMounted() && (broker || network)) {
+        const msgPerSec = (network && network.publishMessagesPerSecond) ||
+          (broker && broker.messagesToNetworkPerSec) ||
+          0
+        setMessagesPerSecond(Math.round(msgPerSec))
       }
     },
     [isMounted],
