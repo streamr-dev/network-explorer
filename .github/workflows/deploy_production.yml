@@ -23,11 +23,10 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
           cache-dependency-path: 'package-lock.json'
+      - name: Set npm access token
+        run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}
       - name: Install dependencies
-        run: |
-          npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
-          npm install -g npm@8
-          npm ci
+        run: npm ci
       - name: Get version string from git tag name
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
