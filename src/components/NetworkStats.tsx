@@ -32,11 +32,12 @@ const NetworkStats = () => {
   }, [])
 
   const onMessage = useCallback((msg) => {
-    const { trackers, staking } = msg
+    const { trackers, staking, network } = msg
 
     if (isMounted()) {
       updateStats({
-        numberOfNodes: trackers && trackers.totalNumberOfNodes,
+        numberOfNodes: (network && network.totalNumberOfNodes) ||
+          (trackers && trackers.totalNumberOfNodes),
         apy: staking && staking['24h-APY'],
         tvl: staking && staking['24h-data-staked'] * 10 ** -6,
       })

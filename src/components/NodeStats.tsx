@@ -75,7 +75,7 @@ const NodeStats = ({ id }: Props) => {
   const isMounted = useIsMounted()
 
   const onMessage = useCallback((msg, metadata) => {
-    const { broker, network } = msg
+    const { broker, network, node } = msg
     const { messageId } = metadata
 
     // Filter out messages that were not sent by currently selected node
@@ -85,9 +85,15 @@ const NodeStats = ({ id }: Props) => {
 
     if (isMounted()) {
       updateStats({
-        messagesPerSecond: broker.messagesToNetworkPerSec,
-        upBytes: network.bytesToPeersPerSec,
-        downBytes: network.bytesFromPeersPerSec,
+        messagesPerSecond: (node && node.publishMessagesPerSecond) ||
+          (broker && broker.messagesToNetworkPerSec) ||
+          undefined,
+        upBytes: (node && node.sendBytesPerSecond) ||
+          (network && network.bytesToPeersPerSec) ||
+          undefined,
+        downBytes: (node && node.receiveBytesPerSecond) ||
+          (network && network.bytesFromPeersPerSec) ||
+          undefined,
       })
     }
   }, [isMounted, nodeAddress])

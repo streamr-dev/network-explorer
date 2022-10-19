@@ -94,6 +94,7 @@ const MetricGraph = ({
         trackers,
         network,
         staking,
+        node,
       } = msg
       const { messageId } = metadata
 
@@ -107,15 +108,30 @@ const MetricGraph = ({
           ...dataRef.current,
           {
             timestamp: messageId.timestamp,
-            messagesPerSecond: broker.messagesToNetworkPerSec,
-            numberOfNodes: (trackers && trackers.totalNumberOfNodes) || 0,
-            bytesPerSecond: Math.round(broker.bytesToNetworkPerSec),
+            messagesPerSecond: (node && node.publishMessagesPerSecond) ||
+              (network && network.publishMessagesPerSecond) ||
+              (broker && broker.messagesToNetworkPerSec) ||
+              0,
+            numberOfNodes: (network && network.totalNumberOfNodes) ||
+              (trackers && trackers.totalNumberOfNodes) ||
+              0,
+            bytesPerSecond: (network &&
+              network.publishBytesPerSecond &&
+              Math.round(network.publishBytesPerSecond)) ||
+              (broker &&
+              broker.bytesToNetworkPerSec &&
+              Math.round(broker.bytesToNetworkPerSec)) ||
+              0,
             latency: Math.round(network.avgLatencyMs),
             apr: (staking && staking['24h-APR']) || 0,
             apy: (staking && staking['24h-APY']) || 0,
             tvl: (staking && staking['24h-data-staked']) || 0,
-            upBytes: (network && network.bytesToPeersPerSec) || 0,
-            downBytes: (network && network.bytesFromPeersPerSec) || 0,
+            upBytes: (node && node.sendBytesPerSecond) ||
+              (network && network.bytesToPeersPerSec) ||
+              0,
+            downBytes: (node && node.receiveBytesPerSecond) ||
+              (network && network.bytesFromPeersPerSec) ||
+              0,
           },
         ]
       }
