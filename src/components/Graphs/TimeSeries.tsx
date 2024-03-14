@@ -1,11 +1,6 @@
-import React, {
-  useMemo, useCallback, useState,
-} from 'react'
+import React, { useMemo, useCallback, useState } from 'react'
 import styled from 'styled-components/macro'
-import {
-  Line, LineChart, ResponsiveContainer, Tooltip, YAxis,
-} from 'recharts'
-import Rect from '../Rect'
+import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
 import { SANS, MEDIUM } from '../../utils/styled'
 
 const PlotContainer = styled.div`
@@ -76,7 +71,7 @@ const UnstyledTimeSeriesGraph = ({
 }: Props) => {
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
-  const tooltipRef = useCallback(node => {
+  const tooltipRef = useCallback((node) => {
     if (node !== null) {
       setTooltipWidth(node.offsetWidth)
     }
@@ -113,21 +108,20 @@ const UnstyledTimeSeriesGraph = ({
   }, [graphData])
 
   const margin = useMemo(
-
     () =>
       showCrosshair
         ? {
-          top: 32,
-          left: 45,
-          right: 45,
-          bottom: 8,
-        }
+            top: 32,
+            left: 45,
+            right: 45,
+            bottom: 8,
+          }
         : {
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          },
     [showCrosshair],
   )
 
@@ -191,3 +185,23 @@ const UnstyledTimeSeriesGraph = ({
 const TimeSeries = styled(UnstyledTimeSeriesGraph)``
 
 export default TimeSeries
+
+interface RectProps {
+  ratio?: string
+  height?: string
+}
+
+function Rect({ ratio = '3:2', height }: RectProps) {
+  return (
+    <RectRoot
+      height={height}
+      viewBox={!ratio ? undefined : `0 0 ${ratio.split(/[:x]/).join(' ')}`}
+      width={height == null ? undefined : '100%'}
+      xmlns="http://www.w3.org/2000/svg"
+    />
+  )
+}
+
+const RectRoot = styled.svg`
+  display: block;
+`
