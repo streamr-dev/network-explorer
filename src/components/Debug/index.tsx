@@ -1,17 +1,8 @@
-import React, {
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-  useCallback,
-} from 'react'
+import React, { useEffect, useReducer, useRef, useState, useCallback } from 'react'
 import styled from 'styled-components/macro'
-
 import { useAllPending } from '../../contexts/Pending'
-import { useStore } from '../../contexts/Store'
-import {
-  MONO, SANS, MD,
-} from '../../utils/styled'
+import { useStore } from '../../hooks/useStore'
+import { MONO, SANS, MD } from '../../utils/styled'
 import { isLocalStorageAvailable } from '../../utils/storage'
 import { useDebounced } from '../../hooks/wrapCallback'
 
@@ -31,13 +22,13 @@ export function setDebugMode(value: boolean) {
 }
 
 type WindowPos = {
-  x: number,
-  y: number,
+  x: number
+  y: number
 }
 
 type WindowDimension = {
-  width: number,
-  height: number,
+  width: number
+  height: number
 }
 
 type WindowProps = WindowPos & WindowDimension
@@ -50,8 +41,10 @@ const initialState: WindowProps = {
 }
 
 export function getDebugWindowProps(): WindowProps {
-  return !!storage && JSON.parse(storage.getItem(APP_DEBUG_WINDOW_PROPS_KEY) ||
-    JSON.stringify(initialState))
+  return (
+    !!storage &&
+    JSON.parse(storage.getItem(APP_DEBUG_WINDOW_PROPS_KEY) || JSON.stringify(initialState))
+  )
 }
 
 export function setDebugWindowProps(value: WindowProps) {
@@ -162,7 +155,9 @@ const Debug = () => {
     (prevState: WindowProps, nextState: WindowPos | WindowDimension) => ({
       ...(prevState || {}),
       ...nextState,
-    }), getDebugWindowProps())
+    }),
+    getDebugWindowProps(),
+  )
   const ref = useRef<HTMLDivElement>(null)
   const [stringifiedJson, setStringifiedJson] = useState<string>('')
 
@@ -188,7 +183,9 @@ const Debug = () => {
   const onMoveContainer = ({ clientX: x0, clientY: y0, button }: React.MouseEvent<HTMLElement>) => {
     const { current: el } = ref
 
-    if (button !== 0 || !el) { return }
+    if (button !== 0 || !el) {
+      return
+    }
 
     const { offsetLeft, offsetTop } = el || {}
 
@@ -222,7 +219,9 @@ const Debug = () => {
   }: React.MouseEvent<HTMLElement>) => {
     const { current: el } = ref
 
-    if (button !== 0 || !el) { return }
+    if (button !== 0 || !el) {
+      return
+    }
 
     const { offsetWidth, offsetHeight } = el || {}
 
@@ -269,18 +268,10 @@ const Debug = () => {
       }}
     >
       <Wrapper>
-        <Header
-          onMouseDown={onMoveContainer}
-        >
-          Debug
-        </Header>
-        <Variables>
-          {stringifiedJson}
-        </Variables>
+        <Header onMouseDown={onMoveContainer}>Debug</Header>
+        <Variables>{stringifiedJson}</Variables>
       </Wrapper>
-      <ResizeHandle
-        onMouseDown={onResizeContainer}
-      />
+      <ResizeHandle onMouseDown={onResizeContainer} />
     </DebugContainer>
   )
 }

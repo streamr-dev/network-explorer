@@ -1,10 +1,5 @@
-import React, {
-  useEffect, useRef, useMemo, useCallback,
-} from 'react'
-import ReactMapGL, {
-  ViewportProps,
-  MapRef,
-} from 'react-map-gl'
+import React, { useEffect, useRef, useMemo, useCallback } from 'react'
+import ReactMapGL, { ViewportProps, MapRef } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import styled from 'styled-components'
 
@@ -12,16 +7,17 @@ import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
 
-import { useStore, Topology } from '../../contexts/Store'
+import {  Topology, ConnectionsMode } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import { MapboxToken } from '../../utils'
-import { Node } from '../../utils/api/tracker'
+import { OperatorNode } from '../../types'
 import useKeyDown from '../../hooks/useKeyDown'
+import { useStore } from '../../hooks/useStore'
 
 type Props = {
-  nodes: Node[]
+  nodes: OperatorNode[]
   topology: Topology
-  activeNode?: Node
+  activeNode?: OperatorNode
   viewport: ViewportProps
   setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>
   onNodeClick?: (v: string) => void
@@ -81,12 +77,15 @@ export const Map = ({
     const map = mapRef.current?.getMap()
 
     if (map && map.isStyleLoaded()) {
-      map.setFeatureState({
-        source: NODE_SOURCE_ID,
-        id,
-      }, {
-        ...state,
-      })
+      map.setFeatureState(
+        {
+          source: NODE_SOURCE_ID,
+          id,
+        },
+        {
+          ...state,
+        },
+      )
     } else if (map && !map.isStyleLoaded()) {
       // Defer the call for a while to wait for styles to load
       setTimeout(() => setNodeFeatureState(id, state), 100)
@@ -114,7 +113,7 @@ export const Map = ({
   useEffect(() => {
     const map = mapRef.current?.getMap()
     if (map && activeNode) {
-      const lngLat = [activeNode.location.longitude, activeNode.location.latitude]
+      const lngLat = [activeNode.longitude, activeNode.latitude]
       const isInBounds = map.getBounds().contains(lngLat)
       if (!isInBounds) {
         map.panTo(lngLat)
@@ -187,11 +186,7 @@ export const Map = ({
         activeNode={activeNode}
         visible={!!showConnections}
       />
-      <MarkerLayer
-        nodes={nodes}
-        sourceId={NODE_SOURCE_ID}
-        layerId={NODE_LAYER_ID}
-      />
+      <MarkerLayer nodes={nodes} sourceId={NODE_SOURCE_ID} layerId={NODE_LAYER_ID} />
       <NavigationControl
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}
@@ -218,14 +213,8 @@ export const ConnectedMap = () => {
     showConnections,
     toggleShowConnections,
   } = useStore()
-  const {
-    viewport,
-    setViewport,
-    showNode,
-    zoomIn,
-    zoomOut,
-    reset,
-  } = useController()
+
+  const { viewport, setViewport, showNode, zoomIn, zoomOut, reset } = useController()
 
   const { id: activeNodeId } = activeNode || {}
 

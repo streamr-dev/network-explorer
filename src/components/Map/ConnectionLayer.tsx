@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { Source, Layer } from 'react-map-gl'
-import { Node } from '../../utils/api/tracker'
 import { Topology } from '../../contexts/Store'
+import { OperatorNode } from '../../types'
 
 type NodeConnection = {
   sourceId: string | number | undefined
@@ -14,8 +14,8 @@ type UniqueConnection = Record<string, NodeConnection>
 
 const getNodeConnections = (
   topology: Topology,
-  nodes: Node[],
-  activeNode: Node | undefined,
+  nodes: OperatorNode[],
+  activeNode: OperatorNode | undefined,
 ): Array<NodeConnection> => {
   // Convert topology to a list of node connection pairs
   const nodeConnections = Object.keys(topology || {})
@@ -42,8 +42,8 @@ const getNodeConnections = (
 
       if (src && target) {
         uniqueConnections[uniqueId] = {
-          source: [src.location.longitude, src.location.latitude] as [number, number],
-          target: [target.location.longitude, target.location.latitude] as [number, number],
+          source: [src.longitude, src.latitude] as [number, number],
+          target: [target.longitude, target.latitude] as [number, number],
           sourceId,
           targetId,
         }
@@ -56,8 +56,8 @@ const getNodeConnections = (
 
 type Props = {
   topology: Topology
-  nodes: Node[]
-  activeNode: Node | undefined
+  nodes: OperatorNode[]
+  activeNode: OperatorNode | undefined
   visible?: boolean
 }
 

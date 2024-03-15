@@ -1,9 +1,8 @@
 import React, { useMemo, useRef } from 'react'
 import styled, { css } from 'styled-components/macro'
-
+import { ActiveView } from '../contexts/Store'
 import { SM } from '../utils/styled'
-import { useStore } from '../contexts/Store'
-
+import { useStore } from '../hooks/useStore'
 import ControlBox from './ControlBox'
 import NodeList from './NodeList'
 
@@ -67,7 +66,7 @@ const LayoutComponent = styled.div`
     }
 
     ${({ theme }) =>
-    theme.activeView === 'list' &&
+      theme.activeView === ActiveView.List &&
       css`
         top: ${searchPadding}px;
         // bottom: 0;
@@ -97,7 +96,7 @@ const Layout = ({ children, ...props }: Props) => {
   const dragRef = useRef<HTMLDivElement>(null)
 
   const currentTop = useMemo(() => {
-    if (activeView === 'list') {
+    if (activeView === ActiveView.List) {
       return `${searchPadding}px`
     }
 
@@ -121,9 +120,7 @@ const Layout = ({ children, ...props }: Props) => {
         }}
         {...props}
       >
-        <LayoutComponentWrapper ref={ref}>
-          {children}
-        </LayoutComponentWrapper>
+        <LayoutComponentWrapper ref={ref}>{children}</LayoutComponentWrapper>
       </LayoutComponent>
     </>
   )
