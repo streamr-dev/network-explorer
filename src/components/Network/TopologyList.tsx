@@ -1,20 +1,12 @@
-import React, {
-  useMemo,
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-} from 'react'
+import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
-
-import { useStore } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import usePaged from '../../hooks/usePaged'
-import { Node } from '../../utils/api/tracker'
+import { OperatorNode } from '../../types'
 import useIsMounted from '../../hooks/useIsMounted'
-
 import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
+import { useStore } from '../../hooks/useStore'
 
 type Props = {
   id?: string
@@ -29,9 +21,10 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
   const [pageChangedOnLoad, setPageChangedOnLoad] = useState(false)
   const isMounted = useIsMounted()
 
-  const currentNode = useMemo(() => nodes.find(({ id: nodeId }) => (
-    nodeId === activeNodeId),
-  ), [nodes, activeNodeId])
+  const currentNode = useMemo(() => nodes.find(({ id: nodeId }) => nodeId === activeNodeId), [
+    nodes,
+    activeNodeId,
+  ])
 
   const toggleNode = useCallback(
     (nodeId) => {
@@ -41,23 +34,20 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
   )
 
   // show all nodes in same location
-  const visibleNodes: Node[] = useMemo(() => ((currentNode && nodes) ? (
-    nodes.filter(({ location }) => {
-      const { latitude, longitude } = location
+  const visibleNodes: OperatorNode[] = useMemo(
+    () =>
+      currentNode && nodes
+        ? nodes.filter(({ latitude, longitude }) => {
+            return latitude === currentNode.latitude && longitude === currentNode.longitude
+          })
+        : [],
+    [nodes, currentNode],
+  )
 
-      return (
-        latitude === currentNode.location.latitude &&
-        longitude === currentNode.location.longitude
-      )
-    })
-  ) : []), [nodes, currentNode])
-
-  const {
-    currentPage,
-    setPage,
-    items,
-    pages,
-  } = usePaged<Node>({ items: visibleNodes, limit: NodeList.PAGE_SIZE })
+  const { currentPage, setPage, items, pages } = usePaged<OperatorNode>({
+    items: visibleNodes,
+    limit: NodeList.PAGE_SIZE,
+  })
 
   // Set correct page on load
   useEffect(() => {
@@ -117,15 +107,17 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
   // load locations for visible list items
   const fetching = useRef(false)
   useEffect(() => {
-    const nodesWithoutLocation = items
-      .filter(({ location }) => location && !location.isReverseGeoCoded)
+    /**
+     * @todo If at all. Previously
+     * items.filter(({ location }) => location && !location.isReverseGeoCoded)
+     */
+    const nodesWithoutLocation: OperatorNode[] = []
 
     if (nodesWithoutLocation.length > 0 && !fetching.current) {
       fetching.current = true
-      loadNodeLocations(nodesWithoutLocation)
-        .then(() => {
-          fetching.current = false
-        })
+      loadNodeLocations(nodesWithoutLocation).then(() => {
+        fetching.current = false
+      })
     }
   }, [items, loadNodeLocations])
 
@@ -137,24 +129,15 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
         </NodeList.Header>
       )}
       {pages > 1 && (
-        <NodeList.Pager
-          currentPage={currentPage}
-          lastPage={pages}
-          onChange={setPage}
-        />
+        <NodeList.Pager currentPage={currentPage} lastPage={pages} onChange={setPage} />
       )}
-      {items.map(({
-        id: nodeId,
-        title,
-        address,
-        location,
-      }) => (
+      {items.map(({ id: nodeId, title }) => (
         <NodeList.Node
           key={nodeId}
           nodeId={nodeId}
           title={title}
-          address={address}
-          placeName={(location || {}).title || ''}
+          address="N/A"
+          placeName="N/A"
           onClick={toggleNode}
           isActive={activeNodeId === nodeId}
           data-node-id={nodeId}

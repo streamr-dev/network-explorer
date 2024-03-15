@@ -1,24 +1,37 @@
-import React, {
-  useMemo, useCallback, useState, useEffect, useRef,
-} from 'react'
-import { useSubscription, useClient } from 'streamr-client-react'
-import { keyToArrayIndex } from 'streamr-client-protocol'
-import { getAddressFromNodeId } from '../utils/api/tracker'
-
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react'
+import { useClient } from 'streamr-client-react'
 import useIsMounted from '../hooks/useIsMounted'
-
 import Graphs from './Graphs'
 import { Interval } from './Graphs/Graphs'
 import Error from './Error'
 
-export type MetricType = 'messagesPerSecond' | 'numberOfNodes' | 'latency' | 'bytesPerSecond' | 'apr' | 'apy' | 'tvl' | 'upBytes' | 'downBytes'
+export type MetricType =
+  | 'messagesPerSecond'
+  | 'numberOfNodes'
+  | 'latency'
+  | 'bytesPerSecond'
+  | 'apr'
+  | 'apy'
+  | 'tvl'
+  | 'upBytes'
+  | 'downBytes'
+
+function useSubscription(..._: any[]) {}
+
+function getAddressFromNodeId(..._: any[]) {
+  return ''
+}
+
+function keyToArrayIndex(..._: any[]) {
+  return 0
+}
 
 type MetricGraphProps = {
   streamId: string
   interval: Interval
   metric: MetricType
-  id: string | undefined,
-  partition: Number,
+  id: string | undefined
+  partition: Number
 }
 
 const HOUR = 60 * 60 * 1000
@@ -75,13 +88,7 @@ type DataPoint = {
   y: number
 }
 
-const MetricGraph = ({
-  streamId,
-  interval,
-  metric,
-  id,
-  partition,
-}: MetricGraphProps) => {
+const MetricGraph = ({ streamId, interval, metric, id, partition }: MetricGraphProps) => {
   const isMounted = useIsMounted()
   const dataRef = useRef<RawValue[]>([])
   const [values, setValues] = useState<DataPoint[]>([])
@@ -89,13 +96,7 @@ const MetricGraph = ({
 
   const onMessage = useCallback(
     (msg, metadata) => {
-      const {
-        broker,
-        trackers,
-        network,
-        staking,
-        node,
-      } = msg
+      const { broker, trackers, network, staking, node } = msg
       const { messageId } = metadata
 
       // Filter out messages that were not sent by currently selected node
@@ -108,28 +109,29 @@ const MetricGraph = ({
           ...dataRef.current,
           {
             timestamp: messageId.timestamp,
-            messagesPerSecond: (node && node.publishMessagesPerSecond) ||
+            messagesPerSecond:
+              (node && node.publishMessagesPerSecond) ||
               (network && network.publishMessagesPerSecond) ||
               (broker && broker.messagesToNetworkPerSec) ||
               0,
-            numberOfNodes: (network && network.totalNumberOfNodes) ||
+            numberOfNodes:
+              (network && network.totalNumberOfNodes) ||
               (trackers && trackers.totalNumberOfNodes) ||
               0,
-            bytesPerSecond: (network &&
-              network.publishBytesPerSecond &&
-              Math.round(network.publishBytesPerSecond)) ||
-              (broker &&
-              broker.bytesToNetworkPerSec &&
-              Math.round(broker.bytesToNetworkPerSec)) ||
+            bytesPerSecond:
+              (network &&
+                network.publishBytesPerSecond &&
+                Math.round(network.publishBytesPerSecond)) ||
+              (broker && broker.bytesToNetworkPerSec && Math.round(broker.bytesToNetworkPerSec)) ||
               0,
             latency: Math.round(network.avgLatencyMs),
             apr: (staking && staking['24h-APR']) || 0,
             apy: (staking && staking['24h-APY']) || 0,
             tvl: (staking && staking['24h-data-staked']) || 0,
-            upBytes: (node && node.sendBytesPerSecond) ||
-              (network && network.bytesToPeersPerSec) ||
-              0,
-            downBytes: (node && node.receiveBytesPerSecond) ||
+            upBytes:
+              (node && node.sendBytesPerSecond) || (network && network.bytesToPeersPerSec) || 0,
+            downBytes:
+              (node && node.receiveBytesPerSecond) ||
               (network && network.bytesFromPeersPerSec) ||
               0,
           },
@@ -162,7 +164,7 @@ const MetricGraph = ({
         x: timestamp,
         y: rawValue[nextMetric],
       }))
-      .sort(({ x: prev }, { x: current }) => (prev - current))
+      .sort(({ x: prev }, { x: current }) => prev - current)
 
     setValues(nextValues)
 
@@ -204,13 +206,16 @@ const MetricGraph = ({
     [metric],
   )
 
-  useSubscription({
-    stream: streamId,
-    partition,
-    resend,
-  }, {
-    onMessage,
-  })
+  useSubscription(
+    {
+      stream: streamId,
+      partition,
+      resend,
+    },
+    {
+      onMessage,
+    },
+  )
 
   return (
     <Graphs.TimeSeries
@@ -262,7 +267,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
       return `streamr.eth/metrics/network/${getStreamFragmentForInterval(interval)}`
     }
 
-    if (!id ) {
+    if (!id) {
       // no idea what typescript wants here
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       throw new (Error as any)('No node selected!')
@@ -276,10 +281,14 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
       setHasLoaded(false)
       setError(undefined)
 
+      if (!client) {
+        return
+      }
+
       try {
         const stream = await client.getStream(streamId)
         if (id && id.length > 0) {
-          setPartition(keyToArrayIndex(stream.partitions, id.toLowerCase()))
+          setPartition(keyToArrayIndex(stream.getMetadata().partitions, id.toLowerCase()))
         }
       } catch (e) {
         setError('Metric data not available')

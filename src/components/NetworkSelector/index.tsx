@@ -6,11 +6,10 @@ import React, {
 } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components/macro'
-
 import envs from '../../utils/envs'
 import Tooltip from '../Tooltip'
-import { useStore } from '../../contexts/Store'
 import { SANS, SM } from '../../utils/styled'
+import { useStore } from '../../hooks/useStore'
 
 const GlobeIcon = () => (
   <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">

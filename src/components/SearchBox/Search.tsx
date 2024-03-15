@@ -6,6 +6,7 @@ import Stats from '../Stats'
 import Graphs from '../Graphs'
 import Error from '../Error'
 import { SearchResults } from './SearchResults'
+import { ActiveView } from '../../types'
 
 export const SlideHandle = styled.div`
   position: absolute;
@@ -65,7 +66,7 @@ export const Search = styled(ControlBox)`
     }
 
     ${({ theme }) =>
-      theme.activeView === 'map' &&
+      theme.activeView === ActiveView.Map &&
       css`
         ${SearchResults} {
           display: none;
@@ -87,7 +88,7 @@ export const Search = styled(ControlBox)`
       `}
 
     ${({ theme }) =>
-      theme.activeView === 'list' &&
+      theme.activeView === ActiveView.List &&
       !!theme.resultsActive &&
       css`
         ${Stats},

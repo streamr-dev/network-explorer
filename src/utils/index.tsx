@@ -93,7 +93,7 @@ export function useNodesQuery(params: UseNodesQueryParams) {
             id: item.id,
             latitude: item.location.latitude,
             longitude: item.location.longitude,
-            name: entropyToMnemonic(`0x${item.id}`)
+            title: entropyToMnemonic(`0x${item.id}`)
               .match(/(^\w+|\s\w+){3}/)![0]
               .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase()),
           })
@@ -358,9 +358,9 @@ export function useSearch({ phrase: phraseParam = '' }) {
 
     if (nodes && phrase) {
       for (const node of nodes) {
-        const { id, name } = node
+        const { id, title } = node
 
-        if (id.toLowerCase().includes(phrase) || name.toLowerCase().includes(phrase)) {
+        if (id.toLowerCase().includes(phrase) || title.toLowerCase().includes(phrase)) {
           matches.push({
             type: 'node',
             payload: node,
@@ -380,7 +380,12 @@ export function useSearch({ phrase: phraseParam = '' }) {
     { place: phrase },
     {
       eligible: ({ type }) => type.includes('place'),
-      transform: ({ id, text: name, place_name: description, center: [latitude, longitude] }): Location => ({
+      transform: ({
+        id,
+        text: name,
+        place_name: description,
+        center: [latitude, longitude],
+      }): Location => ({
         description,
         id,
         latitude,

@@ -6,15 +6,14 @@ import React, {
   useState,
 } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-
-import { useStore } from '../../contexts/Store'
 import { truncate } from '../../utils/text'
-import { Node } from '../../utils/api/tracker'
 import useIsMounted from '../../hooks/useIsMounted'
 import usePaged from '../../hooks/usePaged'
 import { useController } from '../../contexts/Controller'
 import NodeList from '../NodeList'
 import NodeStats from '../NodeStats'
+import { OperatorNode } from '../../types'
+import { useStore } from '../../hooks/useStore'
 
 type Props = {
   id: string
@@ -39,7 +38,7 @@ const TopologyList = ({ id }: Props) => {
     setPage,
     items,
     pages,
-  } = usePaged<Node>({ items: visibleNodes, limit: NodeList.PAGE_SIZE })
+  } = usePaged<OperatorNode>({ items: visibleNodes, limit: NodeList.PAGE_SIZE })
 
   const activeNodeId = useMemo(() => (
     encodedNodeId && decodeURIComponent(encodedNodeId)
@@ -106,8 +105,11 @@ const TopologyList = ({ id }: Props) => {
   // load locations for visible list items
   const fetching = useRef(false)
   useEffect(() => {
-    const nodesWithoutLocation = items
-      .filter(({ location }) => location && !location.isReverseGeoCoded)
+    /**
+     * @todo If at all. Previously
+     * items.filter(({ location }) => location && !location.isReverseGeoCoded)
+     */
+    const nodesWithoutLocation: OperatorNode[] = []
 
     if (nodesWithoutLocation.length > 0 && !fetching.current) {
       fetching.current = true
@@ -134,21 +136,19 @@ const TopologyList = ({ id }: Props) => {
       {items.map(({
         id: nodeId,
         title,
-        address,
-        location,
       }) => (
-        <NodeList.Node
+        <NodeList.OperatorNode
           key={nodeId}
           nodeId={nodeId}
           title={title}
-          address={address}
-          placeName={(location || {}).title || ''}
+          address="N/A"
+          placeName="N/A"
           onClick={toggleNode}
           isActive={activeNodeId === nodeId}
           data-node-id={nodeId}
         >
           <NodeStats id={nodeId} />
-        </NodeList.Node>
+        </NodeList.OperatorNode>
       ))}
     </NodeList>
   )

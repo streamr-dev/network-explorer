@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react'
 import styled, { css } from 'styled-components/macro'
-import { ActiveView } from '../contexts/Store'
+import { ActiveView } from '../types'
 import { SM } from '../utils/styled'
 import { useStore } from '../hooks/useStore'
 import ControlBox from './ControlBox'
@@ -8,7 +8,7 @@ import NodeList from './NodeList'
 
 const Backdrop = styled.div`
   position: absolute;
-  background: rgba(0, 0, 0, ${({ theme }) => (theme.activeView === 'list' ? '0.2' : '0')});
+  background: rgba(0, 0, 0, ${({ theme }) => (theme.activeView === ActiveView.List ? '0.2' : '0')});
   transition: all 180ms ease-in-out;
   top: 0;
   left: 0;

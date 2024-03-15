@@ -35,7 +35,7 @@ export interface OperatorNode {
   id: string
   latitude: number
   longitude: number
-  name: string
+  title: string
 }
 
 export type SearchResultItem =
@@ -48,3 +48,21 @@ export type SearchResultItem =
       payload: Stream
     }
   | { type: 'location'; payload: Location }
+
+export enum ActiveView {
+  Map = 'map',
+  List = 'list',
+}
+
+export enum ActiveRoute {
+  Network = 'network',
+  Stream = 'stream'
+}
+
+export type Topology = Record<string, string[]>
+
+export enum ConnectionsMode {
+  Auto = 'auto',
+  Always = 'always',
+  Off = 'off',
+}

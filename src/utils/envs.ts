@@ -1,28 +1,30 @@
-import { SmartContractRecord } from 'streamr-client-protocol'
-
 type TrackerConfig =
   | {
-    source: 'contract'
-    contractAddress: string
-    jsonRpcProvider: string
-  }
+      source: 'contract'
+      contractAddress: string
+      jsonRpcProvider: string
+    }
   | {
-    source: 'http'
-    trackers: SmartContractRecord[]
-  }
+      source: 'http'
+      trackers: {
+        id: string
+        http: string
+        ws: string
+      }[]
+    }
 
 export type StreamrConfig = {
   http: string
 }
 
 export type EnvConfig = {
-  title: string,
+  title: string
   tracker: TrackerConfig
   streamr: Array<StreamrConfig>
 }
 
 export type EnvConfigResult = {
-  title: string,
+  title: string
   tracker: TrackerConfig
   streamr: StreamrConfig
 }
@@ -98,9 +100,11 @@ const envs: Envs = {
         },
       ],
     },
-    streamr: [{
-      http: 'https://streamr.network/api/v2',
-    }],
+    streamr: [
+      {
+        http: 'https://streamr.network/api/v2',
+      },
+    ],
   },
 }
 

@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo } from 'react'
 import { useParams, useHistory, useLocation } from 'react-router-dom'
-
-import { useStore, ActiveRoute } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
+import { ActiveRoute, ConnectionsMode } from '../../types'
+import { useStore } from '../../hooks/useStore'
 
 const NodeConnectionsLoader = () => {
   const { showConnections: connectionMode } = useStore()
+
   const { loadTopology, resetTopology } = useController()
 
-  const showConnections = !!(connectionMode === 'always')
+  const showConnections = !!(connectionMode === ConnectionsMode.Always)
 
   useEffect(() => {
     loadTopology({
@@ -51,7 +52,7 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
-const envSet = new Set((Object.keys(envs)))
+const envSet = new Set(Object.keys(envs))
 
 type EnvProps = {
   env: string
@@ -86,9 +87,7 @@ export default () => {
   const nextEnv = queryParams.get('network')
 
   if (nextEnv) {
-    return (
-      <NetworkSetter env={nextEnv} />
-    )
+    return <NetworkSetter env={nextEnv} />
   }
 
   return (

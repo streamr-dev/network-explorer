@@ -1,18 +1,18 @@
-import React, {
-  useCallback,
-  useState,
-  useReducer,
-  useEffect,
-  useMemo,
-} from 'react'
-import { useSubscription, useClient } from 'streamr-client-react'
-import { keyToArrayIndex } from 'streamr-client-protocol'
-import { getAddressFromNodeId } from '../utils/api/tracker'
-
+import React, { useCallback, useState, useReducer, useEffect, useMemo } from 'react'
+import { useClient } from 'streamr-client-react'
 import useIsMounted from '../hooks/useIsMounted'
-
 import Stats from './Stats'
 import MetricGraph, { MetricType } from './MetricGraph'
+
+function useSubscription(..._: any[]) {}
+
+function getAddressFromNodeId(..._: any[]) {
+  return ''
+}
+
+function keyToArrayIndex(..._: any[]) {
+  return 0
+}
 
 const FIREHOSE_STREAM = 'streamr.eth/metrics/nodes/firehose/sec'
 
@@ -43,7 +43,7 @@ const formatBytes = (bytes: number): [string, string] => {
 
 const NodeStats = ({ id }: Props) => {
   const client = useClient()
-  const nodeAddress = useMemo(() => (getAddressFromNodeId(id)), [id])
+  const nodeAddress = useMemo(() => getAddressFromNodeId(id), [id])
   const [partition, setPartition] = useState(0)
   const [selectedStat, setSelectedStat] = useState<MetricType | undefined>('messagesPerSecond')
   const [{ messagesPerSecond, upBytes, downBytes }, updateStats] = useReducer(
@@ -57,8 +57,12 @@ const NodeStats = ({ id }: Props) => {
       downBytes: undefined,
     },
   )
-  const upBytesFormatted = useMemo(() => upBytes ? formatBytes(upBytes) : [undefined, ''], [upBytes])
-  const downBytesFormatted = useMemo(() => downBytes ? formatBytes(downBytes) : [undefined, ''], [downBytes])
+  const upBytesFormatted = useMemo(() => (upBytes ? formatBytes(upBytes) : [undefined, '']), [
+    upBytes,
+  ])
+  const downBytesFormatted = useMemo(() => (downBytes ? formatBytes(downBytes) : [undefined, '']), [
+    downBytes,
+  ])
 
   useEffect(() => {
     const load = async () => {
@@ -74,29 +78,35 @@ const NodeStats = ({ id }: Props) => {
 
   const isMounted = useIsMounted()
 
-  const onMessage = useCallback((msg, metadata) => {
-    const { broker, network, node } = msg
-    const { messageId } = metadata
+  const onMessage = useCallback(
+    (msg, metadata) => {
+      const { broker, network, node } = msg
+      const { messageId } = metadata
 
-    // Filter out messages that were not sent by currently selected node
-    if (messageId.publisherId !== nodeAddress) {
-      return
-    }
+      // Filter out messages that were not sent by currently selected node
+      if (messageId.publisherId !== nodeAddress) {
+        return
+      }
 
-    if (isMounted()) {
-      updateStats({
-        messagesPerSecond: (node && node.publishMessagesPerSecond) ||
-          (broker && broker.messagesToNetworkPerSec) ||
-          undefined,
-        upBytes: (node && node.sendBytesPerSecond) ||
-          (network && network.bytesToPeersPerSec) ||
-          undefined,
-        downBytes: (node && node.receiveBytesPerSecond) ||
-          (network && network.bytesFromPeersPerSec) ||
-          undefined,
-      })
-    }
-  }, [isMounted, nodeAddress])
+      if (isMounted()) {
+        updateStats({
+          messagesPerSecond:
+            (node && node.publishMessagesPerSecond) ||
+            (broker && broker.messagesToNetworkPerSec) ||
+            undefined,
+          upBytes:
+            (node && node.sendBytesPerSecond) ||
+            (network && network.bytesToPeersPerSec) ||
+            undefined,
+          downBytes:
+            (node && node.receiveBytesPerSecond) ||
+            (network && network.bytesFromPeersPerSec) ||
+            undefined,
+        })
+      }
+    },
+    [isMounted, nodeAddress],
+  )
 
   useSubscription(
     {
@@ -106,9 +116,11 @@ const NodeStats = ({ id }: Props) => {
         last: 1,
         publisherId: id.toLowerCase(),
       },
-    }, {
+    },
+    {
       onMessage,
-    })
+    },
+  )
 
   return (
     <>

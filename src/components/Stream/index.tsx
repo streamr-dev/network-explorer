@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-
-import { useStore, ActiveRoute } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
-
 import TopologyList from './TopologyList'
+import { ActiveRoute } from '../../types'
+import { useStore } from '../../hooks/useStore'
 
 type StreamProps = {
   id: string

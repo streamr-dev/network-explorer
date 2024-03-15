@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import { Source, Layer } from 'react-map-gl'
-import { Topology } from '../../contexts/Store'
-import { OperatorNode } from '../../types'
+import { OperatorNode, Topology } from '../../types'
 
 type NodeConnection = {
   sourceId: string | number | undefined

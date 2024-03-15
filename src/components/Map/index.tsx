@@ -6,11 +6,9 @@ import styled from 'styled-components'
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
 import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
-
-import {  Topology, ConnectionsMode } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
 import { MapboxToken } from '../../utils'
-import { OperatorNode } from '../../types'
+import { OperatorNode, Topology } from '../../types'
 import useKeyDown from '../../hooks/useKeyDown'
 import { useStore } from '../../hooks/useStore'
 

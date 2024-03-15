@@ -1,6 +1,4 @@
-import React, {
-  useMemo, useContext, useCallback, useRef, useState,
-} from 'react'
+import React, { useMemo, useContext, useCallback, useRef, useState } from 'react'
 import {
   ViewportProps,
   FlyToInterpolator,
@@ -9,14 +7,11 @@ import {
 } from 'react-map-gl'
 import { useHistory } from 'react-router-dom'
 import { useClient } from 'streamr-client-react'
-
-import * as trackerApi from '../utils/api/tracker'
-import * as mapApi from '../utils/api/mapbox'
 import { usePending } from './Pending'
-import { useStore } from './Store'
 import useIsMounted from '../hooks/useIsMounted'
 import { useDebounced } from '../hooks/wrapCallback'
 import { setEnvironment } from '../utils/config'
+import { useStore } from '../hooks/useStore'
 
 type FocusLocationParams = {
   longitude: number
@@ -141,26 +136,29 @@ function useControllerContext() {
     })
   }, [debouncedSetViewport])
 
-  const focusLocation = useCallback(({ latitude, longitude }: FocusLocationParams) => {
-    debouncedSetViewport((prev: ViewportProps) => ({
-      ...prev,
-      longitude,
-      latitude,
-      zoom: 10,
-      LINEAR_TRANSITION_PROPS,
-    }))
-  }, [debouncedSetViewport])
+  const focusLocation = useCallback(
+    ({ latitude, longitude }: FocusLocationParams) => {
+      debouncedSetViewport((prev: ViewportProps) => ({
+        ...prev,
+        longitude,
+        latitude,
+        zoom: 10,
+        LINEAR_TRANSITION_PROPS,
+      }))
+    },
+    [debouncedSetViewport],
+  )
 
   const loadTrackers = useCallback(
     async () =>
       wrapNodes(async () => {
-        const nextTrackers = await trackerApi.getTrackers()
+        const nextTrackers = await Promise.resolve([])
 
         if (!isMounted()) {
           return undefined
         }
 
-        const nextNodes = await Promise.all(nextTrackers.map((url) => trackerApi.getNodes(url)))
+        const nextNodes = await Promise.all(nextTrackers.map(() => []))
 
         if (!isMounted()) {
           return undefined
@@ -178,6 +176,10 @@ function useControllerContext() {
     async (streamId: string) =>
       wrapStreams(async () => {
         try {
+          if (!client) {
+            return
+          }
+
           const nextStream = await client.getStream(streamId)
 
           if (!isMounted()) {
@@ -200,7 +202,7 @@ function useControllerContext() {
 
   const loadTopologyFromApi = useCallback(async ({ id }) => {
     try {
-      const nextTopology = await trackerApi.getTopology({ id })
+      const nextTopology = await Promise.resolve({})
 
       return nextTopology
     } catch (e) {
@@ -212,7 +214,7 @@ function useControllerContext() {
 
   const loadNodeConnectionsFromApi = useCallback(async () => {
     try {
-      const nextTopology = await trackerApi.getNodeConnections()
+      const nextTopology = await Promise.resolve([])
 
       return nextTopology
     } catch (e) {
@@ -223,11 +225,11 @@ function useControllerContext() {
   }, [])
 
   const loadTopology = useCallback(
-    async (options: { streamId?: string, showConnections?: boolean } = {}) =>
+    async (options: { streamId?: string; showConnections?: boolean } = {}) =>
       wrapTopology(async () => {
         const { streamId, showConnections } = options || {}
 
-        let newTopology: trackerApi.Topology = {}
+        let newTopology: any = {}
         let newTrackers
         let newNodes
         let didChange = false
@@ -241,10 +243,7 @@ function useControllerContext() {
           newTopology = await loadNodeConnectionsFromApi()
         } else {
           // Otherwise load all nodes and set empty node connections
-          const {
-            trackers: nextTrackers,
-            nodes: nextNodes,
-          } = await loadTrackers()
+          const { trackers: nextTrackers, nodes: nextNodes } = await loadTrackers()
 
           if (!isMounted()) {
             return
@@ -264,8 +263,8 @@ function useControllerContext() {
           const incomingNodes = new Set(Object.keys(newTopology))
           const existingNodes = new Set(nodesRef.current.map(({ id }) => id))
 
-          const missingNodes = new Set([...incomingNodes].filter(
-            (nodeId) => !existingNodes.has(nodeId)),
+          const missingNodes = new Set(
+            [...incomingNodes].filter((nodeId) => !existingNodes.has(nodeId)),
           )
           didChange = !!(missingNodes.size > 0)
         } else {
@@ -274,10 +273,7 @@ function useControllerContext() {
 
         if (didChange) {
           if (!didFetchTrackers) {
-            const {
-              trackers: nextTrackers,
-              nodes: nextNodes,
-            } = await loadTrackers()
+            const { trackers: nextTrackers, nodes: nextNodes } = await loadTrackers()
 
             newNodes = nextNodes
             newTrackers = nextTrackers
@@ -306,29 +302,31 @@ function useControllerContext() {
     ],
   )
 
-  const loadNodeLocations = useCallback(async (targetNodes: trackerApi.Node[]) => {
-    if (!targetNodes || targetNodes.length < 1) {
-      return
-    }
-
-    for (let i = 0; i < targetNodes.length; ++i) {
-      const { location } = targetNodes[i]
-
-      // eslint-disable-next-line no-await-in-loop
-      const { region } = await mapApi.getReversedGeocodedLocation({
-        longitude: location.longitude,
-        latitude: location.latitude,
-      })
-
-      if (region) {
-        updateLocations([{
-          ...location,
-          title: region,
-          isReverseGeoCoded: true,
-        }])
+  const loadNodeLocations = useCallback(
+    async (targetNodes: any[]) => {
+      if (!targetNodes || targetNodes.length < 1) {
+        return
       }
-    }
-  }, [updateLocations])
+
+      for (let i = 0; i < targetNodes.length; ++i) {
+        const { location } = targetNodes[i]
+
+        // eslint-disable-next-line no-await-in-loop
+        const { region } = await Promise.resolve({ region: '' })
+
+        if (region) {
+          updateLocations([
+            {
+              ...location,
+              title: region,
+              isReverseGeoCoded: true,
+            },
+          ])
+        }
+      }
+    },
+    [updateLocations],
+  )
 
   const resetTopology = useCallback(() => {
     setTopology({
