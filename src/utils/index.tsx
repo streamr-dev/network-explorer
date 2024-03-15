@@ -18,6 +18,7 @@ import {
   StreamOrderBy,
 } from '../generated/gql/indexer'
 import { getIndexerClient } from './queries'
+import { OperatorNode, PlaceFeature, PlacesResponse, SearchResultItem } from '../types'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -52,13 +53,6 @@ export function useIsFetchingSummary() {
 
 interface UseNodesQueryParams {
   ids?: string[]
-}
-
-interface OperatorNode {
-  id: string
-  latitude: number
-  longitude: number
-  name: string
 }
 
 function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
@@ -280,51 +274,53 @@ export function useIsFetchingNeighbors() {
   )
 }
 
-interface UseLocationsQueryParams {
+export const MapboxToken = process.env.REACT_APP_MAPBOX_TOKEN
+
+interface UseLocationFeaturesQueryParams {
   place?: string | [number, number]
 }
 
-interface Location {
-  description: string
-  id: string
-  latitude: number
-  longitude: number
-  name: string
+interface UseLocationFeaturesQueryOptions<T> {
+  transform?: (feature: PlaceFeature) => T
+  eligible?: (feature: PlaceFeature) => boolean
 }
 
-export function useLocationsQuery(params: UseLocationsQueryParams) {
+function useLocationFeaturesQuery<T = PlaceFeature>(
+  params: UseLocationFeaturesQueryParams,
+  options: UseLocationFeaturesQueryOptions<T> = {},
+) {
   const { place: placeParam = '' } = params
 
   const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
 
   return useQuery({
-    queryKey: ['useLocationsQuery', place],
+    queryKey: ['useLocationFeaturesQuery', place],
     queryFn: async ({ signal }) => {
-      const result: Location[] = []
+      const result: T[] = []
 
       if (!place) {
         return result
       }
 
       const resp = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${process.env.REACT_APP_MAPBOX_TOKEN}`,
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${MapboxToken}`,
         { method: 'GET', signal },
       )
 
-      const { features } = await resp.json()
+      const response: PlacesResponse = await resp.json()
 
-      for (const { place_name: description, ...feature } of features) {
-        if (!feature.type.includes('place')) {
+      for (const feature of response.features) {
+        if (options.eligible && !options.eligible(feature)) {
           continue
         }
 
-        result.push({
-          description,
-          id: feature.id,
-          latitude: feature.center.latitude,
-          longitude: feature.center.longitude,
-          name: feature.text,
-        })
+        if (!options.transform) {
+          result.push(feature as T)
+
+          continue
+        }
+
+        result.push(options.transform(feature))
       }
 
       return result
@@ -333,16 +329,22 @@ export function useLocationsQuery(params: UseLocationsQueryParams) {
   })
 }
 
-type SearchResultItem =
-  | {
-      type: 'node'
-      payload: OperatorNode
-    }
-  | {
-      type: 'stream'
-      payload: { id: string }
-    }
-  | { type: 'place'; payload: Location }
+interface UseLocationRegionParams {
+  latitude: number
+  longitude: number
+}
+
+export function useLocationRegionsQuery(params: UseLocationRegionParams) {
+  const { latitude, longitude } = params
+
+  return useLocationFeaturesQuery(
+    { place: [latitude, longitude] },
+    {
+      eligible: ({ type }) => type.includes('region'),
+      transform: ({ bbox, place_name: region }) => ({ bbox, region }),
+    },
+  )
+}
 
 export function useSearch({ phrase: phraseParam = '' }) {
   const nodesQuery = useNodesQuery({})
@@ -374,7 +376,19 @@ export function useSearch({ phrase: phraseParam = '' }) {
    * @todo Implement stream search.
    */
 
-  const locationsQuery = useLocationsQuery({ place: phrase })
+  const locationsQuery = useLocationFeaturesQuery(
+    { place: phrase },
+    {
+      eligible: ({ type }) => type.includes('place'),
+      transform: ({ id, text: name, place_name: description, center: [latitude, longitude] }) => ({
+        description,
+        id,
+        latitude,
+        longitude,
+        name,
+      }),
+    },
+  )
 
   const { data: locations } = locationsQuery
 

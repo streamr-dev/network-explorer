@@ -14,7 +14,7 @@ import NavigationControl, { Props as NavigationControlProps } from './Navigation
 
 import { useStore, Topology } from '../../contexts/Store'
 import { useController } from '../../contexts/Controller'
-import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
+import { MapboxToken } from '../../utils'
 import { Node } from '../../utils/api/tracker'
 import useKeyDown from '../../hooks/useKeyDown'
 
@@ -127,7 +127,7 @@ export const Map = ({
       {...viewport}
       width="100%"
       height="100%"
-      mapboxApiAccessToken={MAPBOX_TOKEN}
+      mapboxApiAccessToken={MapboxToken}
       mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
       onViewportChange={setViewport}
       getCursor={getCursor}
