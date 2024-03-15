@@ -1,0 +1,68 @@
+import { gql } from '@apollo/client'
+
+gql`
+  query GetSummary {
+    summary {
+      messagesPerSecond
+      nodeCount
+      streamCount
+    }
+  }
+
+  query GetNodes($cursor: String, $pageSize: Int, $ids: [String!]) {
+    nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids) {
+      cursor
+      items {
+        id
+        ipAddress
+        location {
+          latitude
+          longitude
+          city
+          country
+        }
+      }
+    }
+  }
+
+  query GetStreams(
+    $cursor: String
+    $pageSize: Int
+    $orderDirection: OrderDirection
+    $orderBy: StreamOrderBy
+    $owner: String
+    $searchTerm: String
+    $ids: [String!]
+  ) {
+    streams(
+      cursor: $cursor
+      pageSize: $pageSize
+      orderDirection: $orderDirection
+      orderBy: $orderBy
+      owner: $owner
+      searchTerm: $searchTerm
+      ids: $ids
+    ) {
+      cursor
+      items {
+        id
+        description
+        peerCount
+        messagesPerSecond
+        publisherCount
+        subscriberCount
+      }
+    }
+  }
+
+  query GetNeighbors($cursor: String, $pageSize: Int, $streamPart: String, $node: String) {
+    neighbors(cursor: $cursor, pageSize: $pageSize, streamPart: $streamPart, node: $node) {
+      items {
+        streamPartId
+        nodeId1
+        nodeId2
+      }
+      cursor
+    }
+  }
+`

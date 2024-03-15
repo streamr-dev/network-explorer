@@ -1,14 +1,13 @@
 import React, { useState, useCallback } from 'react'
 import styled, { css } from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
-
 import { SearchResult } from '../../utils/api/streamr'
 import Stats from '../Stats'
 import Error from '../Error'
 import { SM } from '../../utils/styled'
-
 import Search from './Search'
 import SearchBox from '.'
+import { NoSearchResults } from './NoSearchResults'
 
 export default {
   title: 'SearchBox',
@@ -144,7 +143,7 @@ export const WithEmptyResults = () => {
     <Wrapper>
       <Search>
         <Search.Input value={search} onChange={setSearch} onClear={() => setSearch('')} />
-        <Search.NoResults search={search} />
+        <NoSearchResults search={search} />
       </Search>
     </Wrapper>
   )

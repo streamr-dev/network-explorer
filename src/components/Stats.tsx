@@ -64,7 +64,7 @@ const StatValue = styled.div`
   }
 `
 
-const Stat = styled(UnstyledStat)`
+export const Stat = styled(UnstyledStat)`
   background: transparent;
   border: 0;
   appearance: none;
@@ -222,7 +222,7 @@ const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
   )
 }
 
-const Stats = styled(UnstyledStats)`
+export const Stats = styled(UnstyledStats)`
   position: relative;
 `
 

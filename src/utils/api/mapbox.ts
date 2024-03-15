@@ -30,11 +30,6 @@ type GeoCodeResult = {
   features: Array<GeoCodeResultFeature>
 }
 
-type ReversedGeocodedLocation = {
-  region: string
-  bbox: Array<number>
-}
-
 type ReversedGeocodedLocationParams = {
   longitude: number
   latitude: number
