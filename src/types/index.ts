@@ -26,7 +26,9 @@ export interface NeighborPair {
 }
 
 export interface Stream {
+  description: string
   id: string
+  name: string
 }
 
 export interface OperatorNode {
@@ -45,4 +47,4 @@ export type SearchResultItem =
       type: 'stream'
       payload: Stream
     }
-  | { type: 'place'; payload: Location }
+  | { type: 'location'; payload: Location }

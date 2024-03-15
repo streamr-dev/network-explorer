@@ -18,7 +18,7 @@ import {
   StreamOrderBy,
 } from '../generated/gql/indexer'
 import { getIndexerClient } from './queries'
-import { OperatorNode, PlaceFeature, PlacesResponse, SearchResultItem } from '../types'
+import { Location, OperatorNode, PlaceFeature, PlacesResponse, SearchResultItem } from '../types'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -380,7 +380,7 @@ export function useSearch({ phrase: phraseParam = '' }) {
     { place: phrase },
     {
       eligible: ({ type }) => type.includes('place'),
-      transform: ({ id, text: name, place_name: description, center: [latitude, longitude] }) => ({
+      transform: ({ id, text: name, place_name: description, center: [latitude, longitude] }): Location => ({
         description,
         id,
         latitude,
@@ -399,7 +399,7 @@ export function useSearch({ phrase: phraseParam = '' }) {
 
     return locations.map((location) => ({
       payload: location,
-      type: 'place',
+      type: 'location',
     }))
   }, [locations])
 
