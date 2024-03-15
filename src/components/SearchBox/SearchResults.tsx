@@ -1,10 +1,8 @@
 import React from 'react'
 import styled from 'styled-components/macro'
 import { Virtuoso } from 'react-virtuoso'
-
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import Highlight from '../Highlight'
-
 import { SearchResult } from '../../utils/api/streamr'
 import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
@@ -214,7 +212,7 @@ const UnstyledSearchResults = ({
   )
 }
 
-const SearchResults = styled(UnstyledSearchResults)`
+export const SearchResults = styled(UnstyledSearchResults)`
   @media (max-width: ${SM}px) {
     ${List} {
       grid-row-gap: 8px;
@@ -232,5 +230,3 @@ const SearchResults = styled(UnstyledSearchResults)`
     background-color: #ffffff;
   }
 `
-
-export default SearchResults

@@ -1,13 +1,13 @@
 import styled, { css } from 'styled-components'
 import { SM } from '../../utils/styled'
 import ControlBox from '../ControlBox'
-import SearchInput from './SearchInput'
-import SearchResults from './SearchResults'
+import { SearchInput, SearchInputInner } from './SearchInput'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
 import Error from '../Error'
+import { SearchResults } from './SearchResults'
 
-const SlideHandle = styled.div`
+export const SlideHandle = styled.div`
   position: absolute;
   height: 4px;
   width: 40px;
@@ -19,7 +19,7 @@ const SlideHandle = styled.div`
   display: none;
 `
 
-const Search = styled(ControlBox)`
+export const Search = styled(ControlBox)`
   height: 100%;
 
   ${SearchInput} {
@@ -52,7 +52,7 @@ const Search = styled(ControlBox)`
       padding: 22px 16px 16px 16px;
       border-radius: 0px;
 
-      ${SearchInput.Inner} {
+      ${SearchInputInner} {
         border: 1px solid #efefef;
         border-radius: 4px;
       }
@@ -65,7 +65,7 @@ const Search = styled(ControlBox)`
     }
 
     ${({ theme }) =>
-    theme.activeView === 'map' &&
+      theme.activeView === 'map' &&
       css`
         ${SearchResults} {
           display: none;
@@ -73,13 +73,13 @@ const Search = styled(ControlBox)`
       `}
 
     ${({ theme }) =>
-    !!theme.hasStats &&
+      !!theme.hasStats &&
       !theme.resultsActive &&
       css`
         ${SearchInput} {
           padding-bottom: 0;
 
-          ${SearchInput.Inner} {
+          ${SearchInputInner} {
             border-bottom: 0;
             border-radius: 8px 8px 0 0;
           }
@@ -87,7 +87,7 @@ const Search = styled(ControlBox)`
       `}
 
     ${({ theme }) =>
-    theme.activeView === 'list' &&
+      theme.activeView === 'list' &&
       !!theme.resultsActive &&
       css`
         ${Stats},
@@ -104,7 +104,7 @@ const Search = styled(ControlBox)`
 
   @media (min-width: ${SM}px) {
     ${({ theme }) =>
-    theme.resultsActive &&
+      theme.resultsActive &&
       css`
         ${Graphs} {
           display: none;
@@ -116,9 +116,3 @@ const Search = styled(ControlBox)`
     }
   }
 `
-
-export default Object.assign(Search, {
-  Input: SearchInput,
-  Results: SearchResults,
-  SlideHandle,
-})

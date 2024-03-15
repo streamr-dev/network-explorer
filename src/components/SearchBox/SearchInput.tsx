@@ -7,7 +7,7 @@ import { truncate } from '../../utils/text'
 
 import { SM, MD, SANS } from '../../utils/styled'
 
-const Inner = styled.div`
+export const SearchInputInner = styled.div`
   display: flex;
   flex-direction: row;
   height: 64px;
@@ -222,7 +222,7 @@ const UnstyledSearchInput = ({
 
   return (
     <div {...props}>
-      <Inner>
+      <SearchInputInner>
         <Logo>
           <button type="button" onClick={onClear}>
             <StreamrIcon />
@@ -250,12 +250,12 @@ const UnstyledSearchInput = ({
             </InputLabel>
           )}
         </ButtonWrapper>
-      </Inner>
+      </SearchInputInner>
     </div>
   )
 }
 
-const SearchInput = styled(UnstyledSearchInput)`
+export const SearchInput = styled(UnstyledSearchInput)`
   ${Logo} {
     display: none;
   }
@@ -265,7 +265,7 @@ const SearchInput = styled(UnstyledSearchInput)`
     margin-left: 24px;
   }
 
-  ${Inner} {
+  ${SearchInputInner} {
     background: #ffffff;
   }
 
@@ -281,9 +281,3 @@ const SearchInput = styled(UnstyledSearchInput)`
     }
   }
 `
-
-export default Object.assign(SearchInput, {
-  Logo,
-  Input,
-  Inner,
-})

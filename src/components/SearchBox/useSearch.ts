@@ -1,19 +1,11 @@
-import {
-  useReducer,
-  useMemo,
-  useCallback,
-  useRef,
-  useEffect,
-} from 'react'
+import { useReducer, useMemo, useCallback, useRef, useEffect } from 'react'
 import mergeWith from 'lodash/mergeWith'
 import axios from 'axios'
 import { schema, normalize, denormalize } from 'normalizr'
 import { useClient } from 'streamr-client-react'
-
 import { SearchResult } from '../../utils/api/streamr'
 import * as mapApi from '../../utils/api/mapbox'
 import { useDebounced } from '../../hooks/wrapCallback'
-
 import useIsMounted from '../../hooks/useIsMounted'
 import useEffectAfterMount from '../../hooks/useEffectAfterMount'
 
@@ -22,7 +14,7 @@ const searchResultsSchema = [searchResultSchema]
 
 type Action =
   | { type: 'updateSearch'; search: string }
-  | { type: 'addSearchResults'; results: Array<SearchResult>, entitiesOnly?: boolean }
+  | { type: 'addSearchResults'; results: Array<SearchResult>; entitiesOnly?: boolean }
   | { type: 'resetSearchResults' }
   | { type: 'reset' }
 
@@ -52,7 +44,7 @@ const reducer = (state: SearchState, action: Action) => {
     case 'addSearchResults': {
       const { result: ids, entities } = normalize(action.results, searchResultsSchema)
 
-      const nextIds = action.entitiesOnly ? state.ids : [...(new Set([...state.ids, ...ids]))]
+      const nextIds = action.entitiesOnly ? state.ids : [...new Set([...state.ids, ...ids])]
 
       return {
         ...state,
@@ -81,18 +73,13 @@ const reducer = (state: SearchState, action: Action) => {
 }
 
 type UseSearch = {
-  search?: string,
-  onStart?: Function,
-  onEnd?: Function,
-  existingResults?: SearchResult[],
+  search?: string
+  onStart?: Function
+  onEnd?: Function
+  existingResults?: SearchResult[]
 }
 
-function useSearch({
-  search: searchProp = '',
-  onStart,
-  onEnd,
-  existingResults,
-}: UseSearch = {}) {
+function useSearch({ search: searchProp = '', onStart, onEnd, existingResults }: UseSearch = {}) {
   const [{ search, ids: resultIds, entities }, dispatch] = useReducer(reducer, initialState)
   const isMounted = useIsMounted()
   const client = useClient()
@@ -130,28 +117,31 @@ function useSearch({
     1000,
   )
 
-  const searchStreams = useCallback(async (query) => {
-    const results = []
-    const gen = client.searchStreams(query)
+  const searchStreams = useCallback(
+    async (query) => {
+      const results = []
+      const gen = client.searchStreams(query)
 
-    try {
-      // eslint-disable-next-line no-restricted-syntax
-      for await (const stream of gen) {
-        const item = {
-          type: 'streams',
-          id: stream.id,
-          name: stream.id,
-          description: stream.description,
-        } as SearchResult
-        results.push(item)
+      try {
+        // eslint-disable-next-line no-restricted-syntax
+        for await (const stream of gen) {
+          const item = {
+            type: 'streams',
+            id: stream.id,
+            name: stream.id,
+            description: stream.description,
+          } as SearchResult
+          results.push(item)
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e)
       }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e)
-    }
 
-    return results
-  }, [client])
+      return results
+    },
+    [client],
+  )
 
   useEffectAfterMount(() => {
     if (!searchStarted.current && onStart && typeof onStart === 'function') {
@@ -182,7 +172,7 @@ function useSearch({
       // search from cached entities
       const entitiesPromise = new Promise<void>((resolve) => {
         const { searchResults } = entitiesRef.current || {}
-        const values = (Object.values(searchResults || {}) as SearchResult[])
+        const values = Object.values(searchResults || {}) as SearchResult[]
 
         if (values.length > 0) {
           const results = []
@@ -224,18 +214,20 @@ function useSearch({
 
       // fetch places
       const mapPromise = new Promise<void>((resolve) => {
-        return mapApi.getLocations({
-          search: query,
-          cancelToken: source.token,
-        }).then((nextResults) => {
-          if (isMounted() && !didCancel) {
-            dispatch({
-              type: 'addSearchResults',
-              results: nextResults,
-            })
-          }
-          resolve()
-        }, resolve)
+        return mapApi
+          .getLocations({
+            search: query,
+            cancelToken: source.token,
+          })
+          .then((nextResults) => {
+            if (isMounted() && !didCancel) {
+              dispatch({
+                type: 'addSearchResults',
+                results: nextResults,
+              })
+            }
+            resolve()
+          }, resolve)
       })
 
       return Promise.all([entitiesPromise, streamPromise, mapPromise])
@@ -245,18 +237,17 @@ function useSearch({
       type: 'resetSearchResults',
     })
 
-    searchFetch()
-      .then(() => {
-        searchRequests.current = Math.max(searchRequests.current - 1, 0)
+    searchFetch().then(() => {
+      searchRequests.current = Math.max(searchRequests.current - 1, 0)
 
-        if (searchRequests.current === 0) {
-          searchStarted.current = false
+      if (searchRequests.current === 0) {
+        searchStarted.current = false
 
-          if (onEnd && typeof onEnd === 'function') {
-            onEnd()
-          }
+        if (onEnd && typeof onEnd === 'function') {
+          onEnd()
         }
-      })
+      }
+    })
 
     return () => {
       didCancel = true
@@ -277,13 +268,13 @@ function useSearch({
     [resultIds],
   )
 
-  return useMemo(() => ({
-    reset,
-    results: searchResults,
-  }), [
-    reset,
-    searchResults,
-  ])
+  return useMemo(
+    () => ({
+      reset,
+      results: searchResults,
+    }),
+    [reset, searchResults],
+  )
 }
 
 export default useSearch

@@ -1,44 +1,47 @@
-import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
+import { ActiveRoute, ActiveView } from '../../contexts/Store'
 import { SearchResult } from '../../utils/api/streamr'
-import { useStore, ActiveView, ActiveRoute } from '../../contexts/Store'
-import { usePending } from '../../contexts/Pending'
-import { useController } from '../../contexts/Controller'
-import useSearch from './useSearch'
-import Search from './Search'
+import { NetworkStats } from '../NetworkStats'
 import { StreamStats } from '../StreamStats'
-import NetworkStats from '../NetworkStats'
 import { NoSearchResults } from './NoSearchResults'
+import { Search, SlideHandle } from './Search'
+import { SearchInput } from './SearchInput'
+import { SearchResults } from './SearchResults'
+import { useSearch } from '../../utils'
 
-const SearchBox = () => {
-  const { streamId, activeNode, activeRoute, activeView, setActiveView, env, nodes } = useStore()
-  const { isPending: isStreamLoading } = usePending('streams')
-  const { isPending: isSearchPending, start: startSearch, end: endSearch } = usePending('search')
-  const [searchInputValue, setSearchInputValue] = useState<string>('')
+const env = 'mainnet'
 
-  const existingResults: SearchResult[] = useMemo(
-    () =>
-      nodes.map(({ id, title }) => ({
-        id,
-        type: 'nodes',
-        name: title,
-        description: id,
-      })),
-    [nodes],
-  )
-  const { results: searchResults, reset } = useSearch({
-    search: searchInputValue,
-    onStart: startSearch,
-    onEnd: endSearch,
-    existingResults,
-  })
+const streamId = undefined
+
+const activeNode: { id: string; title: string } | undefined = undefined
+
+const activeRoute: ActiveRoute = ActiveRoute.Network
+
+const activeView: ActiveView = ActiveView.Map
+
+function setActiveView(..._: any[]) {}
+
+function focusLocation(..._: any[]) {}
+
+export function SearchBox() {
+  const isStreamLoading = false
+
+  const isSearchPending = false
+
+  const [phrase, setPhrase] = useState('')
+
+  const searchResults = useSearch({ phrase })
+
   const searchRef = useRef<HTMLDivElement>(null)
+
   const history = useHistory()
-  const { focusLocation } = useController()
 
   const hasStream = !!(activeRoute === ActiveRoute.Stream)
+
   const isDisabled = hasStream && !!isStreamLoading
-  const isNodeSelected = activeNode && searchInputValue === activeNode.title
+
+  const isNodeSelected = activeNode && phrase === activeNode.title
 
   const { id: activeNodeId } = activeNode || {}
 
@@ -49,50 +52,6 @@ const SearchBox = () => {
 
     return activeNodeId || ''
   }, [activeRoute, streamId, activeNodeId])
-
-  const onClear = useCallback(
-    (path = '/') => {
-      setSearchInputValue('')
-      reset()
-      endSearch()
-      history.push(path)
-    },
-    [history, reset, endSearch],
-  )
-
-  const onSearch = useCallback(
-    (value: string) => {
-      setSearchInputValue(value)
-      startSearch()
-    },
-    [startSearch],
-  )
-
-  const onResultClick = useCallback(
-    ({ id, type, longitude, latitude }) => {
-      setActiveView(ActiveView.Map)
-      switch (type) {
-        case 'streams':
-          onClear(`/streams/${encodeURIComponent(id)}`)
-          break
-
-        case 'nodes':
-          onClear(`/nodes/${encodeURIComponent(id)}`)
-          break
-
-        case 'locations':
-          focusLocation({
-            longitude,
-            latitude,
-          })
-          break
-
-        default:
-          break
-      }
-    },
-    [setActiveView, onClear, focusLocation],
-  )
 
   useEffect(() => {
     if (activeView !== ActiveView.List || !searchRef.current) {
@@ -129,12 +88,14 @@ const SearchBox = () => {
         key={env}
         ref={searchRef}
       >
-        <Search.SlideHandle />
-        <Search.Input
-          value={searchInputValue}
+        <SlideHandle />
+        <SearchInput
+          value={phrase}
           defaultValue={defaultSearchValue}
-          onChange={onSearch}
-          onClear={() => onClear()}
+          onChange={setPhrase}
+          onClear={() => {
+            setPhrase('')
+          }}
           disabled={!!isDisabled}
           onFocus={() => {
             setActiveView(ActiveView.List)
@@ -148,24 +109,19 @@ const SearchBox = () => {
             }, 100)
           }}
         />
-        {!!hasStream && <StreamStats />}
-        {!hasStream && <NetworkStats />}
-        {searchResults.length > 0 && (
-          <Search.Results
-            results={searchResults}
-            onClick={onResultClick}
-            highlight={searchInputValue}
-          />
-        )}
+        {/* Show if there's a stream. */}
+        <StreamStats />
+        {/* Show if there's no stream */}
+        <NetworkStats />
+        {/* Show when there are search results */}
+        <SearchResults
+          results={[]}
+          onClick={() => {}}
+          highlight={phrase}
+        />
       </Search>
-      {!isSearchPending &&
-        !isNodeSelected &&
-        !hasStream &&
-        searchInputValue &&
-        searchInputValue.length > 0 &&
-        searchResults.length === 0 && <NoSearchResults search={searchInputValue} />}
+      {/* Show when: the search results are empty, search phrase isn't, … */}
+      {!isSearchPending && !isNodeSelected && <NoSearchResults search={phrase} />}
     </>
   )
 }
-
-export default SearchBox

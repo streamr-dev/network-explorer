@@ -1,4 +1,7 @@
+import { entropyToMnemonic } from '@ethersproject/hdnode'
 import { useInfiniteQuery, useIsFetching, useQuery } from '@tanstack/react-query'
+import { useDebounce } from '@uidotdev/usehooks'
+import { useMemo } from 'react'
 import {
   GetNeighborsDocument,
   GetNeighborsQuery,
@@ -51,6 +54,13 @@ interface UseNodesQueryParams {
   ids?: string[]
 }
 
+interface OperatorNode {
+  id: string
+  latitude: number
+  longitude: number
+  name: string
+}
+
 function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
   return ['useNodesQuery', ...ids] as const
 }
@@ -63,7 +73,7 @@ export function useNodesQuery(params: UseNodesQueryParams) {
   return useQuery({
     queryKey: getNodesQueryKey(params),
     queryFn: async () => {
-      const items: GetNodesQuery['nodes']['items'] = []
+      const items: OperatorNode[] = []
 
       let cursor = '0'
 
@@ -80,7 +90,20 @@ export function useNodesQuery(params: UseNodesQueryParams) {
           },
         })
 
-        items.push(...nodes.items)
+        for (const item of nodes.items) {
+          if (!item.location) {
+            continue
+          }
+
+          items.push({
+            id: item.id,
+            latitude: item.location.latitude,
+            longitude: item.location.longitude,
+            name: entropyToMnemonic(`0x${item.id}`)
+              .match(/(^\w+|\s\w+){3}/)![0]
+              .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase()),
+          })
+        }
 
         if (!nodes.cursor || nodes.cursor === cursor) {
           break
@@ -88,13 +111,14 @@ export function useNodesQuery(params: UseNodesQueryParams) {
 
         cursor = nodes.cursor
 
-        console.log('CURSOR', cursor)
-
         await new Promise<void>((resolve) => {
           setTimeout(resolve, 2000)
         })
       }
+
+      return items
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -254,4 +278,116 @@ export function useIsFetchingNeighbors() {
       queryKey: [getNeighborsQueryKey({})[0]],
     }) > 0
   )
+}
+
+interface UseLocationsQueryParams {
+  place?: string | [number, number]
+}
+
+interface Location {
+  description: string
+  id: string
+  latitude: number
+  longitude: number
+  name: string
+}
+
+export function useLocationsQuery(params: UseLocationsQueryParams) {
+  const { place: placeParam = '' } = params
+
+  const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
+
+  return useQuery({
+    queryKey: ['useLocationsQuery', place],
+    queryFn: async ({ signal }) => {
+      const result: Location[] = []
+
+      if (!place) {
+        return result
+      }
+
+      const resp = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${place}.json?access_token=${process.env.REACT_APP_MAPBOX_TOKEN}`,
+        { method: 'GET', signal },
+      )
+
+      const { features } = await resp.json()
+
+      for (const { place_name: description, ...feature } of features) {
+        if (!feature.type.includes('place')) {
+          continue
+        }
+
+        result.push({
+          description,
+          id: feature.id,
+          latitude: feature.center.latitude,
+          longitude: feature.center.longitude,
+          name: feature.text,
+        })
+      }
+
+      return result
+    },
+    staleTime: Infinity,
+  })
+}
+
+type SearchResultItem =
+  | {
+      type: 'node'
+      payload: OperatorNode
+    }
+  | {
+      type: 'stream'
+      payload: { id: string }
+    }
+  | { type: 'place'; payload: Location }
+
+export function useSearch({ phrase: phraseParam = '' }) {
+  const nodesQuery = useNodesQuery({})
+
+  const phrase = useDebounce(phraseParam.toLowerCase(), 250)
+
+  const { data: nodes } = nodesQuery
+
+  const foundNodes = useMemo<SearchResultItem[]>(() => {
+    const matches: SearchResultItem[] = []
+
+    if (nodes && phrase) {
+      for (const node of nodes) {
+        const { id, name } = node
+
+        if (id.toLowerCase().includes(phrase) || name.toLowerCase().includes(phrase)) {
+          matches.push({
+            type: 'node',
+            payload: node,
+          })
+        }
+      }
+    }
+
+    return matches
+  }, [nodes, phrase])
+
+  /**
+   * @todo Implement stream search.
+   */
+
+  const locationsQuery = useLocationsQuery({ place: phrase })
+
+  const { data: locations } = locationsQuery
+
+  const foundLocations = useMemo<SearchResultItem[]>(() => {
+    if (!locations) {
+      return []
+    }
+
+    return locations.map((location) => ({
+      payload: location,
+      type: 'place',
+    }))
+  }, [locations])
+
+  return [...foundNodes, ...foundLocations]
 }
