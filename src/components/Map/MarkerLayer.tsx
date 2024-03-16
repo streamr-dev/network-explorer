@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 import { Source, Layer } from 'react-map-gl'
-import { Node } from '../../utils/api/tracker'
+import { OperatorNode } from '../../types'
 
 type Props = {
-  nodes: Node[]
+  nodes: OperatorNode[]
   sourceId: string
   layerId: string
 }

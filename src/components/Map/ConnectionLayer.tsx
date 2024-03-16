@@ -41,8 +41,8 @@ const getNodeConnections = (
 
       if (src && target) {
         uniqueConnections[uniqueId] = {
-          source: [src.longitude, src.latitude] as [number, number],
-          target: [target.longitude, target.latitude] as [number, number],
+          source: [src.location.longitude, src.location.latitude] as [number, number],
+          target: [target.location.longitude, target.location.latitude] as [number, number],
           sourceId,
           targetId,
         }

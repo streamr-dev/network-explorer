@@ -71,7 +71,7 @@ const UnstyledTimeSeriesGraph = ({
 }: Props) => {
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
-  const tooltipRef = useCallback((node) => {
+  const tooltipRef = useCallback((node: any) => {
     if (node !== null) {
       setTooltipWidth(node.offsetWidth)
     }

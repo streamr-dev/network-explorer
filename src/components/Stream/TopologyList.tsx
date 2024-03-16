@@ -45,7 +45,7 @@ const TopologyList = ({ id }: Props) => {
   ), [encodedNodeId])
 
   const toggleNode = useCallback(
-    (nodeId) => {
+    (nodeId: string) => {
       let path = `/streams/${encodeURIComponent(id)}`
 
       if (activeNodeId !== nodeId) {
@@ -137,7 +137,7 @@ const TopologyList = ({ id }: Props) => {
         id: nodeId,
         title,
       }) => (
-        <NodeList.OperatorNode
+        <NodeList.Node
           key={nodeId}
           nodeId={nodeId}
           title={title}
@@ -148,7 +148,7 @@ const TopologyList = ({ id }: Props) => {
           data-node-id={nodeId}
         >
           <NodeStats id={nodeId} />
-        </NodeList.OperatorNode>
+        </NodeList.Node>
       ))}
     </NodeList>
   )

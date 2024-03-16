@@ -95,7 +95,7 @@ const MetricGraph = ({ streamId, interval, metric, id, partition }: MetricGraphP
   const nodeAddress = useMemo(() => (id ? getAddressFromNodeId(id) : null), [id])
 
   const onMessage = useCallback(
-    (msg, metadata) => {
+    (msg: any, metadata: any) => {
       const { broker, trackers, network, staking, node } = msg
       const { messageId } = metadata
 
@@ -277,7 +277,7 @@ const MetricGraphLoader = ({ type, metric, id }: Props) => {
   }, [type, id, interval])
 
   const loadStream = useCallback(
-    async (streamId) => {
+    async (streamId: string) => {
       setHasLoaded(false)
       setError(undefined)
 

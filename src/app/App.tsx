@@ -12,7 +12,7 @@ import Layout from '../components/Layout'
 import ErrorBoundary from '../components/ErrorBoundary'
 import StreamrClientProvider from '../components/StreamrClientProvider'
 import { Provider as ControllerProvider } from '../contexts/Controller'
-import { Provider as Pendingrovider } from '../contexts/Pending'
+import { Provider as PendingProvider } from '../contexts/Pending'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { getQueryClient } from '../utils/queries'
 import { useIsFetchingNeighbors, useIsFetchingNodes } from '../utils'
@@ -23,15 +23,19 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   z-index: 4;
 `
 
-export function App() {
+function GlobalLoadingIndicator() {
   const isLoadingNodes = useIsFetchingNodes()
 
   const isLoadingTopology = useIsFetchingNeighbors()
 
+  return <LoadingIndicator large loading={isLoadingNodes || isLoadingTopology} />
+}
+
+export function App() {
   return (
     <Providers>
       <ConnectedMap />
-      <LoadingIndicator large loading={isLoadingNodes || isLoadingTopology} />
+      <GlobalLoadingIndicator />
       <Layout>
         <ErrorBoundary>
           <Debug />
@@ -53,11 +57,11 @@ function Providers({ children }: { children: ReactNode }) {
   return (
     <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
       <QueryClientProvider client={getQueryClient()}>
-        <Pendingrovider>
+        <PendingProvider>
           <StreamrClientProvider>
             <ControllerProvider>{children}</ControllerProvider>
           </StreamrClientProvider>
-        </Pendingrovider>
+        </PendingProvider>
       </QueryClientProvider>
     </BrowserRouter>
   )

@@ -26,7 +26,7 @@ export default function usePaged<T>({
     return items.slice(offset, offset + limit)
   }, [items, currentPage, limit])
 
-  const setPage = useCallback((value) => {
+  const setPage = useCallback((value: number) => {
     setCurrentPage(Math.max(1, Math.min(pages, value)))
   }, [pages])
 

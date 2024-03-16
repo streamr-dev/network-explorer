@@ -1,7 +1,6 @@
 import { entropyToMnemonic } from '@ethersproject/hdnode'
 import { useInfiniteQuery, useIsFetching, useQuery } from '@tanstack/react-query'
-import { useDebounce } from '@uidotdev/usehooks'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   GetNeighborsDocument,
   GetNeighborsQuery,
@@ -91,8 +90,10 @@ export function useNodesQuery(params: UseNodesQueryParams) {
 
           items.push({
             id: item.id,
-            latitude: item.location.latitude,
-            longitude: item.location.longitude,
+            location: {
+              latitude: item.location.latitude,
+              longitude: item.location.longitude,
+            },
             title: entropyToMnemonic(`0x${item.id}`)
               .match(/(^\w+|\s\w+){3}/)![0]
               .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase()),
@@ -344,6 +345,25 @@ export function useLocationRegionsQuery(params: UseLocationRegionParams) {
       transform: ({ bbox, place_name: region }) => ({ bbox, region }),
     },
   )
+}
+
+function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(
+    function updateValueAfterDelay() {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value)
+      }, delay)
+
+      return () => {
+        clearTimeout(handler)
+      }
+    },
+    [value, delay],
+  )
+
+  return debouncedValue
 }
 
 export function useSearch({ phrase: phraseParam = '' }) {

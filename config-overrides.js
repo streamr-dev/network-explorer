@@ -8,6 +8,7 @@ module.exports = function override(config, env) {
   const updatedRules = config.module.rules.filter(
     (rule) => !isEqual(rule, { parser: { requireEnsure: false } }),
   )
+
   config.module.rules = updatedRules
 
   if (process.env.REACT_APP_PUBLIC_URL) {

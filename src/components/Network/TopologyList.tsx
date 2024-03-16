@@ -27,7 +27,7 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
   ])
 
   const toggleNode = useCallback(
-    (nodeId) => {
+    (nodeId: string) => {
       history.replace(`/nodes/${encodeURIComponent(nodeId)}`)
     },
     [history],
@@ -37,8 +37,8 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
   const visibleNodes: OperatorNode[] = useMemo(
     () =>
       currentNode && nodes
-        ? nodes.filter(({ latitude, longitude }) => {
-            return latitude === currentNode.latitude && longitude === currentNode.longitude
+        ? nodes.filter(({ location }) => {
+            return location.latitude === currentNode.location.latitude && location.longitude === currentNode.location.longitude
           })
         : [],
     [nodes, currentNode],

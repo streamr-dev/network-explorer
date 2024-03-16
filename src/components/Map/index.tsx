@@ -71,7 +71,7 @@ export const Map = ({
   const hoveredNodeIdRef = useRef<string | null>(null)
   const activeNodeIdRef = useRef<string | null>(null)
 
-  const setNodeFeatureState = useCallback((id: string, state) => {
+  const setNodeFeatureState = useCallback((id: string, state: any) => {
     const map = mapRef.current?.getMap()
 
     if (map && map.isStyleLoaded()) {
@@ -111,7 +111,7 @@ export const Map = ({
   useEffect(() => {
     const map = mapRef.current?.getMap()
     if (map && activeNode) {
-      const lngLat = [activeNode.longitude, activeNode.latitude]
+      const lngLat = [activeNode.location.longitude, activeNode.location.latitude]
       const isInBounds = map.getBounds().contains(lngLat)
       if (!isInBounds) {
         map.panTo(lngLat)

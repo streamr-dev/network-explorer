@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import ControlBox from './ControlBox'
 
-interface Props {}
+interface Props {
+  children?: ReactNode
+}
 
 interface ErrorBoundaryProps {
   hasError: boolean

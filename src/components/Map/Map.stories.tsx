@@ -2,9 +2,8 @@ import React, { useState, useCallback } from 'react'
 import { Story, Meta } from '@storybook/react/types-6-0'
 import { ViewportProps } from 'react-map-gl'
 import styled from 'styled-components'
-
 import { Map } from '.'
-import { Node } from '../../utils/api/tracker'
+import { OperatorNode } from '../../types'
 
 const Wrapper = styled.div`
   width: 800px;
@@ -102,7 +101,7 @@ export const Nodes: Story = (args) => {
 
 export const ActiveNode: Story = (args) => {
   const [viewport, setViewport] = useState<ViewportProps>(initialViewport)
-  const [activeNode, setActiveNode] = useState<Node | undefined>(undefined)
+  const [activeNode, setActiveNode] = useState<OperatorNode | undefined>(undefined)
 
   const onNodeClick = useCallback((activeId: string) => {
     setActiveNode(nodes.find(({ id }) => id === activeId))

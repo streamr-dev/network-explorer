@@ -66,20 +66,24 @@ const NodeStats = ({ id }: Props) => {
 
   useEffect(() => {
     const load = async () => {
+      if (!client) {
+        return
+      }
+
       const stream = await client.getStream(FIREHOSE_STREAM)
-      setPartition(keyToArrayIndex(stream.partitions, id))
+      setPartition(keyToArrayIndex(stream.getMetadata().partitions, id))
     }
     load()
   }, [client, id])
 
-  const toggleStat = useCallback((name) => {
+  const toggleStat = useCallback((name: MetricType) => {
     setSelectedStat((prev) => (prev !== name ? name : undefined))
   }, [])
 
   const isMounted = useIsMounted()
 
   const onMessage = useCallback(
-    (msg, metadata) => {
+    (msg: any, metadata: any) => {
       const { broker, network, node } = msg
       const { messageId } = metadata
 

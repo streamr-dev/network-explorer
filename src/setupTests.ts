@@ -14,6 +14,10 @@ class ResizeObserver {
   unobserve() {
     // do nothing
   }
+
+  disconnect() {
+    // do nothing
+  }
 }
 /* eslint-enable class-methods-use-this */
 

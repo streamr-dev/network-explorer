@@ -83,7 +83,7 @@ const UnstyledPager = ({
   onChange: onChangeProp,
   ...props
 }: Props) => {
-  const onChange = useCallback((...args) => {
+  const onChange = useCallback((...args: unknown[]) => {
     if (typeof onChangeProp === 'function') {
       onChangeProp(...args)
     }

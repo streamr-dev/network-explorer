@@ -158,10 +158,6 @@ type StatsProps = {
   active?: string | number
 }
 
-type ChildProps = {
-  props: React.Props<StatProps>
-}
-
 const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
   const childrenArray = useMemo(() => React.Children.toArray(children), [children])
   const [prevActiveIndex, setPrevActiveIndex] = useState<number | undefined>(undefined)

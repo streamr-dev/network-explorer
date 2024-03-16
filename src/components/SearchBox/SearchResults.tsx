@@ -3,7 +3,6 @@ import styled from 'styled-components/macro'
 import { Virtuoso } from 'react-virtuoso'
 import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import Highlight from '../Highlight'
-import { SearchResult } from '../../utils/api/streamr'
 import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 
@@ -126,13 +125,13 @@ const List = styled.div`
 `
 
 type Props = {
-  results: Array<SearchResult>
-  onClick?: (result: SearchResult) => void
+  results: any[]
+  onClick?: (result: any) => void
   highlight?: string
 }
 
 type ResultIconProps = {
-  type: SearchResult['type']
+  type: any
 }
 
 const ResultIcon = ({ type }: ResultIconProps) => {
@@ -158,7 +157,7 @@ const resultTypes = {
 }
 
 type ResultRowProps = {
-  result: SearchResult
+  result: any
 }
 
 const UnstyledSearchResults = ({
@@ -194,7 +193,7 @@ const UnstyledSearchResults = ({
           </Name>
           <Description>
             {result.type === 'streams' && (result.description || 'No description')}
-            {result.type !== 'streams' && (resultTypes[result.type] || '')}
+            {result.type !== 'streams' && (resultTypes[result.type as keyof typeof resultTypes] || '')}
           </Description>
         </Item>
       </Row>

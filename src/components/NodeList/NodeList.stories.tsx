@@ -156,7 +156,7 @@ export const WithStatsAndError = () => {
   )
 
   const onNodeClick = useCallback(
-    (id) => {
+    (id: string | undefined) => {
       update({
         activeNode: id,
         selectedStat: undefined,
@@ -167,7 +167,7 @@ export const WithStatsAndError = () => {
   )
 
   const onStatClick = useCallback(
-    (id) => {
+    (id: string | undefined) => {
       update({
         selectedStat: id,
         error: id && `Failed to load ${id}`,

@@ -33,8 +33,11 @@ export interface Stream {
 
 export interface OperatorNode {
   id: string
-  latitude: number
-  longitude: number
+  location: {
+    latitude: number
+    longitude: number
+    title?: string
+  }
   title: string
 }
 

@@ -155,13 +155,13 @@ function useControllerContext() {
         const nextTrackers = await Promise.resolve([])
 
         if (!isMounted()) {
-          return undefined
+          return {}
         }
 
         const nextNodes = await Promise.all(nextTrackers.map(() => []))
 
         if (!isMounted()) {
-          return undefined
+          return {}
         }
 
         return {
@@ -200,7 +200,7 @@ function useControllerContext() {
     setStream(undefined)
   }, [setStream])
 
-  const loadTopologyFromApi = useCallback(async ({ id }) => {
+  const loadTopologyFromApi = useCallback(async (..._: any[]) => {
     try {
       const nextTopology = await Promise.resolve({})
 
