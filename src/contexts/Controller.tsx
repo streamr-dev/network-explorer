@@ -5,7 +5,7 @@ import {
   LinearInterpolator,
   TRANSITION_EVENTS,
 } from 'react-map-gl'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useClient } from 'streamr-client-react'
 import { usePending } from './Pending'
 import useIsMounted from '../hooks/useIsMounted'
@@ -77,7 +77,7 @@ function useControllerContext() {
     }),
     transitionDuration: 2000,
   })
-  const history = useHistory()
+  const navigate = useNavigate()
   const { wrap: wrapNodes } = usePending('nodes')
   const { wrap: wrapTopology } = usePending('topology')
   const { wrap: wrapStreams } = usePending('streams')
@@ -99,9 +99,9 @@ function useControllerContext() {
         path += `nodes/${encodeURIComponent(nodeId)}`
       }
 
-      history.replace(path)
+      navigate(path, { replace: true })
     },
-    [activeStreamId, history],
+    [activeStreamId, navigate],
   )
 
   const debouncedSetViewport = useDebounced(

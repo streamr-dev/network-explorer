@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { useParams, useHistory } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { truncate } from '../../utils/text'
 import useIsMounted from '../../hooks/useIsMounted'
 import usePaged from '../../hooks/usePaged'
@@ -19,14 +19,10 @@ type Props = {
   id: string
 }
 
-interface ParamTypes {
-  nodeId: string
-}
-
 const TopologyList = ({ id }: Props) => {
   const { visibleNodes, stream } = useStore()
-  const { nodeId: encodedNodeId } = useParams<ParamTypes>()
-  const history = useHistory()
+  const { nodeId: encodedNodeId } = useParams<{ nodeId: string }>()
+  const navigate = useNavigate()
   const listRef = useRef<HTMLDivElement>(null)
   const scrollTimeout = useRef<number | undefined>(undefined)
   const isMounted = useIsMounted()
@@ -52,9 +48,9 @@ const TopologyList = ({ id }: Props) => {
         path += `/nodes/${encodeURIComponent(nodeId)}`
       }
 
-      history.replace(path)
+      navigate(path, { replace: true })
     },
-    [id, history, activeNodeId],
+    [id, navigate, activeNodeId],
   )
 
   const streamTitle = (stream && stream.name) || id

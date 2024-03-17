@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react'
-import { useParams, useHistory, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useController } from '../../contexts/Controller'
 import TopologyList from './TopologyList'
 import envs from '../../utils/envs'
@@ -61,25 +61,22 @@ type EnvProps = {
 const NetworkSetter = ({ env: nextEnv }: EnvProps) => {
   const { env } = useStore()
   const { changeEnv } = useController()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!!nextEnv && nextEnv !== env && envSet.has(nextEnv)) {
       changeEnv(nextEnv)
     }
 
-    history.replace('/')
-  }, [nextEnv, env, history, changeEnv])
+    navigate('/', { replace: true })
+  }, [nextEnv, env, navigate, changeEnv])
 
   return null
 }
 
-interface ParamTypes {
-  nodeId: string
-}
-
 export function Network() {
-  const { nodeId: encodedNodeId } = useParams<ParamTypes>()
+  const { nodeId: encodedNodeId = '' } = useParams<{ nodeId: string }>()
+
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
   const { search } = useLocation()

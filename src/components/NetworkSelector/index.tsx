@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useStore } from '../../hooks/useStore'
 import envs from '../../utils/envs'
@@ -131,7 +131,7 @@ type Props = {}
 const UnstyledNetworkSelector = (props: Props) => {
   const { env: selectedEnv } = useStore()
   const [open, setOpen] = useState<boolean>(false)
-  const history = useHistory()
+  const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
 
   const toggleOpen = useCallback(() => {
@@ -140,10 +140,10 @@ const UnstyledNetworkSelector = (props: Props) => {
 
   const changeEnv = useCallback(
     (env: string) => {
-      history.push(`/?network=${env}`)
+      navigate(`/?network=${env}`)
       setOpen(false)
     },
-    [history],
+    [navigate],
   )
 
   useEffect(() => {

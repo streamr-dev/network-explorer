@@ -59,7 +59,7 @@ function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
 }
 
 export function isOperatorNodeGeoFeature(arg: GeoJSON.Feature | undefined): arg is OperatorNode['geoFeature'] {
-  return !!arg && arg.geometry.type === 'Point'
+  return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).id
 }
 
 export function useNodesQuery(params: UseNodesQueryParams) {

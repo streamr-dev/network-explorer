@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useController } from '../../contexts/Controller'
 import usePaged from '../../hooks/usePaged'
 import { OperatorNode } from '../../types'
@@ -15,7 +15,7 @@ type Props = {
 const TopologyList = ({ id: activeNodeId }: Props) => {
   const { visibleNodes: nodes } = useStore()
   const { loadNodeLocations } = useController()
-  const history = useHistory()
+  const navigate = useNavigate()
   const listRef = useRef<HTMLDivElement>(null)
   const scrollTimeout = useRef<number | undefined>(undefined)
   const [pageChangedOnLoad, setPageChangedOnLoad] = useState(false)
@@ -28,9 +28,9 @@ const TopologyList = ({ id: activeNodeId }: Props) => {
 
   const toggleNode = useCallback(
     (nodeId: string) => {
-      history.replace(`/nodes/${encodeURIComponent(nodeId)}`)
+      navigate(`/nodes/${encodeURIComponent(nodeId)}`, { replace: true })
     },
-    [history],
+    [navigate],
   )
 
   // show all nodes in same location

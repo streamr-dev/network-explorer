@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ActiveRoute, ActiveView } from '../../types'
 import { NetworkStats } from '../NetworkStats'
 import { StreamStats } from '../StreamStats'
@@ -25,7 +25,7 @@ export function SearchBox() {
 
   const searchRef = useRef<HTMLDivElement>(null)
 
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const hasStream = !!(activeRoute === ActiveRoute.Stream)
 

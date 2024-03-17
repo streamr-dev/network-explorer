@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { BrowserRouter, Route, Switch } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import styled from 'styled-components'
 import { ConnectedMap } from './Map'
 import { SearchBox } from './SearchBox'
@@ -34,19 +34,22 @@ function GlobalLoadingIndicator() {
 export function App() {
   return (
     <Providers>
-      <ConnectedMap />
+      <Routes>
+        <Route path="/nodes/:nodeId" element={<ConnectedMap />} />
+        <Route path="*" element={<ConnectedMap />} />
+      </Routes>
       <GlobalLoadingIndicator />
       <Layout>
         <ErrorBoundary>
           <Debug />
           <NetworkSelector />
           <SearchBox />
-          <Switch>
-            <Route exact path="/streams/:streamId/nodes/:nodeId" component={Stream} />
-            <Route exact path="/streams/:streamId" component={Stream} />
-            <Route exact path="/nodes/:nodeId" component={Network} />
-            <Route exact path="/" component={Network} />
-          </Switch>
+          <Routes>
+            <Route path="/streams/:streamId/nodes/:nodeId" element={<Stream />} />
+            <Route path="/streams/:streamId" element={<Stream />} />
+            <Route path="/nodes/:nodeId" element={<Network />} />
+            <Route index element={<Network />} />
+          </Routes>
         </ErrorBoundary>
       </Layout>
     </Providers>
