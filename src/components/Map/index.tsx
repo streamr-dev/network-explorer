@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, RefObject, useState } from 'react'
+import React, { useRef, RefObject, useState } from 'react'
 import ReactMapGL, {
   ViewportProps,
   MapRef,
@@ -10,9 +10,8 @@ import styled from 'styled-components'
 import ConnectionLayer from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl, NavigationControlProps } from './NavigationControl'
-import { useController } from '../../contexts/Controller'
 import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
-import { Topology } from '../../types'
+import { ConnectionsMode, Topology } from '../../types'
 import { useStore } from '../../hooks/useStore'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGlobalKeyDownEffect } from '../../hooks'
@@ -87,7 +86,11 @@ const defaultViewport: ViewportProps = {
   zoom: 3,
 }
 
-export const Map = ({ topology, onToggleConnections, showConnections = false }: Props) => {
+export function Map() {
+  const { topology, streamId, showConnections: connectionMode, toggleShowConnections } = useStore()
+
+  const showConnections = !streamId ? connectionMode === ConnectionsMode.Always : connectionMode === ConnectionsMode.Auto
+
   const [viewport, setViewport] = useState(defaultViewport)
 
   const mapRef = useRef<MapRef>(null)
@@ -137,93 +140,95 @@ export const Map = ({ topology, onToggleConnections, showConnections = false }: 
   })
 
   return (
-    <ReactMapGL
-      {...viewport}
-      width="100%"
-      height="100%"
-      mapboxApiAccessToken={MapboxToken}
-      mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
-      onViewportChange={setViewport}
-      getCursor={getCursor}
-      ref={mapRef}
-      interactiveLayerIds={[NODE_LAYER_ID]}
-      onClick={(e) => {
-        if (!navRef.current || navRef.current.contains(e.target)) {
-          return
-        }
+    <MapContainer>
+      <ReactMapGL
+        {...viewport}
+        width="100%"
+        height="100%"
+        mapboxApiAccessToken={MapboxToken}
+        mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
+        onViewportChange={setViewport}
+        getCursor={getCursor}
+        ref={mapRef}
+        interactiveLayerIds={[NODE_LAYER_ID]}
+        onClick={(e) => {
+          if (!navRef.current || navRef.current.contains(e.target)) {
+            return
+          }
 
-        const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
+          const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
 
-        const to =
-          isOperatorNodeGeoFeature(feature) && feature.properties.id !== activeNode?.id
-            ? `/nodes/${feature.properties.id}`
-            : '/'
+          const to =
+            isOperatorNodeGeoFeature(feature) && feature.properties.id !== activeNode?.id
+              ? `/nodes/${feature.properties.id}`
+              : '/'
 
-        navigate(to)
-      }}
-      onHover={(e) => {
-        const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
-
-        const nodeId = isOperatorNodeGeoFeature(feature) ? feature.properties.id : null
-
-        const { current: prevNodeId } = hoveredNodeIdRef
-
-        if (nodeId === prevNodeId) {
-          return
-        }
-
-        if (prevNodeId) {
-          setNodeFeatureState(mapRef, prevNodeId, { hover: false })
-
-          hoveredNodeIdRef.current = null
-        }
-
-        if (nodeId) {
-          setNodeFeatureState(mapRef, nodeId, { hover: true })
-
-          hoveredNodeIdRef.current = nodeId
-        }
-      }}
-      dragPan={{
-        inertia: INERTIA,
-      }}
-      dragRotate={{
-        inertia: INERTIA,
-      }}
-      touchZoom={{
-        inertia: INERTIA,
-      }}
-      touchRotate={{
-        inertia: INERTIA,
-      }}
-    >
-      <ConnectionLayer
-        topology={topology}
-        nodes={nodes}
-        activeNode={activeNode || undefined}
-        visible={!!showConnections}
-      />
-      <MarkerLayer nodes={nodes} sourceId={NODE_SOURCE_ID} layerId={NODE_LAYER_ID} />
-      <NavigationControl
-        onZoomIn={() => {
-          setViewport(({ zoom = 0, ...rest }) => ({
-            ...rest,
-            zoom: zoom + 1,
-          }))
+          navigate(to)
         }}
-        onZoomOut={() => {
-          setViewport(({ zoom = 0, ...rest }) => ({
-            ...rest,
-            zoom: zoom - 1,
-          }))
+        onHover={(e) => {
+          const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
+
+          const nodeId = isOperatorNodeGeoFeature(feature) ? feature.properties.id : null
+
+          const { current: prevNodeId } = hoveredNodeIdRef
+
+          if (nodeId === prevNodeId) {
+            return
+          }
+
+          if (prevNodeId) {
+            setNodeFeatureState(mapRef, prevNodeId, { hover: false })
+
+            hoveredNodeIdRef.current = null
+          }
+
+          if (nodeId) {
+            setNodeFeatureState(mapRef, nodeId, { hover: true })
+
+            hoveredNodeIdRef.current = nodeId
+          }
         }}
-        onZoomReset={() => {
-          setViewport(defaultViewport)
+        dragPan={{
+          inertia: INERTIA,
         }}
-        onToggleConnections={onToggleConnections}
-        innerRef={navRef}
-      />
-    </ReactMapGL>
+        dragRotate={{
+          inertia: INERTIA,
+        }}
+        touchZoom={{
+          inertia: INERTIA,
+        }}
+        touchRotate={{
+          inertia: INERTIA,
+        }}
+      >
+        <ConnectionLayer
+          topology={topology}
+          nodes={nodes}
+          activeNode={activeNode || undefined}
+          visible={!!showConnections}
+        />
+        <MarkerLayer nodes={nodes} sourceId={NODE_SOURCE_ID} layerId={NODE_LAYER_ID} />
+        <NavigationControl
+          onZoomIn={() => {
+            setViewport(({ zoom = 0, ...rest }) => ({
+              ...rest,
+              zoom: zoom + 1,
+            }))
+          }}
+          onZoomOut={() => {
+            setViewport(({ zoom = 0, ...rest }) => ({
+              ...rest,
+              zoom: zoom - 1,
+            }))
+          }}
+          onZoomReset={() => {
+            setViewport(defaultViewport)
+          }}
+          onToggleConnections={toggleShowConnections}
+          innerRef={navRef}
+        />
+      </ReactMapGL>
+    </MapContainer>
   )
 }
 
@@ -231,19 +236,3 @@ const MapContainer = styled.div`
   position: relative;
   height: 100%;
 `
-
-export const ConnectedMap = () => {
-  const { topology, streamId, showConnections, toggleShowConnections } = useStore()
-
-  return (
-    <MapContainer>
-      <Map
-        topology={topology}
-        showConnections={(showConnections === 'auto' && !!streamId) || showConnections === 'always'}
-        onToggleConnections={toggleShowConnections}
-      />
-    </MapContainer>
-  )
-}
-
-export default ConnectedMap

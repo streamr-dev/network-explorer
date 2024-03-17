@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import styled from 'styled-components'
-import { ConnectedMap } from './Map'
+import { Map } from './Map'
 import { SearchBox } from './SearchBox'
 import Stream from './Stream'
 import { Network } from './Network'
@@ -35,8 +35,8 @@ export function App() {
   return (
     <Providers>
       <Routes>
-        <Route path="/nodes/:nodeId" element={<ConnectedMap />} />
-        <Route path="*" element={<ConnectedMap />} />
+        <Route path="/nodes/:nodeId" element={<Map />} />
+        <Route path="*" element={<Map />} />
       </Routes>
       <GlobalLoadingIndicator />
       <Layout>
