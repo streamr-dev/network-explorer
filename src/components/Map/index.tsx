@@ -1,25 +1,20 @@
-import React, { useRef, RefObject, useState } from 'react'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import React, { RefObject, useRef, useState } from 'react'
 import ReactMapGL, {
-  ViewportProps,
+  LinearInterpolator,
   MapRef,
   TRANSITION_EVENTS,
-  LinearInterpolator,
+  ViewportProps,
 } from 'react-map-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import styled from 'styled-components'
-import ConnectionLayer from './ConnectionLayer'
-import { MarkerLayer } from './MarkerLayer'
-import { NavigationControl, NavigationControlProps } from './NavigationControl'
-import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
-import { ConnectionsMode, Topology } from '../../types'
-import { useStore } from '../../hooks/useStore'
 import { useNavigate, useParams } from 'react-router-dom'
+import styled from 'styled-components'
 import { useGlobalKeyDownEffect } from '../../hooks'
-
-type Props = {
-  topology: Topology
-  showConnections?: boolean
-} & NavigationControlProps
+import { useStore } from '../../hooks/useStore'
+import { ConnectionsMode } from '../../types'
+import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
+import { ConnectionLayer } from './ConnectionLayer'
+import { MarkerLayer } from './MarkerLayer'
+import { NavigationControl } from './NavigationControl'
 
 // react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
 const INERTIA = 300
@@ -87,9 +82,13 @@ const defaultViewport: ViewportProps = {
 }
 
 export function Map() {
-  const { topology, streamId, showConnections: connectionMode, toggleShowConnections } = useStore()
+  const { streamId } = useStore()
 
-  const showConnections = !streamId ? connectionMode === ConnectionsMode.Always : connectionMode === ConnectionsMode.Auto
+  const [connectionMode, setConnectionMode] = useState<ConnectionsMode>(ConnectionsMode.Auto)
+
+  const showConnections = !streamId
+    ? connectionMode === ConnectionsMode.Always
+    : connectionMode === ConnectionsMode.Auto
 
   const [viewport, setViewport] = useState(defaultViewport)
 
@@ -201,12 +200,7 @@ export function Map() {
           inertia: INERTIA,
         }}
       >
-        <ConnectionLayer
-          topology={topology}
-          nodes={nodes}
-          activeNode={activeNode || undefined}
-          visible={!!showConnections}
-        />
+        <ConnectionLayer visible={showConnections} />
         <MarkerLayer nodes={nodes} sourceId={NODE_SOURCE_ID} layerId={NODE_LAYER_ID} />
         <NavigationControl
           onZoomIn={() => {
@@ -224,7 +218,16 @@ export function Map() {
           onZoomReset={() => {
             setViewport(defaultViewport)
           }}
-          onToggleConnections={toggleShowConnections}
+          onToggleConnections={() => {
+            /*
+             * @todo Rename `Always` to just `On` (= On/Off).
+             */
+            setConnectionMode(
+              connectionMode === ConnectionsMode.Always
+                ? ConnectionsMode.Off
+                : ConnectionsMode.Always,
+            )
+          }}
           innerRef={navRef}
         />
       </ReactMapGL>

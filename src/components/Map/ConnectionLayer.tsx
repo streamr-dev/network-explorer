@@ -1,89 +1,29 @@
 import React, { useMemo } from 'react'
-import { Source, Layer } from 'react-map-gl'
-import { OperatorNode, Topology } from '../../types'
+import { Layer, Source } from 'react-map-gl'
+import { useNodeConnections } from '../../utils'
 
-type NodeConnection = {
-  sourceId: string | number | undefined
-  targetId: string | number | undefined
-  source: [number, number]
-  target: [number, number]
-}
+export function ConnectionLayer({ visible = false }) {
+  const connections = useNodeConnections()
 
-type UniqueConnection = Record<string, NodeConnection>
-
-const getNodeConnections = (
-  topology: Topology,
-  nodes: OperatorNode[],
-  activeNode: OperatorNode | undefined,
-): Array<NodeConnection> => {
-  // Convert topology to a list of node connection pairs
-  const nodeConnections = Object.keys(topology || {})
-    .flatMap((key) => {
-      const nodeList = topology[key]
-      return nodeList.map((n) => [key, n])
-    })
-    // Show only connections from active node if selected.
-    // Otherwise shows all connections.
-    .filter((nodeIds) => activeNode != null ?
-      (nodeIds[0] === activeNode.id || nodeIds[1] === activeNode.id ) :
-      true,
-    )
-
-  const uniqueConnections: UniqueConnection = {}
-  for (let i = 0; i < nodeConnections.length; ++i) {
-    const sourceId = nodeConnections[i][0]
-    const targetId = nodeConnections[i][1]
-    const uniqueId = [sourceId, targetId].sort().join()
-
-    if (!uniqueConnections[uniqueId] && sourceId !== targetId) {
-      const src = nodes.find(({ id }) => id === sourceId)
-      const target = nodes.find(({ id }) => id === targetId)
-
-      if (src && target) {
-        uniqueConnections[uniqueId] = {
-          source: [src.location.longitude, src.location.latitude] as [number, number],
-          target: [target.location.longitude, target.location.latitude] as [number, number],
-          sourceId,
-          targetId,
-        }
+  const lineData = useMemo<GeoJSON.FeatureCollection>(
+    function getFeatureConnection() {
+      return {
+        type: 'FeatureCollection',
+        features: connections.map(({ source, target }) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [source, target],
+          },
+          properties: {},
+        })),
       }
-    }
-  }
-
-  return Object.values(uniqueConnections)
-}
-
-type Props = {
-  topology: Topology
-  nodes: OperatorNode[]
-  activeNode: OperatorNode | undefined
-  visible?: boolean
-}
-
-const ConnectionLayer = ({
-  topology,
-  nodes,
-  activeNode,
-  visible,
-}: Props) => {
-  const geoJsonLines: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
-    const connections = getNodeConnections(topology, nodes, activeNode)
-
-    return {
-      type: 'FeatureCollection',
-      features: connections.map(({ source, target }) => ({
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: [source, target],
-        },
-        properties: {},
-      })),
-    }
-  }, [topology, nodes, activeNode])
+    },
+    [connections],
+  )
 
   return (
-    <Source id="node-connections-source" type="geojson" data={geoJsonLines}>
+    <Source id="node-connections-source" type="geojson" data={lineData}>
       <Layer
         id="node-connections-layer"
         type="line"
@@ -96,5 +36,3 @@ const ConnectionLayer = ({
     </Source>
   )
 }
-
-export default ConnectionLayer

@@ -20,10 +20,7 @@ export interface Location {
   name: string
 }
 
-export interface NeighborPair {
-  nodeId0: string
-  nodeId1: string
-}
+export type NeighborPair = [string, string]
 
 export interface Stream {
   description: string

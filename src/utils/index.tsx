@@ -17,7 +17,14 @@ import {
   StreamOrderBy,
 } from '../generated/gql/indexer'
 import { getIndexerClient } from './queries'
-import { Location, OperatorNode, PlaceFeature, PlacesResponse, SearchResultItem } from '../types'
+import {
+  Location,
+  NeighborPair,
+  OperatorNode,
+  PlaceFeature,
+  PlacesResponse,
+  SearchResultItem,
+} from '../types'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -58,7 +65,9 @@ function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
   return ['useNodesQuery', ...ids] as const
 }
 
-export function isOperatorNodeGeoFeature(arg: GeoJSON.Feature | undefined): arg is OperatorNode['geoFeature'] {
+export function isOperatorNodeGeoFeature(
+  arg: GeoJSON.Feature | undefined,
+): arg is OperatorNode['geoFeature'] {
   return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).id
 }
 
@@ -239,14 +248,16 @@ function getNeighborsQueryKey({ node, streamPart }: UseNeighborsQueryParams) {
 }
 
 export function useNeighborsQuery(params: UseNeighborsQueryParams) {
-  const pageSize = 500
+  const pageSize = 1000
 
   const { node, streamPart } = params
 
   return useQuery({
     queryKey: getNeighborsQueryKey(params),
     queryFn: async () => {
-      const items: GetNeighborsQuery['neighbors']['items'] = []
+      const items: NeighborPair[] = []
+
+      const uniquenessGate: Record<string, true> = {}
 
       let cursor = '0'
 
@@ -264,7 +275,19 @@ export function useNeighborsQuery(params: UseNeighborsQueryParams) {
           },
         })
 
-        items.push(...neighbors.items)
+        for (const { nodeId1: a, nodeId2: b } of neighbors.items) {
+          const pair = [a, b].sort() as [string, string]
+
+          const key = pair.join('-')
+
+          if (uniquenessGate[key]) {
+            continue
+          }
+
+          uniquenessGate[key] = true
+
+          items.push(pair)
+        }
 
         if (!neighbors.cursor || neighbors.cursor === cursor) {
           break
@@ -278,6 +301,8 @@ export function useNeighborsQuery(params: UseNeighborsQueryParams) {
           setTimeout(resolve, 2000)
         })
       }
+
+      return items
     },
   })
 }
@@ -288,6 +313,53 @@ export function useIsFetchingNeighbors() {
       exact: false,
       queryKey: [getNeighborsQueryKey({})[0]],
     }) > 0
+  )
+}
+
+export function useNodeConnections() {
+  const { data: nodes } = useNodesQuery({})
+
+  const { data: neighbors } = useNeighborsQuery({})
+
+  return useMemo(
+    function getTopologyFromNodesAndNeighbors() {
+      if (!nodes || !neighbors) {
+        return []
+      }
+
+      const nodesById: Record<string, OperatorNode | undefined> = {}
+
+      for (const node of nodes) {
+        nodesById[node.id] = node
+      }
+
+      const topology: {
+        sourceId: string
+        targetId: string
+        source: [number, number]
+        target: [number, number]
+      }[] = []
+
+      for (const [sourceId, targetId] of neighbors) {
+        const source = nodesById[sourceId]?.location
+
+        const target = nodesById[targetId]?.location
+
+        if (!source || !target) {
+          continue
+        }
+
+        topology.push({
+          sourceId,
+          targetId,
+          source: [source.longitude, source.latitude],
+          target: [target.longitude, target.latitude],
+        })
+      }
+
+      return topology
+    },
+    [nodes, neighbors],
   )
 }
 
