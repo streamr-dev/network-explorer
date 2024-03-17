@@ -87,7 +87,7 @@ const TopologyList = ({ id }: Props) => {
     if (activeEl) {
       clearTimeout(scrollTimeout.current)
 
-      scrollTimeout.current = setTimeout(() => {
+      scrollTimeout.current = window.setTimeout(() => {
         if (isMounted()) {
           activeEl.scrollIntoView({
             block: 'start',

@@ -168,7 +168,7 @@ const MetricGraph = ({ streamId, interval, metric, id, partition }: MetricGraphP
 
     setValues(nextValues)
 
-    graphPollTimeout.current = setTimeout(() => {
+    graphPollTimeout.current = window.setTimeout(() => {
       graphPoll(nextMetric, nextInterval)
     }, 500)
   }, [])
