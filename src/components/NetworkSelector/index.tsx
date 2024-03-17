@@ -1,15 +1,10 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
-import envs from '../../utils/envs'
-import Tooltip from '../Tooltip'
-import { SANS, SM } from '../../utils/styled'
 import { useStore } from '../../hooks/useStore'
+import envs from '../../utils/envs'
+import { SANS, SM } from '../../utils/styled'
+import { Tooltip } from '../Tooltip'
 
 const GlobeIcon = () => (
   <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +54,7 @@ const Button = styled.button`
   border: 0;
   background: none;
   outline: none;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   width: 40px;
@@ -87,12 +82,12 @@ const Button = styled.button`
 
   :hover,
   :focus-within {
-    color: #A3A3A3;
+    color: #a3a3a3;
   }
 `
 
 const NetworkList = styled.div`
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   position: absolute;
@@ -143,10 +138,13 @@ const UnstyledNetworkSelector = (props: Props) => {
     setOpen((wasOpen) => !wasOpen)
   }, [])
 
-  const changeEnv = useCallback((env: string) => {
-    history.push(`/?network=${env}`)
-    setOpen(false)
-  }, [history])
+  const changeEnv = useCallback(
+    (env: string) => {
+      history.push(`/?network=${env}`)
+      setOpen(false)
+    },
+    [history],
+  )
 
   useEffect(() => {
     if (!open || !containerRef.current) {
@@ -167,7 +165,7 @@ const UnstyledNetworkSelector = (props: Props) => {
         return
       }
 
-      if (!el.contains((e.target as Element))) {
+      if (!el.contains(e.target as Element)) {
         setOpen(false)
       }
     }
@@ -184,33 +182,22 @@ const UnstyledNetworkSelector = (props: Props) => {
   return (
     <div {...props} ref={containerRef}>
       <Tooltip value={!open ? 'Network selector' : undefined}>
-        <Button
-          type="button"
-          onClick={toggleOpen}
-        >
+        <Button type="button" onClick={toggleOpen}>
           <GlobeIcon />
           <NetworkIndicator
-            theme={(!!selectedEnv && !!themes[selectedEnv]) ? themes[selectedEnv] : themes.default}
+            theme={!!selectedEnv && !!themes[selectedEnv] ? themes[selectedEnv] : themes.default}
           />
         </Button>
       </Tooltip>
       {!!open && (
         <NetworkList>
-            {Object.keys(envs).map((env) => (
-              <NetworkItem key={env} type="button" onClick={() => changeEnv(env)}>
-                <NetworkIndicator
-                  theme={themes[env] ? themes[env] : themes.default}
-                />
-                <NetworkName>
-                  {envs[env].title}
-                </NetworkName>
-                <div>
-                  {(env === selectedEnv) && (
-                    <TickIcon />
-                  )}
-                </div>
-              </NetworkItem>
-            ))}
+          {Object.keys(envs).map((env) => (
+            <NetworkItem key={env} type="button" onClick={() => changeEnv(env)}>
+              <NetworkIndicator theme={themes[env] ? themes[env] : themes.default} />
+              <NetworkName>{envs[env].title}</NetworkName>
+              <div>{env === selectedEnv && <TickIcon />}</div>
+            </NetworkItem>
+          ))}
         </NetworkList>
       )}
     </div>

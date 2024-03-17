@@ -1,18 +1,15 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
-
 import { SANS } from '../utils/styled'
 
-type RootProps = {
+const Root = styled.div<{
   readonly $tooltip?: string | undefined
-}
-
-const Root = styled.div<RootProps>`
+}>`
   position: relative;
   display: inline-block;
   line-height: 1;
 
-  ${({ $tooltip }) =>
+  ${({ $tooltip = '' }) =>
     !!$tooltip &&
     css`
       &::after {
@@ -49,8 +46,6 @@ type Props = {
   children: React.ReactNode
 }
 
-const UnstyledTooltip = ({ value, ...props }: Props) => <Root {...props} $tooltip={value} />
-
-const Tooltip = styled(UnstyledTooltip)``
-
-export default Tooltip
+export function Tooltip({ value, ...props }: Props) {
+  return <Root {...props} $tooltip={value} />
+}

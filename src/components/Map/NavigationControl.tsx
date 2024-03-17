@@ -1,7 +1,7 @@
 import React, { RefObject } from 'react'
 import styled from 'styled-components'
 import { SM } from '../../utils/styled'
-import Tooltip from '../Tooltip'
+import { Tooltip } from '../Tooltip'
 
 const Button = styled.button`
   width: 40px;
