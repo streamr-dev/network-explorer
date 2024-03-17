@@ -222,10 +222,8 @@ export function Map() {
             /*
              * @todo Rename `Always` to just `On` (= On/Off).
              */
-            setConnectionMode(
-              connectionMode === ConnectionsMode.Always
-                ? ConnectionsMode.Off
-                : ConnectionsMode.Always,
+            setConnectionMode((current) =>
+              current === ConnectionsMode.Always ? ConnectionsMode.Off : ConnectionsMode.Always,
             )
           }}
           innerRef={navRef}

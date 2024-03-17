@@ -294,12 +294,6 @@ export function useNeighborsQuery(params: UseNeighborsQueryParams) {
         }
 
         cursor = neighbors.cursor
-
-        console.log('CURSOR', cursor)
-
-        await new Promise<void>((resolve) => {
-          setTimeout(resolve, 2000)
-        })
       }
 
       return items

@@ -5,8 +5,8 @@ import { useNodeConnections } from '../../utils'
 export function ConnectionLayer({ visible = false }) {
   const connections = useNodeConnections()
 
-  const lineData = useMemo<GeoJSON.FeatureCollection>(
-    function getFeatureConnection() {
+  const lineData = useMemo(
+    function getFeatureConnection(): GeoJSON.FeatureCollection {
       return {
         type: 'FeatureCollection',
         features: connections.map(({ source, target }) => ({
