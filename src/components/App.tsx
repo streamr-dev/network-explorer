@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import styled from 'styled-components'
 import { Map } from './Map'
 import { SearchBox } from './SearchBox'
@@ -16,6 +16,7 @@ import { Provider as PendingProvider } from '../contexts/Pending'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { getQueryClient } from '../utils/queries'
 import { useIsFetchingNeighbors, useIsFetchingNodes } from '../utils'
+import { ActiveContextProvider } from '../contexts/ActiveNode'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -31,12 +32,22 @@ function GlobalLoadingIndicator() {
   return <LoadingIndicator large loading={isLoadingNodes || isLoadingTopology} />
 }
 
+function MapWrapper() {
+  return (
+    <ActiveContextProvider>
+      <Outlet />
+    </ActiveContextProvider>
+  )
+}
+
 export function App() {
   return (
     <Providers>
       <Routes>
-        <Route path="/nodes/:nodeId" element={<Map />} />
-        <Route path="*" element={<Map />} />
+        <Route element={<MapWrapper />}>
+          <Route path="/nodes/:nodeId" element={<Map />} />
+          <Route path="*" element={<Map />} />
+        </Route>
       </Routes>
       <GlobalLoadingIndicator />
       <Layout>

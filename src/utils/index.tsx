@@ -25,6 +25,7 @@ import {
   PlacesResponse,
   SearchResultItem,
 } from '../types'
+import { useActiveNode } from '../contexts/ActiveNode'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -313,7 +314,11 @@ export function useIsFetchingNeighbors() {
 export function useNodeConnections() {
   const { data: nodes } = useNodesQuery({})
 
-  const { data: neighbors } = useNeighborsQuery({})
+  const activeNode = useActiveNode()
+
+  const { data: neighbors } = useNeighborsQuery({
+    node: activeNode?.id
+  })
 
   return useMemo(
     function getTopologyFromNodesAndNeighbors() {

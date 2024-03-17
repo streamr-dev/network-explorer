@@ -15,6 +15,7 @@ import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../util
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
+import { useActiveNode } from '../../contexts/ActiveNode'
 
 // react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
 const INERTIA = 300
@@ -98,7 +99,7 @@ export function Map() {
 
   const hoveredNodeIdRef = useRef<string | null>(null)
 
-  const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
+  const activeNode = useActiveNode()
 
   const activeNodeIdRef = useRef<string | null>(null)
 
@@ -108,9 +109,7 @@ export function Map() {
 
   const nodes = nodesQuery.data || []
 
-  const activeNode = activeNodeId ? nodes.find(({ id }) => id === activeNodeId) || null : null
-
-  if (prevActiveNodeId !== activeNodeId) {
+  if (prevActiveNodeId !== activeNode?.id) {
     if (prevActiveNodeId) {
       setNodeFeatureState(mapRef, prevActiveNodeId, { active: false })
     }
