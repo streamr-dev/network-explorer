@@ -2,27 +2,17 @@ import React, { useMemo } from 'react'
 import { Source, Layer } from 'react-map-gl'
 import { OperatorNode } from '../../types'
 
-type Props = {
+type MarkerLayerProps = {
   nodes: OperatorNode[]
   sourceId: string
   layerId: string
 }
 
-const MarkerLayer = ({ nodes, sourceId, layerId }: Props) => {
+export function MarkerLayer({ nodes, sourceId, layerId }: MarkerLayerProps) {
   const geoJson: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     return {
       type: 'FeatureCollection',
-      features: nodes.map((node) => ({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [node.location.longitude, node.location.latitude],
-        },
-        properties: {
-          id: node.id,
-          title: node.title,
-        },
-      })),
+      features: nodes.map(({ geoFeature }) => geoFeature),
     }
   }, [nodes])
 
@@ -34,12 +24,7 @@ const MarkerLayer = ({ nodes, sourceId, layerId }: Props) => {
         id={layerId}
         type="circle"
         paint={{
-          'circle-radius': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            6,
-            4,
-          ],
+          'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 4],
           'circle-color': [
             'case',
             ['boolean', ['feature-state', 'active'], false],
@@ -47,16 +32,9 @@ const MarkerLayer = ({ nodes, sourceId, layerId }: Props) => {
             '#0324ff',
           ],
           'circle-stroke-color': '#0324ff',
-          'circle-stroke-width': [
-            'case',
-            ['boolean', ['feature-state', 'active'], false],
-            8,
-            0,
-          ],
+          'circle-stroke-width': ['case', ['boolean', ['feature-state', 'active'], false], 8, 0],
         }}
       />
     </Source>
   )
 }
-
-export default MarkerLayer

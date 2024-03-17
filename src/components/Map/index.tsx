@@ -4,10 +4,10 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import styled from 'styled-components'
 
 import ConnectionLayer from './ConnectionLayer'
-import MarkerLayer from './MarkerLayer'
+import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl, NavigationControlProps } from './NavigationControl'
 import { useController } from '../../contexts/Controller'
-import { MapboxToken } from '../../utils'
+import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
 import { OperatorNode, Topology } from '../../types'
 import useKeyDown from '../../hooks/useKeyDown'
 import { useStore } from '../../hooks/useStore'
@@ -131,17 +131,43 @@ export const Map = ({
       ref={mapRef}
       interactiveLayerIds={[NODE_LAYER_ID]}
       onClick={(e) => {
-        if (!navRef.current!.contains(e.target)) {
-          // Did we click on a node or just the background map layer?
-          if (onNodeClick && e.features && e.features.length > 0) {
-            const firstId = e.features[0].properties.id
-            if (firstId) {
-              onNodeClick(firstId)
-            }
-          } else if (onMapClick) {
-            onMapClick()
-          }
+        if (!navRef.current) {
+          return
         }
+
+        if (navRef.current.contains(e.target)) {
+          return
+        }
+
+        const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
+
+        if (isOperatorNodeGeoFeature(feature)) {
+          // navigate to /:nodeId
+          return
+        }
+
+        // navigate to /
+
+        // const { id: nodeId } = (feature || {}).properties || {}
+
+        // if (nodeId) {
+        //   // Navigate to /:nodeId
+        // } else {
+        //   // Navigate to /
+        // }
+
+        // if (!feature) {
+        //   if (onMapClick) {
+        //     onMapClick()
+        //   }
+
+        //   return
+        // }
+
+
+        // if (nodeId && onNodeClick) {
+        //   onNodeClick(nodeId)
+        // }
       }}
       onHover={(e) => {
         // Set node feature state to contain hover status
@@ -203,8 +229,11 @@ const MapContainer = styled.div`
 `
 
 export const ConnectedMap = () => {
-  const { visibleNodes, topology, activeNode, streamId, showConnections, toggleShowConnections } =
-    useStore()
+  const { topology, activeNode, streamId, showConnections, toggleShowConnections } = useStore()
+
+  const nodesQuery = useNodesQuery({})
+
+  const nodes = nodesQuery.data || []
 
   const { viewport, setViewport, showNode, zoomIn, zoomOut, reset } = useController()
 
@@ -237,7 +266,7 @@ export const ConnectedMap = () => {
   return (
     <MapContainer>
       <Map
-        nodes={visibleNodes}
+        nodes={nodes}
         viewport={viewport}
         topology={topology}
         setViewport={setViewport}

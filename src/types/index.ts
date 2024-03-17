@@ -39,6 +39,7 @@ export interface OperatorNode {
     title?: string
   }
   title: string
+  geoFeature: GeoJSON.Feature<GeoJSON.Point, { id: string; title: string }>
 }
 
 export type SearchResultItem =
@@ -59,7 +60,7 @@ export enum ActiveView {
 
 export enum ActiveRoute {
   Network = 'network',
-  Stream = 'stream'
+  Stream = 'stream',
 }
 
 export type Topology = Record<string, string[]>

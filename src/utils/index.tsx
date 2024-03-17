@@ -58,6 +58,10 @@ function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
   return ['useNodesQuery', ...ids] as const
 }
 
+export function isOperatorNodeGeoFeature(arg: GeoJSON.Feature | undefined): arg is OperatorNode['geoFeature'] {
+  return !!arg && arg.geometry.type === 'Point'
+}
+
 export function useNodesQuery(params: UseNodesQueryParams) {
   const pageSize = 500
 
@@ -88,15 +92,27 @@ export function useNodesQuery(params: UseNodesQueryParams) {
             continue
           }
 
+          const { id, location } = item
+
+          const title = entropyToMnemonic(`0x${id}`)
+            .match(/(^\w+|\s\w+){3}/)![0]
+            .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase())
+
           items.push({
-            id: item.id,
-            location: {
-              latitude: item.location.latitude,
-              longitude: item.location.longitude,
+            geoFeature: {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [item.location.longitude, item.location.latitude],
+              },
+              properties: {
+                id,
+                title,
+              },
             },
-            title: entropyToMnemonic(`0x${item.id}`)
-              .match(/(^\w+|\s\w+){3}/)![0]
-              .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase()),
+            id,
+            location,
+            title,
           })
         }
 
