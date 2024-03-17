@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState } from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
 import { SANS, MEDIUM } from '../../utils/styled'
 

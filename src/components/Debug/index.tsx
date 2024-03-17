@@ -1,5 +1,5 @@
 import React, { useEffect, useReducer, useRef, useState, useCallback } from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { useAllPending } from '../../contexts/Pending'
 import { useStore } from '../../hooks/useStore'
 import { MONO, SANS, MD } from '../../utils/styled'

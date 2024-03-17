@@ -2,7 +2,7 @@
 import React, {
   useCallback, useRef, useMemo, useState, useEffect,
 } from 'react'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import { truncate } from '../../utils/text'
 
 import { SM, MD, SANS } from '../../utils/styled'

@@ -5,7 +5,7 @@ import React, {
   useRef,
 } from 'react'
 import { useHistory } from 'react-router-dom'
-import styled from 'styled-components/macro'
+import styled from 'styled-components'
 import envs from '../../utils/envs'
 import Tooltip from '../Tooltip'
 import { SANS, SM } from '../../utils/styled'

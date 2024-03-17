@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import styled, { css } from 'styled-components/macro'
+import styled, { css } from 'styled-components'
 import Identicon from 'react-identicons'
 import { useTransition, animated } from 'react-spring'
 

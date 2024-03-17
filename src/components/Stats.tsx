@@ -1,7 +1,7 @@
 import React, {
   useCallback, useMemo, useState, useEffect,
 } from 'react'
-import styled, { css } from 'styled-components/macro'
+import styled, { css } from 'styled-components'
 
 import { SANS } from '../utils/styled'
 

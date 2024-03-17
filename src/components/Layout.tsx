@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react'
-import styled, { css } from 'styled-components/macro'
+import styled, { css } from 'styled-components'
 import { ActiveView } from '../types'
 import { SM } from '../utils/styled'
 import { useStore } from '../hooks/useStore'
