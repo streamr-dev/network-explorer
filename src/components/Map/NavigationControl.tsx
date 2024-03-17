@@ -166,7 +166,7 @@ const ButtonGroup = styled(UnstyledButtonGroup)`
     border-bottom: 1px solid #efefef;
   }
 
-  :empty {
+  &:empty {
     display: none;
   }
 `
