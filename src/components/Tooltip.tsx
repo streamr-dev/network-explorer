@@ -15,7 +15,7 @@ const Root = styled.div<RootProps>`
   ${({ $tooltip }) =>
     !!$tooltip &&
     css`
-      ::after {
+      &::after {
         content: '${$tooltip}';
         visibility: hidden;
         opacity: 0;
@@ -38,7 +38,7 @@ const Root = styled.div<RootProps>`
       }
     `}
 
-  :hover::after {
+  &:hover::after {
     visibility: visible;
     opacity: 1;
   }
