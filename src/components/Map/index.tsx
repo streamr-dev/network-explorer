@@ -5,7 +5,7 @@ import styled from 'styled-components'
 
 import ConnectionLayer from './ConnectionLayer'
 import MarkerLayer from './MarkerLayer'
-import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
+import { NavigationControl, NavigationControlProps } from './NavigationControl'
 import { useController } from '../../contexts/Controller'
 import { MapboxToken } from '../../utils'
 import { OperatorNode, Topology } from '../../types'
@@ -190,7 +190,7 @@ export const Map = ({
         onZoomOut={onZoomOut}
         onZoomReset={onZoomReset}
         onToggleConnections={onToggleConnections}
-        ref={navRef}
+        innerRef={navRef}
       />
     </ReactMapGL>
   )
@@ -203,14 +203,8 @@ const MapContainer = styled.div`
 `
 
 export const ConnectedMap = () => {
-  const {
-    visibleNodes,
-    topology,
-    activeNode,
-    streamId,
-    showConnections,
-    toggleShowConnections,
-  } = useStore()
+  const { visibleNodes, topology, activeNode, streamId, showConnections, toggleShowConnections } =
+    useStore()
 
   const { viewport, setViewport, showNode, zoomIn, zoomOut, reset } = useController()
 

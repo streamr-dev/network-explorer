@@ -78,7 +78,7 @@ interface ParamTypes {
   nodeId: string
 }
 
-export default () => {
+export function Network() {
   const { nodeId: encodedNodeId } = useParams<ParamTypes>()
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 

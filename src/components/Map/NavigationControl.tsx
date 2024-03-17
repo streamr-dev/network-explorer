@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { RefObject } from 'react'
 import styled from 'styled-components'
-
-import Tooltip from '../Tooltip'
 import { SM } from '../../utils/styled'
+import Tooltip from '../Tooltip'
 
 const Button = styled.button`
   width: 40px;
@@ -145,13 +144,7 @@ export const ConnectionIcon = () => (
   </svg>
 )
 
-type ButtonGroupProps = {
-  children: React.ReactNode
-}
-
-const UnstyledButtonGroup = (props: ButtonGroupProps) => <div {...props} />
-
-const ButtonGroup = styled(UnstyledButtonGroup)`
+const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -173,22 +166,39 @@ const ButtonGroup = styled(UnstyledButtonGroup)`
 
 const ZoomGroup = styled(ButtonGroup)``
 
-export type Props = {
+const NavigationControlRoot = styled.div`
+  position: absolute;
+  right: 16px;
+  top: 64px;
+
+  ${ZoomGroup} {
+    display: none;
+  }
+
+  @media (min-width: ${SM}px) {
+    top: auto;
+    right: 32px;
+    bottom: 32px;
+
+    ${ZoomGroup} {
+      display: flex;
+    }
+  }
+`
+
+export type NavigationControlProps = {
   onZoomIn?: () => void
   onZoomOut?: () => void
   onZoomReset?: () => void
   onToggleConnections?: () => void
+  innerRef?: RefObject<HTMLDivElement>
 }
 
-const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
-  onToggleConnections,
-  ...props
-}, ref?) => {
+export function NavigationControl(props: NavigationControlProps) {
+  const { onZoomIn, onZoomOut, onZoomReset, onToggleConnections, innerRef } = props
+
   return (
-    <div {...props} ref={ref}>
+    <NavigationControlRoot ref={innerRef}>
       {typeof onToggleConnections === 'function' && (
         <ButtonGroup>
           <Tooltip value="Show node connections">
@@ -210,10 +220,7 @@ const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
       {(typeof onZoomIn === 'function' || typeof onZoomOut === 'function') && (
         <ZoomGroup>
           {typeof onZoomIn === 'function' && (
-            <Button
-              type="button"
-              onClick={onZoomIn}
-            >
+            <Button type="button" onClick={onZoomIn}>
               <PlusIcon />
             </Button>
           )}
@@ -224,28 +231,6 @@ const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
           )}
         </ZoomGroup>
       )}
-    </div>
+    </NavigationControlRoot>
   )
-})
-
-const NavigationControl = styled(UnstyledNavigationControl)`
-  position: absolute;
-  right: 16px;
-  top: 64px;
-
-  ${ZoomGroup} {
-    display: none;
-  }
-
-  @media (min-width: ${SM}px) {
-    top: auto;
-    right: 32px;
-    bottom: 32px;
-
-    ${ZoomGroup} {
-      display: flex;
-    }
-  }
-`
-
-export default NavigationControl
+}
