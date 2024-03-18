@@ -25,7 +25,7 @@ import {
   PlacesResponse,
   SearchResultItem,
 } from '../types'
-import { useActiveNode } from '../contexts/ActiveNode'
+import { useStore } from '../contexts/Store'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -314,10 +314,10 @@ export function useIsFetchingNeighbors() {
 export function useNodeConnections() {
   const { data: nodes } = useNodesQuery({})
 
-  const activeNode = useActiveNode()
+  const { selectedNode } = useStore()
 
   const { data: neighbors } = useNeighborsQuery({
-    node: activeNode?.id,
+    node: selectedNode?.id,
   })
 
   return useMemo(
@@ -373,6 +373,10 @@ interface UseLocationFeaturesQueryOptions<T> {
   eligible?: (feature: PlaceFeature) => boolean
 }
 
+function getLocationFeaturesQueryKey(place: string) {
+  return ['useLocationFeaturesQuery', place]
+}
+
 function useLocationFeaturesQuery<T = PlaceFeature>(
   params: UseLocationFeaturesQueryParams,
   options: UseLocationFeaturesQueryOptions<T> = {},
@@ -382,7 +386,7 @@ function useLocationFeaturesQuery<T = PlaceFeature>(
   const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
 
   return useQuery({
-    queryKey: ['useLocationFeaturesQuery', place],
+    queryKey:getLocationFeaturesQueryKey(place),
     queryFn: async ({ signal }) => {
       const result: T[] = []
 
@@ -453,10 +457,24 @@ export function useDebounce<T>(value: T, delay: number) {
   return debouncedValue
 }
 
+function getValidSearchPhrase(phrase: string) {
+  return phrase.length < 3 ? '' : phrase.toLowerCase()
+}
+
+export function useIsSearching(phrase: string) {
+  const isFetchingNodes = useIsFetchingNodes()
+
+  const isFetchingPlaces = useIsFetching({
+    queryKey: getLocationFeaturesQueryKey(getValidSearchPhrase(phrase))
+  })
+
+  return isFetchingNodes || isFetchingPlaces
+}
+
 export function useSearch({ phrase: phraseParam = '' }) {
   const nodesQuery = useNodesQuery({})
 
-  const phrase = useDebounce(phraseParam.length < 3 ? '' : phraseParam.toLowerCase(), 250)
+  const phrase = useDebounce(getValidSearchPhrase(phraseParam), 250)
 
   const { data: nodes } = nodesQuery
 
@@ -469,6 +487,7 @@ export function useSearch({ phrase: phraseParam = '' }) {
 
         if (id.toLowerCase().includes(phrase) || title.toLowerCase().includes(phrase)) {
           matches.push({
+            description: 'Node',
             type: 'node',
             title: node.title,
             payload: node,
@@ -511,6 +530,7 @@ export function useSearch({ phrase: phraseParam = '' }) {
     }
 
     return locations.map((location) => ({
+      description: location.description,
       payload: location,
       title: location.name,
       type: 'place',

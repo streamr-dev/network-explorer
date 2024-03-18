@@ -1,41 +1,22 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { RefObject, useRef, useState } from 'react'
-import ReactMapGL, {
-  LinearInterpolator,
-  MapRef,
-  TRANSITION_EVENTS,
-  ViewportProps,
-} from 'react-map-gl'
-import { useNavigate, useParams } from 'react-router-dom'
+import ReactMapGL, { MapRef } from 'react-map-gl'
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { useGlobalKeyDownEffect, useLocationFromParams } from '../../hooks'
-import { useStore } from '../../hooks/useStore'
+import { useStore } from '../../contexts/Store'
+import { useLocationFromParams } from '../../hooks'
 import { ConnectionsMode } from '../../types'
-import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
+import { MapboxToken, isOperatorNodeGeoFeature } from '../../utils'
+import { InteractiveLayerIds, getCursor, setNodeFeatureState } from '../../utils/map'
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
-import { useActiveNode } from '../../contexts/ActiveNode'
-import { Inertia, InteractiveLayerIds, NodeLayerId, NodeSourceId, getCursor, setNodeFeatureState } from '../../utils/map'
 
-const defaultViewport: ViewportProps = {
-  altitude: 0,
-  bearing: 0,
-  height: 0,
-  latitude: 53.86859,
-  longitude: -0.36616,
-  maxPitch: 60,
-  maxZoom: 15,
-  minPitch: 0,
-  minZoom: 2,
-  pitch: 0,
-  transitionDuration: 300,
-  transitionEasing: (t: number) => t,
-  transitionInterpolator: new LinearInterpolator(),
-  transitionInterruption: TRANSITION_EVENTS.BREAK,
-  width: 0,
-  zoom: 3,
-}
+/**
+ * The value specifies after how long the operation comes
+ * to a stop, in milliseconds.
+ */
+const Inertia = 300
 
 interface LocationFromParams {
   longitude: number
@@ -47,8 +28,12 @@ function getLocationKey({ longitude, latitude, zoom }: LocationFromParams) {
   return JSON.stringify([longitude, latitude, zoom])
 }
 
-export function Map() {
-  const { streamId } = useStore()
+interface MapProps {
+  innerRef: RefObject<MapRef>
+}
+
+export function Map({ innerRef: mapRef }: MapProps) {
+  const streamId: string | undefined = undefined
 
   const [connectionMode, setConnectionMode] = useState<ConnectionsMode>(ConnectionsMode.Auto)
 
@@ -56,70 +41,34 @@ export function Map() {
     ? connectionMode === ConnectionsMode.Always
     : connectionMode === ConnectionsMode.Auto
 
-  const [viewport, setViewport] = useState(defaultViewport)
-
-  const mapRef = useRef<MapRef>(null)
-
   const navRef = useRef<HTMLDivElement>(null)
 
-  const hoveredNodeIdRef = useRef<string | null>(null)
+  const { selectedNode, viewport, setViewport, resetViewport } = useStore()
 
-  const activeNode = useActiveNode()
-
-  const activeNodeIdRef = useRef<string | null>(null)
-
-  const { current: prevActiveNodeId } = activeNodeIdRef
-
-  const nodesQuery = useNodesQuery({})
-
-  const nodes = nodesQuery.data || []
-
-  if (prevActiveNodeId !== activeNode?.id) {
-    if (prevActiveNodeId) {
-      setNodeFeatureState(mapRef, prevActiveNodeId, { active: false })
-    }
-
-    if (activeNode) {
-      setNodeFeatureState(mapRef, activeNode.id, { active: true })
-
-      const map = mapRef.current?.getMap()
-
-      if (map) {
-        const location = [activeNode.location.longitude, activeNode.location.latitude]
-
-        if (!map.getBounds().contains(location)) {
-          map.panTo(location)
-        }
-      }
-    }
-
-    activeNodeIdRef.current = activeNode?.id || null
-  }
+  const lastHoveredNodeIdRef = useRef<string | null>(null)
 
   const navigate = useNavigate()
 
-  useGlobalKeyDownEffect('0', () => {
-    setViewport(defaultViewport)
+  useSelectedNodeLocationEffect(([longitude, latitude]) => {
+    const map = mapRef.current?.getMap()
+
+    if (!map || map.getBounds().contains([longitude, latitude])) {
+      return
+    }
+
+    setViewport((current) => ({
+      ...current,
+      longitude,
+      latitude,
+    }))
   })
 
-  const location = useLocationFromParams()
-
-  const locationKeyRef = useRef<string | null>(null)
-
-  if (location) {
-    const locationKey = getLocationKey(location)
-
-    if (locationKeyRef.current !== locationKey) {
-      setViewport((current) => ({
-        ...current,
-        ...location,
-      }))
-
-      locationKeyRef.current = locationKey
-    }
-  } else {
-    locationKeyRef.current = null
-  }
+  useSelectedPlaceLocationEffect((location) => {
+    setViewport((current) => ({
+      ...current,
+      ...location,
+    }))
+  })
 
   return (
     <MapContainer>
@@ -141,7 +90,7 @@ export function Map() {
           const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
 
           const to =
-            isOperatorNodeGeoFeature(feature) && feature.properties.id !== activeNode?.id
+            isOperatorNodeGeoFeature(feature) && feature.properties.id !== selectedNode?.id
               ? `/nodes/${feature.properties.id}`
               : '/'
 
@@ -152,7 +101,7 @@ export function Map() {
 
           const nodeId = isOperatorNodeGeoFeature(feature) ? feature.properties.id : null
 
-          const { current: prevNodeId } = hoveredNodeIdRef
+          const { current: prevNodeId } = lastHoveredNodeIdRef
 
           if (nodeId === prevNodeId) {
             return
@@ -161,13 +110,13 @@ export function Map() {
           if (prevNodeId) {
             setNodeFeatureState(mapRef, prevNodeId, { hover: false })
 
-            hoveredNodeIdRef.current = null
+            lastHoveredNodeIdRef.current = null
           }
 
           if (nodeId) {
             setNodeFeatureState(mapRef, nodeId, { hover: true })
 
-            hoveredNodeIdRef.current = nodeId
+            lastHoveredNodeIdRef.current = nodeId
           }
         }}
         dragPan={{
@@ -184,7 +133,7 @@ export function Map() {
         }}
       >
         <ConnectionLayer visible={showConnections} />
-        <MarkerLayer nodes={nodes} sourceId={NodeSourceId} layerId={NodeLayerId} />
+        <MarkerLayer />
         <NavigationControl
           onZoomIn={() => {
             setViewport(({ zoom = 0, ...rest }) => ({
@@ -198,9 +147,7 @@ export function Map() {
               zoom: zoom - 1,
             }))
           }}
-          onZoomReset={() => {
-            setViewport(defaultViewport)
-          }}
+          onResetMap={resetViewport}
           onToggleConnections={() => {
             /*
              * @todo Rename `Always` to just `On` (= On/Off).
@@ -220,3 +167,60 @@ const MapContainer = styled.div`
   position: relative;
   height: 100%;
 `
+
+function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, number]) => void) {
+  const selectedNodeIdRef = useRef<string | null>(null)
+
+  const { current: prevSelectedNodeId } = selectedNodeIdRef
+
+  const { mapRef, selectedNode, nodeIdParamkey } = useStore()
+
+  const nodeIdParamkeyRef = useRef(nodeIdParamkey)
+
+  if (selectedNode && nodeIdParamkeyRef.current !== nodeIdParamkey) {
+    const { longitude, latitude } = selectedNode.location
+
+    onLocationUpdate([longitude, latitude])
+  }
+
+  nodeIdParamkeyRef.current = nodeIdParamkey
+
+  if (prevSelectedNodeId !== selectedNode?.id) {
+    if (prevSelectedNodeId) {
+      setNodeFeatureState(mapRef, prevSelectedNodeId, { active: false })
+    }
+
+    if (selectedNode) {
+      setNodeFeatureState(mapRef, selectedNode.id, { active: true })
+    }
+
+    selectedNodeIdRef.current = selectedNode?.id || null
+  }
+}
+
+function useSelectedPlaceLocationEffect(onLocationUpdate: (location: LocationFromParams) => void) {
+  const location = useLocationFromParams()
+
+  const { locationParamKey } = useStore()
+
+  const locationParamKeyRef = useRef(locationParamKey)
+
+  const locationKeyRef = useRef<string | null>(null)
+
+  if (location) {
+    const locationKey = getLocationKey(location)
+
+    if (
+      locationKeyRef.current !== locationKey ||
+      locationParamKeyRef.current !== locationParamKey
+    ) {
+      onLocationUpdate(location)
+
+      locationKeyRef.current = locationKey
+    }
+  } else {
+    locationKeyRef.current = null
+  }
+
+  locationParamKeyRef.current = locationParamKey
+}

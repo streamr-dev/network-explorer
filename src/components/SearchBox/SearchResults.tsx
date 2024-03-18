@@ -7,6 +7,8 @@ import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 import { SearchResultItem } from '../../types'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useStore } from '../../contexts/Store'
+import { setNodeFeatureState } from '../../utils/map'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -131,80 +133,44 @@ type Props = {
   highlight?: string
 }
 
-const resultTypes: Record<SearchResultItem['type'], string> = {
-  node: 'Node',
-  place: 'Place',
-  stream: 'Stream',
-}
-
-type ResultRowProps = {
-  result: SearchResultItem
-}
-
 export function SearchResults({ results, highlight, ...props }: Props) {
-  // const ResultRow = ({ result }: ResultRowProps) => {
-  //   const fullname = truncate(result.name)
-  //   const search = highlight && truncate(highlight)
-
-  //   // Preserve last path fragment & allow the path before it to be truncated
-  //   const lastSlashPos = fullname.lastIndexOf('/')
-
-  //   const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
-  //   const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
-
-  //   return (
-  //     <Row onClick={() => typeof onClick === 'function' && onClick(result)}>
-  //       <IconWrapper>
-  //         <Icon>
-  //           <ResultIcon type={result.type} />
-  //         </Icon>
-  //       </IconWrapper>
-  //       <Details>
-  //         <Name>
-  //           <TruncatedPath>
-  //             <Highlight search={search}>{truncatedPath}</Highlight>
-  //           </TruncatedPath>
-  //           {!!pathFragment && (
-  //             <PathFragment>
-  //               /<Highlight search={search}>{pathFragment}</Highlight>
-  //             </PathFragment>
-  //           )}
-  //         </Name>
-  //         <Description>
-  //           {result.type === 'streams' && (result.description || 'No description')}
-  //           {result.type !== 'streams' &&
-  //             (resultTypes[result.type as keyof typeof resultTypes] || '')}
-  //         </Description>
-  //       </Details>
-  //     </Row>
-  //   )
-  // }
   return (
     <SearchResultsRoot {...props}>
       <Virtuoso
         data={results}
-        itemContent={(_, result) => <Item value={result} />}
+        itemContent={(_, result) => <Item value={result} highlight={highlight} />}
       />
     </SearchResultsRoot>
   )
 }
 
 interface ItemProps {
+  highlight: string | undefined
   value: SearchResultItem
 }
 
-function Item({ value }: ItemProps) {
+function Item({ highlight, value }: ItemProps) {
   const [, setSearchParams] = useSearchParams()
 
   const navigate = useNavigate()
+
+  const { invalidateLocationParamKey, invalidateNodeIdParamKey, mapRef } = useStore()
 
   return (
     <Row
       onClick={() => {
         if (value.type === 'place') {
           setSearchParams({
-            l: `${value.payload.longitude},${value.payload.latitude},10z`
+            l: `${value.payload.longitude},${value.payload.latitude},10z`,
           })
+
+          /**
+           * If the page address includes the coordinates already and the user
+           * panned away then the above won't be sufficient to get the location
+           * back into viewport. To address it, we have to invalidate the local
+           * location param key.
+           */
+          invalidateLocationParamKey()
 
           return
         }
@@ -212,8 +178,30 @@ function Item({ value }: ItemProps) {
         if (value.type === 'node') {
           navigate(`/nodes/${value.payload.id}`)
 
+          /**
+           * If the page address includes the node id already and the user
+           * panned away then the above won't be sufficient to get node's location
+           * back into viewport. To address it, we have to invalidate the node id
+           * param key.
+           */
+          invalidateNodeIdParamKey()
+
           return
         }
+      }}
+      onMouseEnter={() => {
+        if (value.type !== 'node') {
+          return
+        }
+
+        setNodeFeatureState(mapRef, value.payload.id, { hover: true })
+      }}
+      onMouseLeave={() => {
+        if (value.type !== 'node') {
+          return
+        }
+
+        setNodeFeatureState(mapRef, value.payload.id, { hover: false })
       }}
     >
       <IconWrapper>
@@ -225,8 +213,11 @@ function Item({ value }: ItemProps) {
       </IconWrapper>
       <Details>
         <Name>
-          {value.title}
+          <div>
+            <Highlight search={highlight}>{value.title}</Highlight>
+          </div>
         </Name>
+        <Description>{value.description}</Description>
       </Details>
     </Row>
   )

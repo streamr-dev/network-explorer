@@ -1,24 +1,34 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useStore } from '../../hooks/useStore'
+import { useStore as useStoreOld } from '../../hooks/useStore'
 import { ActiveRoute, ActiveView } from '../../types'
-import { useSearch } from '../../utils'
+import { useIsSearching, useSearch } from '../../utils'
 import { NetworkStats } from '../NetworkStats'
 import { StreamStats } from '../StreamStats'
 import { NoSearchResults } from './NoSearchResults'
 import { Search, SlideHandle } from './Search'
 import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
+import { useStore } from '../../contexts/Store'
+import { useNavigate } from 'react-router-dom'
 
 export function SearchBox() {
-  const { streamId, activeNode, activeRoute, activeView, setActiveView, env } = useStore()
+  const { activeRoute, activeView, setActiveView, env } = useStoreOld()
 
   const isStreamLoading = false
 
-  const isSearchPending = false
-
   const [phrase, setPhrase] = useState('')
 
-  const searchResults = useSearch({ phrase })
+  const { selectedNode } = useStore()
+
+  const selectedNodeId = selectedNode?.id || null
+
+  const searchMode = selectedNodeId === phrase ? 'node' : undefined
+
+  const finalPhrase = searchMode === 'node' ? '' : phrase
+
+  const isSearchPending = useIsSearching(finalPhrase)
+
+  const searchResults = useSearch({ phrase: finalPhrase })
 
   const searchRef = useRef<HTMLDivElement>(null)
 
@@ -26,17 +36,12 @@ export function SearchBox() {
 
   const isDisabled = hasStream && !!isStreamLoading
 
-  const isNodeSelected = activeNode && phrase === activeNode.title
-
-  const { id: activeNodeId } = activeNode || {}
-
-  const defaultSearchValue: string = useMemo(() => {
-    if (activeRoute === ActiveRoute.Stream) {
-      return streamId || ''
-    }
-
-    return activeNodeId || ''
-  }, [activeRoute, streamId, activeNodeId])
+  useEffect(
+    function setSelectedNodeIdAsPhrase() {
+      setPhrase(selectedNodeId || '')
+    },
+    [selectedNodeId],
+  )
 
   useEffect(() => {
     if (activeView !== ActiveView.List || !searchRef.current) {
@@ -62,6 +67,8 @@ export function SearchBox() {
     }
   }, [activeView, setActiveView])
 
+  const navigate = useNavigate()
+
   return (
     <>
       <Search
@@ -76,33 +83,28 @@ export function SearchBox() {
         <SlideHandle />
         <SearchInput
           value={phrase}
-          defaultValue={defaultSearchValue}
-          onChange={setPhrase}
-          onClear={() => {
-            setPhrase('')
+          onChange={(e) => {
+            setPhrase(e.target.value)
           }}
-          disabled={!!isDisabled}
+          onClearButtonClick={() => {
+            if (phrase === selectedNodeId) {
+              navigate('/')
+            } else {
+              setPhrase('')
+            }
+          }}
           onFocus={() => {
             setActiveView(ActiveView.List)
-
-            // For mobile Safari 14 this scrollTo(0, 0) is needed to make input element
-            // visible on screen. This has something to do with Safari calculating
-            // element position at focus time but since we animate that position, it's
-            // not correct after animation without this.
-            setTimeout(() => {
-              window.scrollTo(0, 0)
-            }, 100)
           }}
         />
-        {/* Show if there's a stream. */}
-        <StreamStats />
-        {/* Show if there's no stream */}
+        {/* <StreamStats /> */}
         <NetworkStats />
-        {/* Show when there are search results */}
-        <SearchResults results={searchResults} highlight={phrase} />
+        {searchResults.length > 0 && <SearchResults results={searchResults} highlight={phrase} />}
       </Search>
-      {/* Show when: the search results are empty, search phrase isn't, … */}
-      {!isSearchPending && !isNodeSelected && <NoSearchResults search={phrase} />}
+      {phrase.length > 0 &&
+        !isSearchPending &&
+        searchResults.length === 0 &&
+        searchMode !== 'node' && <NoSearchResults search={phrase} />}
     </>
   )
 }

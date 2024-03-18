@@ -7,12 +7,6 @@ export const InteractiveLayerIds = [NodeLayerId]
 
 export const NodeSourceId = 'node-source'
 
-/**
- * The value specifies after how long the operation comes
- * to a stop, in milliseconds.
- */
-export const Inertia = 300
-
 export function setNodeFeatureState(
   mapRef: RefObject<MapRef>,
   nodeId: string,

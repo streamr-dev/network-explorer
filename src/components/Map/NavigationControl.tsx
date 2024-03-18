@@ -186,51 +186,41 @@ const NavigationControlRoot = styled.div`
   }
 `
 
-export type NavigationControlProps = {
-  onZoomIn?: () => void
-  onZoomOut?: () => void
-  onZoomReset?: () => void
-  onToggleConnections?: () => void
+export interface NavigationControlProps {
   innerRef?: RefObject<HTMLDivElement>
+  onResetMap(): void
+  onToggleConnections(): void
+  onZoomIn(): void
+  onZoomOut(): void
 }
 
 export function NavigationControl(props: NavigationControlProps) {
-  const { onZoomIn, onZoomOut, onZoomReset, onToggleConnections, innerRef } = props
+  const { onZoomIn, onZoomOut, onResetMap, onToggleConnections, innerRef } = props
 
   return (
     <NavigationControlRoot ref={innerRef}>
-      {typeof onToggleConnections === 'function' && (
-        <ButtonGroup>
-          <Tooltip value="Show node connections">
-            <ConnectionButton type="button" onClick={() => onToggleConnections()}>
-              <ConnectionIcon />
-            </ConnectionButton>
-          </Tooltip>
-        </ButtonGroup>
-      )}
-      {typeof onZoomReset === 'function' && (
-        <ButtonGroup>
-          <Tooltip value="Reset the map">
-            <ResetButton type="button" onClick={() => onZoomReset()}>
-              <RefreshIcon />
-            </ResetButton>
-          </Tooltip>
-        </ButtonGroup>
-      )}
-      {(typeof onZoomIn === 'function' || typeof onZoomOut === 'function') && (
-        <ZoomGroup>
-          {typeof onZoomIn === 'function' && (
-            <Button type="button" onClick={onZoomIn}>
-              <PlusIcon />
-            </Button>
-          )}
-          {typeof onZoomOut === 'function' && (
-            <Button type="button" onClick={() => onZoomOut()}>
-              <MinusIcon />
-            </Button>
-          )}
-        </ZoomGroup>
-      )}
+      <ButtonGroup>
+        <Tooltip value="Show node connections">
+          <ConnectionButton type="button" onClick={onToggleConnections}>
+            <ConnectionIcon />
+          </ConnectionButton>
+        </Tooltip>
+      </ButtonGroup>
+      <ButtonGroup>
+        <Tooltip value="Reset the map">
+          <ResetButton type="button" onClick={onResetMap}>
+            <RefreshIcon />
+          </ResetButton>
+        </Tooltip>
+      </ButtonGroup>
+      <ZoomGroup>
+        <Button type="button" onClick={onZoomIn}>
+          <PlusIcon />
+        </Button>
+        <Button type="button" onClick={() => onZoomOut()}>
+          <MinusIcon />
+        </Button>
+      </ZoomGroup>
     </NavigationControlRoot>
   )
 }

@@ -1,11 +1,9 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, {
-  useCallback, useRef, useMemo, useState, useEffect,
-} from 'react'
+import React, { ChangeEvent, InputHTMLAttributes, useState } from 'react'
 import styled from 'styled-components'
-import { truncate } from '../../utils/text'
 
-import { SM, MD, SANS } from '../../utils/styled'
+import uniqueId from 'lodash/uniqueId'
+import { MD, SANS, SM } from '../../utils/styled'
 
 export const SearchInputInner = styled.div`
   display: flex;
@@ -162,90 +160,49 @@ const ClearIcon = () => (
   </svg>
 )
 
-type Props = {
-  value: string
-  defaultValue?: string | undefined
-  onChange: (text: string) => void
-  onClear: () => void
-  onFocus?: Function
-  onBlur?: Function
-  disabled?: boolean
+interface SearchInputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'autoComplete'> {
+  onClearButtonClick?(): void
 }
 
 const UnstyledSearchInput = ({
-  value,
-  defaultValue,
+  className,
+  onClearButtonClick,
+  placeholder = 'Search Streamr Network',
+  value = '',
   onChange: onChangeProp,
-  onClear,
-  onFocus: onFocusProp,
-  onBlur: onBlurProp,
-  disabled = false,
   ...props
-}: Props) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [inputValue, setInputValue] = useState<string>('')
-  const displayValue = useMemo(() => truncate(value || defaultValue || ''), [value, defaultValue])
-  const [focused, setFocused] = useState(false)
+}: SearchInputProps) => {
+  const inputId = useState(uniqueId('input-'))[0]
 
-  useEffect(() => {
-    setInputValue(defaultValue || '')
-  }, [defaultValue])
-
-  const onFocus = useCallback(() => {
-    setFocused(true)
-
-    setInputValue((prevValue) => !prevValue ? (defaultValue || '') : prevValue)
-
-    if (typeof onFocusProp === 'function') {
-      onFocusProp()
-    }
-  }, [onFocusProp, defaultValue])
-
-  const onBlur = useCallback(() => {
-    setFocused(false)
-
-    if (typeof onBlurProp === 'function') {
-      onBlurProp()
-    }
-  }, [onBlurProp])
-
-  const onChange = useCallback((nextValue: string) => {
-    onChangeProp(nextValue)
-    setInputValue(nextValue)
-  }, [onChangeProp])
-
-  useEffect(() => {
-    if (focused && inputRef.current) {
-      inputRef.current.select()
-    }
-  }, [focused])
+  function onChange(e: ChangeEvent<HTMLInputElement>) {
+    onChangeProp?.(e)
+  }
 
   return (
-    <div {...props}>
+    <div className={className}>
       <SearchInputInner>
         <Logo>
-          <button type="button" onClick={onClear}>
+          <button type="button" onClick={onClearButtonClick}>
             <StreamrIcon />
           </button>
         </Logo>
         <Input
-          id="input"
-          placeholder="Search Streamr Network"
-          value={focused ? inputValue : displayValue}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={!!disabled}
+          {...props}
           autoComplete="off"
-          ref={inputRef}
-          onFocus={onFocus}
-          onBlur={onBlur}
+          id={inputId}
+          onChange={onChange}
+          placeholder={placeholder}
+          type="text"
+          value={value}
         />
         <ButtonWrapper>
-          {inputValue && inputValue.length > 0 ? (
-            <IconButton type="button" onClick={onClear}>
+          {value ? (
+            <IconButton type="button" onClick={onClearButtonClick}>
               <ClearIcon />
             </IconButton>
           ) : (
-            <InputLabel htmlFor="input">
+            <InputLabel htmlFor={inputId}>
               <SearchIcon />
             </InputLabel>
           )}

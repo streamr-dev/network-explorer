@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react'
-import { Source, Layer } from 'react-map-gl'
-import { OperatorNode } from '../../types'
+import { Layer, Source } from 'react-map-gl'
+import { useNodesQuery } from '../../utils'
+import { NodeLayerId, NodeSourceId } from '../../utils/map'
 
-type MarkerLayerProps = {
-  nodes: OperatorNode[]
-  sourceId: string
-  layerId: string
-}
+export function MarkerLayer() {
+  const nodesQuery = useNodesQuery({})
 
-export function MarkerLayer({ nodes, sourceId, layerId }: MarkerLayerProps) {
+  const nodes = nodesQuery.data || []
+
   const geoJson: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     return {
       type: 'FeatureCollection',
@@ -19,9 +18,9 @@ export function MarkerLayer({ nodes, sourceId, layerId }: MarkerLayerProps) {
   // promoteId for Source is needed so that we can use string ids for Features.
   // We need Feature ids for using feature states to control styling dynamically.
   return (
-    <Source id={sourceId} type="geojson" data={geoJson} promoteId="id">
+    <Source id={NodeSourceId} type="geojson" data={geoJson} promoteId="id">
       <Layer
-        id={layerId}
+        id={NodeLayerId}
         type="circle"
         paint={{
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 4],

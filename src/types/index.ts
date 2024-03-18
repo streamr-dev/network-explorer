@@ -39,7 +39,7 @@ export interface OperatorNode {
   geoFeature: GeoJSON.Feature<GeoJSON.Point, { id: string; title: string }>
 }
 
-export type SearchResultItem = { title: string } & (
+export type SearchResultItem = { title: string; description: string } & (
   | {
       type: 'node'
       payload: OperatorNode
