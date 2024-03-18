@@ -5,7 +5,7 @@ import { SearchInput, SearchInputInner } from './SearchInput'
 import Stats from '../Stats'
 import Graphs from '../Graphs'
 import Error from '../Error'
-import { SearchResults } from './SearchResults'
+import { SearchResultsRoot } from './SearchResults'
 import { ActiveView } from '../../types'
 
 export const SlideHandle = styled.div`
@@ -40,7 +40,7 @@ export const Search = styled(ControlBox)`
   @media (max-width: ${SM}px) {
     box-shadow: none;
 
-    ${SearchResults} {
+    ${SearchResultsRoot} {
       padding: 8px 16px;
       height: 100%;
     }
@@ -68,7 +68,7 @@ export const Search = styled(ControlBox)`
     ${({ theme }) =>
       theme.activeView === ActiveView.Map &&
       css`
-        ${SearchResults} {
+        ${SearchResultsRoot} {
           display: none;
         }
       `}
@@ -112,7 +112,7 @@ export const Search = styled(ControlBox)`
         }
       `}
 
-    ${SearchResults} {
+    ${SearchResultsRoot} {
       height: 280px;
     }
   }

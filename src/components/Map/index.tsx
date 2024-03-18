@@ -16,52 +16,7 @@ import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
 import { useActiveNode } from '../../contexts/ActiveNode'
-
-// react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
-const INERTIA = 300
-
-const NODE_SOURCE_ID = 'node-source'
-
-const NODE_LAYER_ID = 'node-layer'
-
-function getCursor({ isHovering, isDragging }: { isHovering: boolean; isDragging: boolean }) {
-  if (isDragging) {
-    return 'all-scroll'
-  }
-
-  return isHovering ? 'pointer' : 'default'
-}
-
-function setNodeFeatureState(
-  mapRef: RefObject<MapRef>,
-  nodeId: string,
-  state: Record<string, boolean>,
-) {
-  const map = mapRef.current?.getMap()
-
-  if (!map) {
-    return
-  }
-
-  if (map.isStyleLoaded()) {
-    map.setFeatureState(
-      {
-        source: NODE_SOURCE_ID,
-        id: nodeId,
-      },
-      state,
-    )
-
-    return
-  }
-
-  /**
-   * Defer the call for a while to wait for styles to load.
-   */
-  window.setTimeout(() => {
-    setNodeFeatureState(mapRef, nodeId, state)
-  })
-}
+import { Inertia, InteractiveLayerIds, NodeLayerId, NodeSourceId, getCursor, setNodeFeatureState } from '../../utils/map'
 
 const defaultViewport: ViewportProps = {
   altitude: 0,
@@ -177,7 +132,7 @@ export function Map() {
         onViewportChange={setViewport}
         getCursor={getCursor}
         ref={mapRef}
-        interactiveLayerIds={[NODE_LAYER_ID]}
+        interactiveLayerIds={InteractiveLayerIds}
         onClick={(e) => {
           if (!navRef.current || navRef.current.contains(e.target)) {
             return
@@ -216,20 +171,20 @@ export function Map() {
           }
         }}
         dragPan={{
-          inertia: INERTIA,
+          inertia: Inertia,
         }}
         dragRotate={{
-          inertia: INERTIA,
+          inertia: Inertia,
         }}
         touchZoom={{
-          inertia: INERTIA,
+          inertia: Inertia,
         }}
         touchRotate={{
-          inertia: INERTIA,
+          inertia: Inertia,
         }}
       >
         <ConnectionLayer visible={showConnections} />
-        <MarkerLayer nodes={nodes} sourceId={NODE_SOURCE_ID} layerId={NODE_LAYER_ID} />
+        <MarkerLayer nodes={nodes} sourceId={NodeSourceId} layerId={NodeLayerId} />
         <NavigationControl
           onZoomIn={() => {
             setViewport(({ zoom = 0, ...rest }) => ({

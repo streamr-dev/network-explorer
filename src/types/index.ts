@@ -39,7 +39,7 @@ export interface OperatorNode {
   geoFeature: GeoJSON.Feature<GeoJSON.Point, { id: string; title: string }>
 }
 
-export type SearchResultItem =
+export type SearchResultItem = { title: string } & (
   | {
       type: 'node'
       payload: OperatorNode
@@ -48,7 +48,8 @@ export type SearchResultItem =
       type: 'stream'
       payload: Stream
     }
-  | { type: 'location'; payload: Location }
+  | { type: 'place'; payload: Location }
+)
 
 export enum ActiveView {
   Map = 'map',

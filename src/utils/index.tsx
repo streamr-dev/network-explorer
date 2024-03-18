@@ -317,7 +317,7 @@ export function useNodeConnections() {
   const activeNode = useActiveNode()
 
   const { data: neighbors } = useNeighborsQuery({
-    node: activeNode?.id
+    node: activeNode?.id,
   })
 
   return useMemo(
@@ -434,7 +434,7 @@ export function useLocationRegionsQuery(params: UseLocationRegionParams) {
   )
 }
 
-function useDebounce<T>(value: T, delay: number) {
+export function useDebounce<T>(value: T, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value)
 
   useEffect(
@@ -456,7 +456,7 @@ function useDebounce<T>(value: T, delay: number) {
 export function useSearch({ phrase: phraseParam = '' }) {
   const nodesQuery = useNodesQuery({})
 
-  const phrase = useDebounce(phraseParam.toLowerCase(), 250)
+  const phrase = useDebounce(phraseParam.length < 3 ? '' : phraseParam.toLowerCase(), 250)
 
   const { data: nodes } = nodesQuery
 
@@ -470,6 +470,7 @@ export function useSearch({ phrase: phraseParam = '' }) {
         if (id.toLowerCase().includes(phrase) || title.toLowerCase().includes(phrase)) {
           matches.push({
             type: 'node',
+            title: node.title,
             payload: node,
           })
         }
@@ -486,12 +487,12 @@ export function useSearch({ phrase: phraseParam = '' }) {
   const locationsQuery = useLocationFeaturesQuery(
     { place: phrase },
     {
-      eligible: ({ type }) => type.includes('place'),
+      eligible: ({ place_type }) => place_type.includes('place'),
       transform: ({
         id,
         text: name,
         place_name: description,
-        center: [latitude, longitude],
+        center: [longitude, latitude],
       }): Location => ({
         description,
         id,
@@ -511,7 +512,8 @@ export function useSearch({ phrase: phraseParam = '' }) {
 
     return locations.map((location) => ({
       payload: location,
-      type: 'location',
+      title: location.name,
+      type: 'place',
     }))
   }, [locations])
 

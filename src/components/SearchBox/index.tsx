@@ -1,16 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useStore } from '../../hooks/useStore'
 import { ActiveRoute, ActiveView } from '../../types'
+import { useSearch } from '../../utils'
 import { NetworkStats } from '../NetworkStats'
 import { StreamStats } from '../StreamStats'
 import { NoSearchResults } from './NoSearchResults'
 import { Search, SlideHandle } from './Search'
 import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
-import { useSearch } from '../../utils'
-import { useStore } from '../../hooks/useStore'
-
-function focusLocation(..._: any[]) {}
 
 export function SearchBox() {
   const { streamId, activeNode, activeRoute, activeView, setActiveView, env } = useStore()
@@ -24,8 +21,6 @@ export function SearchBox() {
   const searchResults = useSearch({ phrase })
 
   const searchRef = useRef<HTMLDivElement>(null)
-
-  const navigate = useNavigate()
 
   const hasStream = !!(activeRoute === ActiveRoute.Stream)
 
@@ -104,7 +99,7 @@ export function SearchBox() {
         {/* Show if there's no stream */}
         <NetworkStats />
         {/* Show when there are search results */}
-        <SearchResults results={[]} onClick={() => {}} highlight={phrase} />
+        <SearchResults results={searchResults} highlight={phrase} />
       </Search>
       {/* Show when: the search results are empty, search phrase isn't, … */}
       {!isSearchPending && !isNodeSelected && <NoSearchResults search={phrase} />}

@@ -5,6 +5,8 @@ import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
 import Highlight from '../Highlight'
 import { SM, MD, SANS } from '../../utils/styled'
 import { truncate } from '../../utils/text'
+import { SearchResultItem } from '../../types'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -84,7 +86,7 @@ const PathFragment = styled.span`
 
 const Description = styled.div``
 
-const Item = styled.div`
+const Details = styled.div`
   align-self: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -125,93 +127,112 @@ const List = styled.div`
 `
 
 type Props = {
-  results: any[]
-  onClick?: (result: any) => void
+  results: SearchResultItem[]
   highlight?: string
 }
 
-type ResultIconProps = {
-  type: any
-}
-
-const ResultIcon = ({ type }: ResultIconProps) => {
-  switch (type) {
-    case 'streams':
-      return <StreamIcon />
-
-    case 'locations':
-      return <LocationIcon />
-
-    case 'nodes':
-      return <NodeIcon />
-
-    default:
-      return null
-  }
-}
-
-const resultTypes = {
-  streams: 'Stream',
-  locations: 'Place',
-  nodes: 'Node',
+const resultTypes: Record<SearchResultItem['type'], string> = {
+  node: 'Node',
+  place: 'Place',
+  stream: 'Stream',
 }
 
 type ResultRowProps = {
-  result: any
+  result: SearchResultItem
 }
 
-const UnstyledSearchResults = ({
-  results, onClick, highlight, ...props
-}: Props) => {
-  const ResultRow = ({ result }: ResultRowProps) => {
-    const fullname = truncate(result.name)
-    const search = highlight && truncate(highlight)
+export function SearchResults({ results, highlight, ...props }: Props) {
+  // const ResultRow = ({ result }: ResultRowProps) => {
+  //   const fullname = truncate(result.name)
+  //   const search = highlight && truncate(highlight)
 
-    // Preserve last path fragment & allow the path before it to be truncated
-    const lastSlashPos = fullname.lastIndexOf('/')
+  //   // Preserve last path fragment & allow the path before it to be truncated
+  //   const lastSlashPos = fullname.lastIndexOf('/')
 
-    const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
-    const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
+  //   const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
+  //   const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
 
-    return (
-      <Row onClick={() => typeof onClick === 'function' && onClick(result)}>
-        <IconWrapper>
-          <Icon>
-            <ResultIcon type={result.type} />
-          </Icon>
-        </IconWrapper>
-        <Item>
-          <Name>
-            <TruncatedPath>
-              <Highlight search={search}>{truncatedPath}</Highlight>
-            </TruncatedPath>
-            {!!pathFragment && (
-              <PathFragment>
-                /<Highlight search={search}>{pathFragment}</Highlight>
-              </PathFragment>
-            )}
-          </Name>
-          <Description>
-            {result.type === 'streams' && (result.description || 'No description')}
-            {result.type !== 'streams' && (resultTypes[result.type as keyof typeof resultTypes] || '')}
-          </Description>
-        </Item>
-      </Row>
-    )
-  }
+  //   return (
+  //     <Row onClick={() => typeof onClick === 'function' && onClick(result)}>
+  //       <IconWrapper>
+  //         <Icon>
+  //           <ResultIcon type={result.type} />
+  //         </Icon>
+  //       </IconWrapper>
+  //       <Details>
+  //         <Name>
+  //           <TruncatedPath>
+  //             <Highlight search={search}>{truncatedPath}</Highlight>
+  //           </TruncatedPath>
+  //           {!!pathFragment && (
+  //             <PathFragment>
+  //               /<Highlight search={search}>{pathFragment}</Highlight>
+  //             </PathFragment>
+  //           )}
+  //         </Name>
+  //         <Description>
+  //           {result.type === 'streams' && (result.description || 'No description')}
+  //           {result.type !== 'streams' &&
+  //             (resultTypes[result.type as keyof typeof resultTypes] || '')}
+  //         </Description>
+  //       </Details>
+  //     </Row>
+  //   )
+  // }
   return (
-    <div {...props}>
+    <SearchResultsRoot {...props}>
       <Virtuoso
         data={results}
-        itemContent={(index, result) => (
-          <ResultRow result={result} />
-        )}
+        itemContent={(_, result) => <Item value={result} />}
       />
-    </div>
+    </SearchResultsRoot>
   )
 }
 
-export const SearchResults = styled(UnstyledSearchResults)`
+interface ItemProps {
+  value: SearchResultItem
+}
+
+function Item({ value }: ItemProps) {
+  const [, setSearchParams] = useSearchParams()
+
+  const navigate = useNavigate()
+
+  return (
+    <Row
+      onClick={() => {
+        if (value.type === 'place') {
+          setSearchParams({
+            l: `${value.payload.longitude},${value.payload.latitude},10z`
+          })
+
+          return
+        }
+
+        if (value.type === 'node') {
+          navigate(`/nodes/${value.payload.id}`)
+
+          return
+        }
+      }}
+    >
+      <IconWrapper>
+        <Icon>
+          {value.type === 'stream' && <StreamIcon />}
+          {value.type === 'place' && <LocationIcon />}
+          {value.type === 'node' && <NodeIcon />}
+        </Icon>
+      </IconWrapper>
+      <Details>
+        <Name>
+          {value.title}
+        </Name>
+      </Details>
+    </Row>
+  )
+}
+
+export const SearchResultsRoot = styled.div`
   @media (max-width: ${SM}px) {
     ${List} {
       grid-row-gap: 8px;
