@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
   const fnRef = useRef(fn)
@@ -37,4 +38,22 @@ export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
     },
     [key],
   )
+}
+
+export function useLocationFromParams() {
+  const location = useSearchParams()[0].get('l') || ''
+
+  const match = location.match(/^(-?\d+(?=\.\d+)?),(-?\d+(?=\.\d+)?),(\d+)z$/)
+
+  if (!match) {
+    return null
+  }
+
+  const [longitude, latitude, zoom] = match.slice(1, 4).map(Number)
+
+  return {
+    latitude,
+    longitude,
+    zoom,
+  }
 }

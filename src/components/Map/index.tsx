@@ -8,7 +8,7 @@ import ReactMapGL, {
 } from 'react-map-gl'
 import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
-import { useGlobalKeyDownEffect } from '../../hooks'
+import { useGlobalKeyDownEffect, useLocationFromParams } from '../../hooks'
 import { useStore } from '../../hooks/useStore'
 import { ConnectionsMode } from '../../types'
 import { MapboxToken, isOperatorNodeGeoFeature, useNodesQuery } from '../../utils'
@@ -82,6 +82,16 @@ const defaultViewport: ViewportProps = {
   zoom: 3,
 }
 
+interface LocationFromParams {
+  longitude: number
+  latitude: number
+  zoom: number
+}
+
+function getLocationKey({ longitude, latitude, zoom }: LocationFromParams) {
+  return JSON.stringify([longitude, latitude, zoom])
+}
+
 export function Map() {
   const { streamId } = useStore()
 
@@ -136,6 +146,25 @@ export function Map() {
   useGlobalKeyDownEffect('0', () => {
     setViewport(defaultViewport)
   })
+
+  const location = useLocationFromParams()
+
+  const locationKeyRef = useRef<string | null>(null)
+
+  if (location) {
+    const locationKey = getLocationKey(location)
+
+    if (locationKeyRef.current !== locationKey) {
+      setViewport((current) => ({
+        ...current,
+        ...location,
+      }))
+
+      locationKeyRef.current = locationKey
+    }
+  } else {
+    locationKeyRef.current = null
+  }
 
   return (
     <MapContainer>
