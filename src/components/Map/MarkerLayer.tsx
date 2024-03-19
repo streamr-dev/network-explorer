@@ -2,11 +2,14 @@ import React, { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl'
 import { useNodesQuery } from '../../utils'
 import { NodeLayerId, NodeSourceId, getNodeLocationId } from '../../utils/map'
+import { OperatorNode } from '../../types'
+
+const EmptyNodes: OperatorNode[] = []
 
 export function MarkerLayer() {
   const nodesQuery = useNodesQuery({})
 
-  const nodes = nodesQuery.data || []
+  const nodes = nodesQuery.data || EmptyNodes
 
   const geoJson: GeoJSON.FeatureCollection<GeoJSON.Geometry> = useMemo(() => {
     const features: GeoJSON.Feature<

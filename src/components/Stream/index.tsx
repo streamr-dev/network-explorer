@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useController } from '../../contexts/Controller'
-import TopologyList from './TopologyList'
-import { ActiveRoute } from '../../types'
 import { useStore } from '../../hooks/useStore'
+import { ActiveRoute } from '../../types'
+import TopologyList from './TopologyList'
 
 type StreamProps = {
   id: string
@@ -63,11 +63,14 @@ const ActiveNodeSetter = ({ id }: NodeProps) => {
   return null
 }
 
-export default () => {
-  const { streamId: encodedStreamId = '', nodeId: encodedNodeId = '' } = useParams<{ nodeId: string, streamId: string }>()
+export function Stream() {
+  const { streamId: encodedStreamId = '', nodeId: encodedNodeId = '' } = useParams<{
+    nodeId: string
+    streamId: string
+  }>()
 
   const streamId = useMemo(() => decodeURIComponent(encodedStreamId), [encodedStreamId])
-  
+
   const nodeId = useMemo(() => decodeURIComponent(encodedNodeId), [encodedNodeId])
 
   if (!streamId) {

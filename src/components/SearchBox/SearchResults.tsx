@@ -1,14 +1,13 @@
 import React from 'react'
-import styled from 'styled-components'
-import { Virtuoso } from 'react-virtuoso'
-import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
-import Highlight from '../Highlight'
-import { SM, MD, SANS } from '../../utils/styled'
-import { truncate } from '../../utils/text'
-import { SearchResultItem } from '../../types'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Virtuoso } from 'react-virtuoso'
+import styled from 'styled-components'
 import { useStore } from '../../contexts/Store'
+import { SearchResultItem } from '../../types'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
+import { MD, SANS, SM } from '../../utils/styled'
+import Highlight from '../Highlight'
+import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -74,16 +73,6 @@ const Name = styled.div`
     background-color: transparent;
     font-weight: 700;
   }
-`
-
-const TruncatedPath = styled.span`
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-`
-
-const PathFragment = styled.span`
-  flex-shrink: 0;
 `
 
 const Description = styled.div``

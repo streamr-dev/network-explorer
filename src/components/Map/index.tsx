@@ -7,7 +7,12 @@ import { useStore } from '../../contexts/Store'
 import { useLocationFromParams } from '../../hooks'
 import { ConnectionsMode } from '../../types'
 import { MapboxToken, isOperatorNodeGeoFeature } from '../../utils'
-import { InteractiveLayerIds, getCursor, getNodeLocationId, setNodeFeatureState } from '../../utils/map'
+import {
+  InteractiveLayerIds,
+  getCursor,
+  getNodeLocationId,
+  setNodeFeatureState,
+} from '../../utils/map'
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
@@ -99,7 +104,9 @@ export function Map({ innerRef: mapRef }: MapProps) {
         onHover={(e) => {
           const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
 
-          const nodeLocationId = isOperatorNodeGeoFeature(feature) ? feature.properties.locationId : null
+          const nodeLocationId = isOperatorNodeGeoFeature(feature)
+            ? feature.properties.locationId
+            : null
 
           const { current: prevNodeLocationId } = lastHoveredNodeLocationIdRef
 

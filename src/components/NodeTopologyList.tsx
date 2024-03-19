@@ -9,8 +9,10 @@ import NodeStats from './NodeStats'
 import { usePaginatedItems } from '../hooks'
 import Pager from './NodeList/Pager'
 
+const EmptyNodes: OperatorNode[] = []
+
 export function NodeTopologyList() {
-  const nodes = useNodesQuery({}).data || []
+  const nodes = useNodesQuery({}).data || EmptyNodes
 
   const { selectedNode } = useStore()
 

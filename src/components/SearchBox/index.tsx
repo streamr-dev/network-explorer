@@ -1,20 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useStore } from '../../contexts/Store'
 import { useStore as useStoreOld } from '../../hooks/useStore'
-import { ActiveRoute, ActiveView } from '../../types'
+import { ActiveView } from '../../types'
 import { useIsSearching, useSearch } from '../../utils'
 import { NetworkStats } from '../NetworkStats'
-import { StreamStats } from '../StreamStats'
 import { NoSearchResults } from './NoSearchResults'
 import { Search, SlideHandle } from './Search'
 import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
-import { useStore } from '../../contexts/Store'
-import { useNavigate } from 'react-router-dom'
 
 export function SearchBox() {
-  const { activeRoute, activeView, setActiveView, env } = useStoreOld()
-
-  const isStreamLoading = false
+  const { activeView, setActiveView, env } = useStoreOld()
 
   const [phrase, setPhrase] = useState('')
 
@@ -35,10 +32,6 @@ export function SearchBox() {
   const searchResults = useSearch({ phrase: finalPhrase })
 
   const searchRef = useRef<HTMLDivElement>(null)
-
-  const hasStream = !!(activeRoute === ActiveRoute.Stream)
-
-  const isDisabled = hasStream && !!isStreamLoading
 
   useEffect(
     function setSelectedNodeIdAsPhrase() {

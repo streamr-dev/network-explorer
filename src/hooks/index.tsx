@@ -79,7 +79,7 @@ export function usePaginatedItems<T extends { id: string }>(
     function gotoSelectedId() {
       setPage(findPage(items, pageSize, selectedId) || 0)
     },
-    [selectedId],
+    [items, pageSize, selectedId],
   )
 
   return {
