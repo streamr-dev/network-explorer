@@ -24,6 +24,10 @@ export function SearchBox() {
 
   const searchMode = selectedNodeId === phrase ? 'node' : undefined
 
+  /**
+   * For phrase equal to the selected node we don't
+   * do the search.
+   */
   const finalPhrase = searchMode === 'node' ? '' : phrase
 
   const isSearchPending = useIsSearching(finalPhrase)
@@ -89,9 +93,9 @@ export function SearchBox() {
           onClearButtonClick={() => {
             if (phrase === selectedNodeId) {
               navigate('/')
-            } else {
-              setPhrase('')
             }
+
+            setPhrase('')
           }}
           onFocus={() => {
             setActiveView(ActiveView.List)
@@ -99,12 +103,29 @@ export function SearchBox() {
         />
         {/* <StreamStats /> */}
         <NetworkStats />
-        {searchResults.length > 0 && <SearchResults results={searchResults} highlight={phrase} />}
+        {searchResults.length > 0 && (
+          <SearchResults
+            results={searchResults}
+            highlight={phrase}
+            onItemClick={(item) => {
+              if (item.type !== 'node') {
+                return
+              }
+
+              /**
+               * If the user modified the phrase and the selected node got on the search
+               * result list then clicking it won't change the URL and won't trigger the
+               * effect calling `setSelectedNodeIdAsPhrase`. We have to set the phrase
+               * manually to ensure things are in good order.
+               */
+              setPhrase(item.payload.id)
+            }}
+          />
+        )}
       </Search>
-      {phrase.length > 0 &&
-        !isSearchPending &&
-        searchResults.length === 0 &&
-        searchMode !== 'node' && <NoSearchResults search={phrase} />}
+      {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
+        <NoSearchResults search={finalPhrase} />
+      )}
     </>
   )
 }

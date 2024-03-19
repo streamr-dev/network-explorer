@@ -1,13 +1,10 @@
-import React from 'react'
+import React, { ReactNode, RefObject } from 'react'
 import styled from 'styled-components'
-
 import ControlBox from '../ControlBox'
-
-import NodeListItem from './NodeListItem'
 import Pager from './Pager'
 import { SANS, MEDIUM } from '../../utils/styled'
 
-const Inner = styled.div`
+export const NodeListInner = styled.div`
   padding: 16px;
   font-size: 12px;
 
@@ -18,11 +15,7 @@ const Inner = styled.div`
   }
 `
 
-type Props = {
-  children?: React.ReactNode
-}
-
-const Header = styled.div`
+export const NodeListHeader = styled.div`
   font-family: ${SANS};
   color: #a3a3a3;
   display: block;
@@ -39,18 +32,16 @@ const Header = styled.div`
   }
 `
 
-const NodeList = React.forwardRef<HTMLDivElement, Props>(({ children }, ref?) => (
-  <ControlBox ref={ref}>
-    <Inner>{children}</Inner>
+interface NodeListProps{
+  children?: ReactNode
+  innerRef?: RefObject<HTMLDivElement>
+}
+
+export function NodeList({ innerRef, children }: NodeListProps) {
+  return <ControlBox ref={innerRef}>
+    <NodeListInner>{children}</NodeListInner>
   </ControlBox>
-))
+}
 
-const PAGE_SIZE = 10
 
-export default Object.assign(NodeList, {
-  Inner,
-  Header,
-  Node: NodeListItem,
-  Pager,
-  PAGE_SIZE,
-})
+export const NodeListPageSize = 10

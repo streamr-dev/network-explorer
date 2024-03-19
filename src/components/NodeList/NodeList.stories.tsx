@@ -1,16 +1,12 @@
-import React, {
-  useState,
-  useReducer,
-  useCallback,
-} from 'react'
+import React, { useState, useReducer, useCallback } from 'react'
 import styled from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
-
 import Stats from '../Stats'
 import Error from '../Error'
 import usePaged from '../../hooks/usePaged'
-
-import NodeList from '.'
+import { NodeList, NodeListHeader } from '.'
+import { NodeListItem } from './NodeListItem'
+import Pager from './Pager'
 
 const Wrapper = styled.div`
   background-color: lightblue;
@@ -66,41 +62,19 @@ const nodes = [
 
 export const Basic = () => (
   <NodeList>
-    {nodes.map(({
-      id,
-      title,
-      address,
-      placeName,
-    }) => (
-      <NodeList.Node
-        key={id}
-        nodeId={id}
-        title={title}
-        address={address}
-        placeName={placeName}
-      />
+    {nodes.map(({ id, title, address, placeName }) => (
+      <NodeListItem key={id} nodeId={id} title={title} address={address} placeName={placeName} />
     ))}
   </NodeList>
 )
 
 export const WithHeader = () => (
   <NodeList>
-    <NodeList.Header>
+    <NodeListHeader>
       Showing all <strong>{nodes.length}</strong> nodes
-    </NodeList.Header>
-    {nodes.map(({
-      id,
-      title,
-      address,
-      placeName,
-    }) => (
-      <NodeList.Node
-        key={id}
-        nodeId={id}
-        title={title}
-        address={address}
-        placeName={placeName}
-      />
+    </NodeListHeader>
+    {nodes.map(({ id, title, address, placeName }) => (
+      <NodeListItem key={id} nodeId={id} title={title} address={address} placeName={placeName} />
     ))}
   </NodeList>
 )
@@ -110,13 +84,8 @@ export const WithStats = () => {
 
   return (
     <NodeList>
-      {nodes.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
+      {nodes.map(({ id, title, address, placeName }) => (
+        <NodeListItem
           key={id}
           nodeId={id}
           title={title}
@@ -130,7 +99,7 @@ export const WithStats = () => {
             <Stats.Stat id="mbsPerSecond" label="MB/S" value={undefined} />
             <Stats.Stat id="latency" label="Latency ms" value={undefined} />
           </Stats>
-        </NodeList.Node>
+        </NodeListItem>
       ))}
     </NodeList>
   )
@@ -178,13 +147,8 @@ export const WithStatsAndError = () => {
 
   return (
     <NodeList>
-      {nodes.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
+      {nodes.map(({ id, title, address, placeName }) => (
+        <NodeListItem
           key={id}
           nodeId={id}
           title={title}
@@ -199,14 +163,16 @@ export const WithStatsAndError = () => {
               label="Msgs/sec"
               value={undefined}
               onClick={() =>
-                onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
+                onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)
+              }
             />
             <Stats.Stat
               id="mbsPerSecond"
               label="MB/S"
               value={undefined}
               onClick={() =>
-                onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
+                onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)
+              }
             />
             <Stats.Stat
               id="latency"
@@ -216,7 +182,7 @@ export const WithStatsAndError = () => {
             />
           </Stats>
           {!!error && <Error>{error}</Error>}
-        </NodeList.Node>
+        </NodeListItem>
       ))}
     </NodeList>
   )
@@ -225,49 +191,35 @@ export const WithStatsAndError = () => {
 type Node = {
   id: string
   title: string
-  address: string,
+  address: string
   placeName: string
 }
 
-const longList: Array<Node> = Array.from({
-  length: 150,
-}, (v, i) => ({
-  id: `node-${i + 1}`,
-  title: `Node ${i + 1}`,
-  address: `node-${i + 1}`,
-  placeName: 'Helsinki',
-}))
+const longList: Array<Node> = Array.from(
+  {
+    length: 150,
+  },
+  (v, i) => ({
+    id: `node-${i + 1}`,
+    title: `Node ${i + 1}`,
+    address: `node-${i + 1}`,
+    placeName: 'Helsinki',
+  }),
+)
 
 const PAGE_SIZE = 4
 
 export const Paged = () => {
-  const {
-    currentPage,
-    setPage,
-    items,
-    pages,
-  } = usePaged<Node>({ items: longList, limit: PAGE_SIZE })
+  const { currentPage, setPage, items, pages } = usePaged<Node>({
+    items: longList,
+    limit: PAGE_SIZE,
+  })
 
   return (
     <NodeList>
-      <NodeList.Pager
-        currentPage={currentPage}
-        lastPage={pages}
-        onChange={setPage}
-      />
-      {items.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
-          key={id}
-          nodeId={id}
-          title={title}
-          address={address}
-          placeName={placeName}
-        />
+      <Pager currentPage={currentPage} lastPage={pages} onChange={setPage} />
+      {items.map(({ id, title, address, placeName }) => (
+        <NodeListItem key={id} nodeId={id} title={title} address={address} placeName={placeName} />
       ))}
     </NodeList>
   )

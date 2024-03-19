@@ -10,10 +10,12 @@ import { truncate } from '../../utils/text'
 import useIsMounted from '../../hooks/useIsMounted'
 import usePaged from '../../hooks/usePaged'
 import { useController } from '../../contexts/Controller'
-import NodeList from '../NodeList'
+import {NodeList, NodeListHeader, NodeListPageSize} from '../NodeList'
 import NodeStats from '../NodeStats'
 import { OperatorNode } from '../../types'
 import { useStore } from '../../hooks/useStore'
+import Pager from '../NodeList/Pager'
+import { NodeListItem } from '../NodeList/NodeListItem'
 
 type Props = {
   id: string
@@ -34,7 +36,7 @@ const TopologyList = ({ id }: Props) => {
     setPage,
     items,
     pages,
-  } = usePaged<OperatorNode>({ items: visibleNodes, limit: NodeList.PAGE_SIZE })
+  } = usePaged<OperatorNode>({ items: visibleNodes, limit: NodeListPageSize })
 
   const activeNodeId = useMemo(() => (
     encodedNodeId && decodeURIComponent(encodedNodeId)
@@ -64,7 +66,7 @@ const TopologyList = ({ id }: Props) => {
     const index = visibleNodes.findIndex(({ id: nodeId }) => nodeId === activeNodeId)
 
     if (index >= 0) {
-      const page = Math.ceil((index + 1) / NodeList.PAGE_SIZE)
+      const page = Math.ceil((index + 1) / NodeListPageSize)
 
       setPage(page)
       setPageChangedOnLoad(true)
@@ -117,13 +119,13 @@ const TopologyList = ({ id }: Props) => {
   }, [items, loadNodeLocations])
 
   return (
-    <NodeList ref={listRef}>
-      <NodeList.Header>
+    <NodeList innerRef={listRef}>
+      <NodeListHeader>
         Showing <strong>{visibleNodes.length}</strong> nodes carrying the stream{' '}
         <strong title={id}>{truncate(streamTitle)}</strong>
-      </NodeList.Header>
+      </NodeListHeader>
       {pages > 1 && (
-        <NodeList.Pager
+        <Pager
           currentPage={currentPage}
           lastPage={pages}
           onChange={setPage}
@@ -133,7 +135,7 @@ const TopologyList = ({ id }: Props) => {
         id: nodeId,
         title,
       }) => (
-        <NodeList.Node
+        <NodeListItem
           key={nodeId}
           nodeId={nodeId}
           title={title}
@@ -144,7 +146,7 @@ const TopologyList = ({ id }: Props) => {
           data-node-id={nodeId}
         >
           <NodeStats id={nodeId} />
-        </NodeList.Node>
+        </NodeListItem>
       ))}
     </NodeList>
   )

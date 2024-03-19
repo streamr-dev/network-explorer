@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
@@ -58,4 +58,56 @@ export function useLocationFromParams() {
       zoom,
     }
   }, [location])
+}
+
+interface UsePaginatedItemsOptions {
+  pageSize?: number
+  selectedId?: string
+}
+
+export function usePaginatedItems<T extends { id: string }>(
+  items: T[],
+  options: UsePaginatedItemsOptions = {},
+) {
+  const { pageSize = 10, selectedId = null } = options
+
+  const [page, setPage] = useState(findPage(items, pageSize, selectedId) || 0)
+
+  const totalPages = Math.ceil(items.length / pageSize)
+
+  useEffect(
+    function gotoSelectedId() {
+      setPage(findPage(items, pageSize, selectedId) || 0)
+    },
+    [selectedId],
+  )
+
+  return {
+    totalPages,
+    page,
+    items: useMemo(
+      () => items.slice(pageSize * page, pageSize * (page + 1)),
+      [items, pageSize, page],
+    ),
+    setPage: useCallback(
+      (value: number) => {
+        setPage(Math.max(0, Math.min(totalPages - 1, value)))
+      },
+      [totalPages],
+    ),
+  }
+}
+
+function findPage<T extends { id: string }>(
+  items: T[],
+  pageSize: number,
+  selectedId: string | null,
+) {
+  const index = selectedId !== null ? items.findIndex(({ id }) => id === selectedId) : -1
+
+  if (index === -1) {
+    return null
+  }
+
+  return Math.floor(index / pageSize)
 }

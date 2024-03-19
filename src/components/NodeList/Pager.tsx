@@ -31,16 +31,16 @@ const Icon = styled.button`
     transform: translate(-50%, -50%);
   }
 
-  :hover,
-  :focus-within {
+  &:hover,
+  &:focus-within {
     background-color: #F8F8F8;
   }
 
-  :active {
+  &:active {
     background-color: #EFEFEF;
   }
 
-  :disabled {
+  &:disabled {
       cursor: not-allowed;
       opacity: 0.5;
   }
@@ -95,19 +95,19 @@ const UnstyledPager = ({
         <ConnectionIcon />
       </Connection>
       <Title>
-        Page <strong>{currentPage} of {lastPage}</strong>
+        Page <strong>{currentPage + 1} of {lastPage}</strong>
       </Title>
       <Icon
         type="button"
         onClick={() => onChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={!currentPage}
       >
         <LeftArrow />
       </Icon>
       <Icon
         type="button"
         onClick={() => onChange(currentPage + 1)}
-        disabled={currentPage === lastPage}
+        disabled={currentPage === lastPage - 1}
       >
         <RightArrow />
       </Icon>
@@ -123,6 +123,7 @@ const Pager = styled(UnstyledPager)`
   padding: 0 16px;
   display: flex;
   align-items: center;
+  margin-bottom: 16px;
 
   ${Title} {
     flex: 1;

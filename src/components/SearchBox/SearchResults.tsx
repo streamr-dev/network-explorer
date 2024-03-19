@@ -131,14 +131,15 @@ const List = styled.div`
 type Props = {
   results: SearchResultItem[]
   highlight?: string
+  onItemClick?(item: SearchResultItem): void
 }
 
-export function SearchResults({ results, highlight, ...props }: Props) {
+export function SearchResults({ results, highlight,  onItemClick, ...props }: Props) {
   return (
     <SearchResultsRoot {...props}>
       <Virtuoso
         data={results}
-        itemContent={(_, result) => <Item value={result} highlight={highlight} />}
+        itemContent={(_, result) => <Item value={result} highlight={highlight}  onClick={onItemClick} />}
       />
     </SearchResultsRoot>
   )
@@ -146,10 +147,11 @@ export function SearchResults({ results, highlight, ...props }: Props) {
 
 interface ItemProps {
   highlight: string | undefined
+  onClick?(value: SearchResultItem): void
   value: SearchResultItem
 }
 
-function Item({ highlight, value }: ItemProps) {
+function Item({ highlight, value, onClick }: ItemProps) {
   const [, setSearchParams] = useSearchParams()
 
   const navigate = useNavigate()
@@ -159,6 +161,8 @@ function Item({ highlight, value }: ItemProps) {
   return (
     <Row
       onClick={() => {
+        onClick?.(value)
+
         if (value.type === 'place') {
           setSearchParams({
             l: `${value.payload.longitude},${value.payload.latitude},10z`,

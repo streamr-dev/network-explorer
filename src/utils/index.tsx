@@ -11,12 +11,13 @@ import {
   GetStreamsDocument,
   GetStreamsQuery,
   GetStreamsQueryVariables,
+  GetSummaryDocument,
   GetSummaryQuery,
   GetSummaryQueryVariables,
   OrderDirection,
   StreamOrderBy,
 } from '../generated/gql/indexer'
-import { getIndexerClient } from './queries'
+import { getIndexerClient, getNetworkClient } from './queries'
 import {
   Location,
   NeighborPair,
@@ -26,10 +27,18 @@ import {
   SearchResultItem,
 } from '../types'
 import { useStore } from '../contexts/Store'
+import BigNumber from 'bignumber.js'
+import {
+  GetSponsorshipsDocument,
+  GetSponsorshipsQuery,
+  GetSponsorshipsQueryVariables,
+} from '../generated/gql/network'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
 }
+
+const FiveMinutesMs = 5 * 60 * 1000
 
 export function useSummaryQuery() {
   return useQuery({
@@ -39,13 +48,14 @@ export function useSummaryQuery() {
         data: { summary },
       } = await getIndexerClient().query<GetSummaryQuery, GetSummaryQueryVariables>({
         fetchPolicy: 'network-only',
-        query: GetNeighborsDocument,
+        query: GetSummaryDocument,
       })
 
       const { nodeCount, messagesPerSecond, streamCount } = summary
 
       return { nodeCount, messagesPerSecond, streamCount }
     },
+    staleTime: FiveMinutesMs,
   })
 }
 
@@ -139,7 +149,7 @@ export function useNodesQuery(params: UseNodesQueryParams) {
 
       return items
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: FiveMinutesMs,
   })
 }
 
@@ -299,6 +309,7 @@ export function useNeighborsQuery(params: UseNeighborsQueryParams) {
 
       return items
     },
+    staleTime: FiveMinutesMs,
   })
 }
 
@@ -386,7 +397,7 @@ function useLocationFeaturesQuery<T = PlaceFeature>(
   const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
 
   return useQuery({
-    queryKey:getLocationFeaturesQueryKey(place),
+    queryKey: getLocationFeaturesQueryKey(place),
     queryFn: async ({ signal }) => {
       const result: T[] = []
 
@@ -465,7 +476,7 @@ export function useIsSearching(phrase: string) {
   const isFetchingNodes = useIsFetchingNodes()
 
   const isFetchingPlaces = useIsFetching({
-    queryKey: getLocationFeaturesQueryKey(getValidSearchPhrase(phrase))
+    queryKey: getLocationFeaturesQueryKey(getValidSearchPhrase(phrase)),
   })
 
   return isFetchingNodes || isFetchingPlaces
@@ -538,4 +549,56 @@ export function useSearch({ phrase: phraseParam = '' }) {
   }, [locations])
 
   return [...foundNodes, ...foundLocations]
+}
+
+export function useSponsorshipSummaryQuery() {
+  return useQuery({
+    queryKey: ['useSponsorshipSummaryQuery'],
+    queryFn: async () => {
+      const batchSize = 999
+
+      let totalStakeBN = new BigNumber(0)
+
+      let totalYearlyPayoutBN = new BigNumber(0)
+
+      let page = 0
+
+      for (;;) {
+        const {
+          data: { sponsorships },
+        } = await getNetworkClient().query<GetSponsorshipsQuery, GetSponsorshipsQueryVariables>({
+          query: GetSponsorshipsDocument,
+          variables: {
+            first: batchSize + 1,
+            skip: page * batchSize,
+          },
+        })
+
+        for (const { totalStakedWei, spotAPY } of sponsorships) {
+          const totalStakedWeiBN = new BigNumber(totalStakedWei)
+
+          totalStakeBN = totalStakeBN.plus(totalStakedWeiBN)
+
+          totalYearlyPayoutBN = totalYearlyPayoutBN.plus(
+            totalStakedWeiBN.multipliedBy(new BigNumber(spotAPY)),
+          )
+        }
+
+        if (sponsorships.length <= batchSize) {
+          /**
+           * Recent batch was the last batch.
+           */
+          break
+        }
+
+        page = page + 1
+      }
+
+      return {
+        apy: totalYearlyPayoutBN.dividedBy(totalStakeBN).multipliedBy(100),
+        tvl: totalStakeBN,
+      }
+    },
+    staleTime: 2 * FiveMinutesMs,
+  })
 }

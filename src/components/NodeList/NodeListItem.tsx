@@ -2,7 +2,6 @@ import React, { useCallback } from 'react'
 import styled, { css } from 'styled-components'
 import Identicon from 'react-identicons'
 import { useTransition, animated } from 'react-spring'
-
 import { SANS, MEDIUM } from '../../utils/styled'
 import { truncate } from '../../utils/text'
 import Stats from '../Stats'
@@ -66,12 +65,12 @@ const NodeElement = styled.div`
   ${({ theme }) =>
     !!theme.clickable &&
     css`
+      ${TitleRow}:hover {
+        background: #f8f8f8;
+      }
+
       ${TitleRow} {
         cursor: pointer;
-
-        :hover {
-          background: #f8f8f8;
-        }
       }
     `}
 
@@ -83,6 +82,7 @@ const NodeElement = styled.div`
       }
     `}
 `
+
 const PlacenameOrAddress = styled.div`
   position: relative;
   height: 16px;
@@ -120,7 +120,7 @@ type Props = {
   children?: React.ReactNode
 }
 
-const NodeListItem = ({
+export const NodeListItem = ({
   nodeId,
   title,
   address,
@@ -179,5 +179,3 @@ const NodeListItem = ({
     </NodeElement>
   )
 }
-
-export default NodeListItem

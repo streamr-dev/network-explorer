@@ -45,7 +45,7 @@ const UnstyledStat = ({
 const StatName = styled.div`
   font-size: 10px;
   font-weight: 500;
-  line-height: 16px;
+  line-height: normal;
   letter-spacing: 0.05em;
   color: #adadad;
   text-transform: uppercase;
@@ -53,8 +53,8 @@ const StatName = styled.div`
 
 const StatValue = styled.div`
   font-size: 16px;
-  line-height: 32px;
-  padding-bottom: 4px;
+  line-height: normal;
+  margin-top: 0.25em;
   color: #323232;
 
   svg {
@@ -116,7 +116,7 @@ const InfinityIcon = () => (
 const ButtonGrid = styled.div`
   display: flex;
   flex-direction: row;
-  padding-top: 12px;
+  padding: 12px 0;
   font-family: ${SANS};
 
   > ${Stat} {

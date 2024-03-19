@@ -15,6 +15,7 @@
     "@types/lodash": "^4.14.161",
     "@types/react-map-gl": "^5.2.9",
     "axios": "^0.20.0",
+    "bignumber.js": "^9.1.2",
     "core-js": "^3.8.0",
     "env-cmd": "^10.1.0",
     "graphql": "^16.8.1",

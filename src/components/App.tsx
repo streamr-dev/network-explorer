@@ -13,11 +13,11 @@ import ErrorBoundary from './ErrorBoundary'
 import Layout from './Layout'
 import UnstyledLoadingIndicator from './LoadingIndicator'
 import { Map } from './Map'
-import { Network } from './Network'
 import NetworkSelector from './NetworkSelector'
 import { SearchBox } from './SearchBox'
 import Stream from './Stream'
 import StreamrClientProvider from './StreamrClientProvider'
+import { NodeTopologyList } from './NodeTopologyList'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -44,7 +44,6 @@ function Page() {
           <Outlet />
         </ErrorBoundary>
       </Layout>
-      <Outlet />
     </StoreProvider>
   )
 }
@@ -60,8 +59,8 @@ export function App() {
                 <Route element={<Page />}>
                   <Route path="/streams/:streamId/nodes/:nodeId" element={<Stream />} />
                   <Route path="/streams/:streamId" element={<Stream />} />
-                  <Route path="/nodes/:nodeId" element={<Network />} />
-                  <Route index element={<Network />} />
+                  <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
+                  <Route index element={<NodeTopologyList />} />
                 </Route>
               </Routes>
             </ControllerProvider>

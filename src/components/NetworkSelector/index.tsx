@@ -80,8 +80,8 @@ const Button = styled.button`
     transform: translate(-50%, -50%) translate(4px, 4px);
   }
 
-  :hover,
-  :focus-within {
+  &:hover,
+  &:focus-within {
     color: #a3a3a3;
   }
 `

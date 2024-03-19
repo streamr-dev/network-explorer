@@ -4,7 +4,7 @@ import { ActiveView } from '../types'
 import { SM } from '../utils/styled'
 import { useStore } from '../hooks/useStore'
 import ControlBox from './ControlBox'
-import NodeList from './NodeList'
+import { NodeListInner } from './NodeList'
 
 const Backdrop = styled.div`
   position: absolute;
@@ -22,7 +22,7 @@ const LayoutComponent = styled.div`
   width: 375px;
   z-index: 2;
 
-  ${NodeList.Inner} {
+  ${NodeListInner} {
     overflow-y: scroll;
     max-height: calc(100% - 245px);
   }
@@ -35,7 +35,7 @@ const LayoutComponent = styled.div`
       margin-top: 24px;
     }
 
-    ${NodeList.Inner} {
+    ${NodeListInner} {
       max-height: calc(100vh - 245px);
     }
   }
