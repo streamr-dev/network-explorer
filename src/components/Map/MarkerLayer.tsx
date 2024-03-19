@@ -25,8 +25,6 @@ export function MarkerLayer() {
 
       uniquenessGate[locationId] = true
 
-      console.log(locationId)
-
       features.push({
         type: 'Feature',
         geometry: {

@@ -33,6 +33,7 @@ import {
   GetSponsorshipsQuery,
   GetSponsorshipsQueryVariables,
 } from '../generated/gql/network'
+import { getNodeLocationId } from './map'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -317,7 +318,7 @@ export function useNodeConnections() {
   })
 
   return useMemo(
-    function getTopologyFromNodesAndNeighbors() {
+    function getConnectionsFromNodesAndNeighbors() {
       if (!nodes || !neighbors) {
         return []
       }
@@ -328,12 +329,14 @@ export function useNodeConnections() {
         nodesById[node.id] = node
       }
 
-      const topology: {
+      const connections: {
         sourceId: string
         targetId: string
         source: [number, number]
         target: [number, number]
       }[] = []
+
+      const uniquenessGate: Record<string, true> = {}
 
       for (const [sourceId, targetId] of neighbors) {
         const source = nodesById[sourceId]?.location
@@ -344,7 +347,15 @@ export function useNodeConnections() {
           continue
         }
 
-        topology.push({
+        const key = `${getNodeLocationId(source)}-${getNodeLocationId(target)}`
+
+        if (uniquenessGate[key]) {
+          continue
+        }
+
+        uniquenessGate[key] = true
+
+        connections.push({
           sourceId,
           targetId,
           source: [source.longitude, source.latitude],
@@ -352,7 +363,7 @@ export function useNodeConnections() {
         })
       }
 
-      return topology
+      return connections
     },
     [nodes, neighbors],
   )
