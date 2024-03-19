@@ -9,7 +9,7 @@ export const NodeSourceId = 'node-source'
 
 export function setNodeFeatureState(
   mapRef: RefObject<MapRef>,
-  nodeId: string,
+  locationId: string,
   state: Record<string, boolean>,
 ) {
   const map = mapRef.current?.getMap()
@@ -22,7 +22,7 @@ export function setNodeFeatureState(
     map.setFeatureState(
       {
         source: NodeSourceId,
-        id: nodeId,
+        id: locationId,
       },
       state,
     )
@@ -34,10 +34,14 @@ export function setNodeFeatureState(
    * Defer the call for a while to wait for styles to load.
    */
   window.setTimeout(() => {
-    setNodeFeatureState(mapRef, nodeId, state)
+    setNodeFeatureState(mapRef, locationId, state)
   })
 }
 
 export function getCursor({ isHovering = false, isDragging = false }) {
   return isDragging ? 'all-scroll' : isHovering ? 'pointer' : 'default'
+}
+
+export function getNodeLocationId({ longitude = 0, latitude = 0 }) {
+  return `${longitude},${latitude}`
 }

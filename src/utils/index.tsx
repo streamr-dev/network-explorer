@@ -78,8 +78,8 @@ function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
 
 export function isOperatorNodeGeoFeature(
   arg: GeoJSON.Feature | undefined,
-): arg is OperatorNode['geoFeature'] {
-  return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).id
+): arg is GeoJSON.Feature<GeoJSON.Point, { id: string; title: string; locationId: string }> {
+  return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).locationId
 }
 
 export function useNodesQuery(params: UseNodesQueryParams) {
@@ -119,17 +119,6 @@ export function useNodesQuery(params: UseNodesQueryParams) {
             .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase())
 
           items.push({
-            geoFeature: {
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: [item.location.longitude, item.location.latitude],
-              },
-              properties: {
-                id,
-                title,
-              },
-            },
             id,
             location,
             title,
@@ -141,10 +130,6 @@ export function useNodesQuery(params: UseNodesQueryParams) {
         }
 
         cursor = nodes.cursor
-
-        await new Promise<void>((resolve) => {
-          setTimeout(resolve, 2000)
-        })
       }
 
       return items

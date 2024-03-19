@@ -7,7 +7,7 @@ import { useStore } from '../../contexts/Store'
 import { useLocationFromParams } from '../../hooks'
 import { ConnectionsMode } from '../../types'
 import { MapboxToken, isOperatorNodeGeoFeature } from '../../utils'
-import { InteractiveLayerIds, getCursor, setNodeFeatureState } from '../../utils/map'
+import { InteractiveLayerIds, getCursor, getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
@@ -45,7 +45,7 @@ export function Map({ innerRef: mapRef }: MapProps) {
 
   const { selectedNode, viewport, setViewport, resetViewport } = useStore()
 
-  const lastHoveredNodeIdRef = useRef<string | null>(null)
+  const lastHoveredNodeLocationIdRef = useRef<string | null>(null)
 
   const navigate = useNavigate()
 
@@ -99,24 +99,24 @@ export function Map({ innerRef: mapRef }: MapProps) {
         onHover={(e) => {
           const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
 
-          const nodeId = isOperatorNodeGeoFeature(feature) ? feature.properties.id : null
+          const nodeLocationId = isOperatorNodeGeoFeature(feature) ? feature.properties.locationId : null
 
-          const { current: prevNodeId } = lastHoveredNodeIdRef
+          const { current: prevNodeLocationId } = lastHoveredNodeLocationIdRef
 
-          if (nodeId === prevNodeId) {
+          if (nodeLocationId === prevNodeLocationId) {
             return
           }
 
-          if (prevNodeId) {
-            setNodeFeatureState(mapRef, prevNodeId, { hover: false })
+          if (prevNodeLocationId) {
+            setNodeFeatureState(mapRef, prevNodeLocationId, { hover: false })
 
-            lastHoveredNodeIdRef.current = null
+            lastHoveredNodeLocationIdRef.current = null
           }
 
-          if (nodeId) {
-            setNodeFeatureState(mapRef, nodeId, { hover: true })
+          if (nodeLocationId) {
+            setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
 
-            lastHoveredNodeIdRef.current = nodeId
+            lastHoveredNodeLocationIdRef.current = nodeLocationId
           }
         }}
         dragPan={{
@@ -169,9 +169,9 @@ const MapContainer = styled.div`
 `
 
 function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, number]) => void) {
-  const selectedNodeIdRef = useRef<string | null>(null)
+  const selectedNodeLocationIdRef = useRef<string | null>(null)
 
-  const { current: prevSelectedNodeId } = selectedNodeIdRef
+  const { current: prevSelectedNodeLocationId } = selectedNodeLocationIdRef
 
   const { mapRef, selectedNode, nodeIdParamkey } = useStore()
 
@@ -185,16 +185,18 @@ function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, num
 
   nodeIdParamkeyRef.current = nodeIdParamkey
 
-  if (prevSelectedNodeId !== selectedNode?.id) {
-    if (prevSelectedNodeId) {
-      setNodeFeatureState(mapRef, prevSelectedNodeId, { active: false })
+  const selectedNodeLocationId = selectedNode ? getNodeLocationId(selectedNode.location) : undefined
+
+  if (prevSelectedNodeLocationId !== selectedNodeLocationId) {
+    if (prevSelectedNodeLocationId) {
+      setNodeFeatureState(mapRef, prevSelectedNodeLocationId, { active: false })
     }
 
-    if (selectedNode) {
-      setNodeFeatureState(mapRef, selectedNode.id, { active: true })
+    if (selectedNodeLocationId) {
+      setNodeFeatureState(mapRef, selectedNodeLocationId, { active: true })
     }
 
-    selectedNodeIdRef.current = selectedNode?.id || null
+    selectedNodeLocationIdRef.current = selectedNodeLocationId || null
   }
 }
 

@@ -8,7 +8,7 @@ import { truncate } from '../../utils/text'
 import { SearchResultItem } from '../../types'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../../contexts/Store'
-import { setNodeFeatureState } from '../../utils/map'
+import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -134,12 +134,14 @@ type Props = {
   onItemClick?(item: SearchResultItem): void
 }
 
-export function SearchResults({ results, highlight,  onItemClick, ...props }: Props) {
+export function SearchResults({ results, highlight, onItemClick, ...props }: Props) {
   return (
     <SearchResultsRoot {...props}>
       <Virtuoso
         data={results}
-        itemContent={(_, result) => <Item value={result} highlight={highlight}  onClick={onItemClick} />}
+        itemContent={(_, result) => (
+          <Item value={result} highlight={highlight} onClick={onItemClick} />
+        )}
       />
     </SearchResultsRoot>
   )
@@ -198,14 +200,14 @@ function Item({ highlight, value, onClick }: ItemProps) {
           return
         }
 
-        setNodeFeatureState(mapRef, value.payload.id, { hover: true })
+        setNodeFeatureState(mapRef, getNodeLocationId(value.payload.location), { hover: true })
       }}
       onMouseLeave={() => {
         if (value.type !== 'node') {
           return
         }
 
-        setNodeFeatureState(mapRef, value.payload.id, { hover: false })
+        setNodeFeatureState(mapRef, getNodeLocationId(value.payload.location), { hover: false })
       }}
     >
       <IconWrapper>
