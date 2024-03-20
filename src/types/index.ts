@@ -25,7 +25,10 @@ export type NeighborPair = [string, string]
 export interface Stream {
   description: string
   id: string
-  name: string
+  messagesPerSecond: number
+  peerCount: number
+  publisherCount: number | null
+  subscriberCount: number | null
 }
 
 export interface OperatorNode {

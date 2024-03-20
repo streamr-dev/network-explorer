@@ -43,3 +43,9 @@ export function useIsFetchingOperatorNodesForStream(streamId: string | undefined
 
   return queryCount > 0
 }
+
+export function isOperatorNodeGeoFeature(
+  arg: GeoJSON.Feature | undefined,
+): arg is GeoJSON.Feature<GeoJSON.Point, { id: string; title: string; locationId: string }> {
+  return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).locationId
+}

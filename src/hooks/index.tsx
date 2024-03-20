@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 
 export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
   const fnRef = useRef(fn)
@@ -110,4 +110,10 @@ function findPage<T extends { id: string }>(
   }
 
   return Math.floor(index / pageSize)
+}
+
+export function useStreamIdParam() {
+  const { streamId = null } = useParams<{ streamId: string }>()
+
+  return streamId === null ? null : decodeURIComponent(streamId)
 }

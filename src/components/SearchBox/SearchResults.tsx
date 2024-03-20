@@ -183,6 +183,12 @@ function Item({ highlight, value, onClick }: ItemProps) {
 
           return
         }
+
+        if (value.type === 'stream') {
+          navigate(`/streams/${encodeURIComponent(value.payload.id)}/`)
+
+          return
+        }
       }}
       onMouseEnter={() => {
         if (value.type !== 'node') {

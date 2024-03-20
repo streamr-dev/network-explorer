@@ -6,7 +6,6 @@ import styled from 'styled-components'
 import { useStore } from '../../contexts/Store'
 import { useLocationFromParams } from '../../hooks'
 import { ConnectionsMode } from '../../types'
-import { MapboxToken, isOperatorNodeGeoFeature } from '../../utils'
 import {
   InteractiveLayerIds,
   getCursor,
@@ -16,6 +15,8 @@ import {
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
+import { MapboxToken } from '../../utils/places'
+import { isOperatorNodeGeoFeature } from '../../utils/nodes'
 
 /**
  * The value specifies after how long the operation comes
