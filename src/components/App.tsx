@@ -6,7 +6,6 @@ import styled from 'styled-components'
 import { Provider as ControllerProvider } from '../contexts/Controller'
 import { Provider as PendingProvider } from '../contexts/Pending'
 import { StoreProvider } from '../contexts/Store'
-import { useIsFetchingNeighbors, useIsFetchingNodes } from '../utils'
 import { getQueryClient } from '../utils/queries'
 import Debug from './Debug'
 import { ErrorBoundary } from './ErrorBoundary'
@@ -14,10 +13,12 @@ import Layout from './Layout'
 import UnstyledLoadingIndicator from './LoadingIndicator'
 import { Map } from './Map'
 import NetworkSelector from './NetworkSelector'
-import { SearchBox } from './SearchBox'
-import { Stream } from './Stream'
-import StreamrClientProvider from './StreamrClientProvider'
 import { NodeTopologyList } from './NodeTopologyList'
+import { SearchBox } from './SearchBox'
+import { StreamTopologyList } from './StreamTopologyList'
+import StreamrClientProvider from './StreamrClientProvider'
+import { useIsFetchingAllNodes } from '../utils/nodes'
+import { useIsFetchingAllNeighbors } from '../utils/neighbors'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -26,9 +27,9 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
 `
 
 function Page() {
-  const isLoadingNodes = useIsFetchingNodes()
+  const isLoadingNodes = useIsFetchingAllNodes()
 
-  const isLoadingTopology = useIsFetchingNeighbors()
+  const isLoadingTopology = useIsFetchingAllNeighbors()
 
   const mapRef = useRef<MapRef>(null)
 
@@ -57,8 +58,8 @@ export function App() {
             <ControllerProvider>
               <Routes>
                 <Route element={<Page />}>
-                  <Route path="/streams/:streamId/nodes/:nodeId" element={<Stream />} />
-                  <Route path="/streams/:streamId" element={<Stream />} />
+                  <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
+                  <Route path="/streams/:streamId" element={<StreamTopologyList />} />
                   <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
                   <Route index element={<NodeTopologyList />} />
                 </Route>

@@ -1,18 +1,14 @@
 import React, { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../contexts/Store'
 import { OperatorNode } from '../types'
-import { useNodesQuery } from '../utils'
-import { NodeList, NodeListHeader } from './NodeList'
-import { NodeListItem } from './NodeList/NodeListItem'
-import { useNavigate } from 'react-router-dom'
-import NodeStats from './NodeStats'
-import { usePaginatedItems } from '../hooks'
-import Pager from './NodeList/Pager'
+import { useAllOperatorNodesQuery } from '../utils/nodes'
+import { TopologyList } from './TopologyList'
 
 const EmptyNodes: OperatorNode[] = []
 
 export function NodeTopologyList() {
-  const nodes = useNodesQuery({}).data || EmptyNodes
+  const nodes = useAllOperatorNodesQuery().data || EmptyNodes
 
   const { selectedNode } = useStore()
 
@@ -28,46 +24,20 @@ export function NodeTopologyList() {
 
   const navigate = useNavigate()
 
-  const pagedRoommates = usePaginatedItems(roommates, {
-    selectedId: selectedNode?.id,
-    pageSize: 5,
-  })
-
-  if (!selectedNode || !roommates.length) {
-    return null
-  }
-
   return (
-    <NodeList>
-      {roommates.length > 1 && (
-        <NodeListHeader>
-          There are <strong>{roommates.length}</strong> nodes in this location
-        </NodeListHeader>
-      )}
-      {pagedRoommates.totalPages > 1 && (
-        <Pager
-          currentPage={pagedRoommates.page}
-          lastPage={pagedRoommates.totalPages}
-          onChange={pagedRoommates.setPage}
-        />
-      )}
-      {pagedRoommates.items.map((node) => (
-        <NodeListItem
-          key={node.id}
-          nodeId={node.id}
-          title={node.title}
-          address="N/A"
-          placeName="N/A"
-          onClick={(nodeId) => {
-            navigate(`/nodes/${nodeId}`, { replace: true })
-          }}
-          isActive={selectedNode.id === node.id}
-          data-node-id={node.id}
-        >
-          <NodeStats id={node.id} />
-        </NodeListItem>
-      ))}
-    </NodeList>
+    <TopologyList
+      title={
+        roommates.length > 1 && (
+          <>
+            There are <strong>{roommates.length}</strong> nodes in this location
+          </>
+        )
+      }
+      nodes={roommates}
+      onNodeClick={(nodeId) => {
+        navigate(`/nodes/${nodeId}`, { replace: true })
+      }}
+    />
   )
 }
 

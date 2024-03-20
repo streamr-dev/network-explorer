@@ -1,13 +1,8 @@
-import { entropyToMnemonic } from '@ethersproject/hdnode'
 import { useInfiniteQuery, useIsFetching, useQuery } from '@tanstack/react-query'
+import BigNumber from 'bignumber.js'
 import { useEffect, useMemo, useState } from 'react'
+import { useStore } from '../contexts/Store'
 import {
-  GetNeighborsDocument,
-  GetNeighborsQuery,
-  GetNeighborsQueryVariables,
-  GetNodesDocument,
-  GetNodesQuery,
-  GetNodesQueryVariables,
   GetStreamsDocument,
   GetStreamsQuery,
   GetStreamsQueryVariables,
@@ -17,23 +12,16 @@ import {
   OrderDirection,
   StreamOrderBy,
 } from '../generated/gql/indexer'
-import { getIndexerClient, getNetworkClient } from './queries'
-import {
-  Location,
-  NeighborPair,
-  OperatorNode,
-  PlaceFeature,
-  PlacesResponse,
-  SearchResultItem,
-} from '../types'
-import { useStore } from '../contexts/Store'
-import BigNumber from 'bignumber.js'
 import {
   GetSponsorshipsDocument,
   GetSponsorshipsQuery,
   GetSponsorshipsQueryVariables,
 } from '../generated/gql/network'
+import { Location, OperatorNode, PlaceFeature, PlacesResponse, SearchResultItem } from '../types'
 import { getNodeLocationId } from './map'
+import { useOperatorNodeNeighborsQuery } from './neighbors'
+import { useAllOperatorNodesQuery, useIsFetchingAllNodes } from './nodes'
+import { getIndexerClient, getNetworkClient } from './queries'
 
 function getSummaryQueryKey() {
   return ['useSummaryQuery'] as const
@@ -69,83 +57,10 @@ export function useIsFetchingSummary() {
   )
 }
 
-interface UseNodesQueryParams {
-  ids?: string[]
-}
-
-function getNodesQueryKey({ ids = [] }: UseNodesQueryParams) {
-  return ['useNodesQuery', ...ids] as const
-}
-
 export function isOperatorNodeGeoFeature(
   arg: GeoJSON.Feature | undefined,
 ): arg is GeoJSON.Feature<GeoJSON.Point, { id: string; title: string; locationId: string }> {
   return !!arg && arg.geometry.type === 'Point' && !!(arg.properties || {}).locationId
-}
-
-export function useNodesQuery(params: UseNodesQueryParams) {
-  const pageSize = 500
-
-  const { ids } = params
-
-  return useQuery({
-    queryKey: getNodesQueryKey(params),
-    queryFn: async () => {
-      const items: OperatorNode[] = []
-
-      let cursor = '0'
-
-      for (;;) {
-        const {
-          data: { nodes },
-        } = await getIndexerClient().query<GetNodesQuery, GetNodesQueryVariables>({
-          fetchPolicy: 'network-only',
-          query: GetNodesDocument,
-          variables: {
-            cursor,
-            ids,
-            pageSize,
-          },
-        })
-
-        for (const item of nodes.items) {
-          if (!item.location) {
-            continue
-          }
-
-          const { id, location } = item
-
-          const title = entropyToMnemonic(`0x${id}`)
-            .match(/(^\w+|\s\w+){3}/)![0]
-            .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase())
-
-          items.push({
-            id,
-            location,
-            title,
-          })
-        }
-
-        if (!nodes.cursor || nodes.cursor === cursor) {
-          break
-        }
-
-        cursor = nodes.cursor
-      }
-
-      return items
-    },
-    staleTime: FiveMinutesMs,
-  })
-}
-
-export function useIsFetchingNodes() {
-  return (
-    useIsFetching({
-      exact: false,
-      queryKey: [getNodesQueryKey({})[0]],
-    }) > 0
-  )
 }
 
 interface UseStreamsQueryParams {
@@ -235,87 +150,12 @@ export function useIsFetchingStreams() {
   )
 }
 
-interface UseNeighborsQueryParams {
-  node?: string
-  streamPart?: string
-}
-
-function getNeighborsQueryKey({ node, streamPart }: UseNeighborsQueryParams) {
-  return ['useNeighborsQuery', streamPart, node] as const
-}
-
-export function useNeighborsQuery(params: UseNeighborsQueryParams) {
-  const pageSize = 1000
-
-  const { node, streamPart } = params
-
-  return useQuery({
-    queryKey: getNeighborsQueryKey(params),
-    queryFn: async () => {
-      const items: NeighborPair[] = []
-
-      const uniquenessGate: Record<string, true> = {}
-
-      let cursor = '0'
-
-      for (;;) {
-        const {
-          data: { neighbors },
-        } = await getIndexerClient().query<GetNeighborsQuery, GetNeighborsQueryVariables>({
-          fetchPolicy: 'network-only',
-          query: GetNeighborsDocument,
-          variables: {
-            cursor,
-            node,
-            pageSize,
-            streamPart,
-          },
-        })
-
-        for (const { nodeId1: a, nodeId2: b } of neighbors.items) {
-          const pair = [a, b].sort() as [string, string]
-
-          const key = pair.join('-')
-
-          if (uniquenessGate[key]) {
-            continue
-          }
-
-          uniquenessGate[key] = true
-
-          items.push(pair)
-        }
-
-        if (!neighbors.cursor || neighbors.cursor === cursor) {
-          break
-        }
-
-        cursor = neighbors.cursor
-      }
-
-      return items
-    },
-    staleTime: FiveMinutesMs,
-  })
-}
-
-export function useIsFetchingNeighbors() {
-  return (
-    useIsFetching({
-      exact: false,
-      queryKey: [getNeighborsQueryKey({})[0]],
-    }) > 0
-  )
-}
-
 export function useNodeConnections() {
-  const { data: nodes } = useNodesQuery({})
+  const { data: nodes } = useAllOperatorNodesQuery()
 
   const { selectedNode } = useStore()
 
-  const { data: neighbors } = useNeighborsQuery({
-    node: selectedNode?.id,
-  })
+  const { data: neighbors } = useOperatorNodeNeighborsQuery(selectedNode?.id)
 
   return useMemo(
     function getConnectionsFromNodesAndNeighbors() {
@@ -469,7 +309,7 @@ function getValidSearchPhrase(phrase: string) {
 }
 
 export function useIsSearching(phrase: string) {
-  const isFetchingNodes = useIsFetchingNodes()
+  const isFetchingNodes = useIsFetchingAllNodes()
 
   const isFetchingPlaces = useIsFetching({
     queryKey: getLocationFeaturesQueryKey(getValidSearchPhrase(phrase)),
@@ -479,7 +319,7 @@ export function useIsSearching(phrase: string) {
 }
 
 export function useSearch({ phrase: phraseParam = '' }) {
-  const nodesQuery = useNodesQuery({})
+  const nodesQuery = useAllOperatorNodesQuery()
 
   const phrase = useDebounce(getValidSearchPhrase(phraseParam), 250)
 
@@ -597,4 +437,11 @@ export function useSponsorshipSummaryQuery() {
     },
     staleTime: 2 * FiveMinutesMs,
   })
+}
+
+export function useStreamNodesQuery(streamId: string | null) {
+  // Get neighbours
+  // Get unique node ids
+  // Get nodes for them ids via network
+  return useMemo<OperatorNode[]>(() => [], [])
 }

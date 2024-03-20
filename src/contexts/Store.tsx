@@ -6,13 +6,13 @@ import React, {
   useContext,
   useMemo,
   useReducer,
-  useState
+  useState,
 } from 'react'
 import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 'react-map-gl'
 import { useParams } from 'react-router-dom'
 import { useGlobalKeyDownEffect } from '../hooks'
 import { OperatorNode } from '../types'
-import { useNodesQuery } from '../utils'
+import { useAllOperatorNodesQuery } from '../utils/nodes'
 
 interface Store {
   mapRef: RefObject<MapRef>
@@ -102,7 +102,7 @@ export function useStore() {
 }
 
 function useNodeByNodeIdParam() {
-  const { data: nodes } = useNodesQuery({})
+  const { data: nodes } = useAllOperatorNodesQuery()
 
   const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
 

@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl'
-import { useNodesQuery } from '../../utils'
-import { NodeLayerId, NodeSourceId, getNodeLocationId } from '../../utils/map'
 import { OperatorNode } from '../../types'
+import { NodeLayerId, NodeSourceId, getNodeLocationId } from '../../utils/map'
+import { useAllOperatorNodesQuery } from '../../utils/nodes'
 
 const EmptyNodes: OperatorNode[] = []
 
 export function MarkerLayer() {
-  const nodesQuery = useNodesQuery({})
+  const nodesQuery = useAllOperatorNodesQuery()
 
   const nodes = nodesQuery.data || EmptyNodes
 

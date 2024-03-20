@@ -1,0 +1,54 @@
+import React, { ReactNode } from 'react'
+import { useStore } from '../contexts/Store'
+import { usePaginatedItems } from '../hooks'
+import { OperatorNode } from '../types'
+import { NodeList, NodeListHeader } from './NodeList'
+import { NodeListItem } from './NodeList/NodeListItem'
+import Pager from './NodeList/Pager'
+import NodeStats from './NodeStats'
+
+interface TopologyListProps {
+  nodes: OperatorNode[]
+  onNodeClick?(nodeId: string): void
+  title?: ReactNode
+}
+
+export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
+  const { selectedNode } = useStore()
+
+  const pagedNodes = usePaginatedItems(nodes, {
+    selectedId: selectedNode?.id,
+    pageSize: 5,
+  })
+
+  if (!selectedNode || !nodes.length) {
+    return null
+  }
+
+  return (
+    <NodeList>
+      {!!title && <NodeListHeader>{title}</NodeListHeader>}
+      {pagedNodes.totalPages > 1 && (
+        <Pager
+          currentPage={pagedNodes.page}
+          lastPage={pagedNodes.totalPages}
+          onChange={pagedNodes.setPage}
+        />
+      )}
+      {pagedNodes.items.map((node) => (
+        <NodeListItem
+          key={node.id}
+          nodeId={node.id}
+          title={node.title}
+          address="N/A"
+          placeName="N/A"
+          onClick={onNodeClick}
+          isActive={selectedNode.id === node.id}
+          data-node-id={node.id}
+        >
+          <NodeStats id={node.id} />
+        </NodeListItem>
+      ))}
+    </NodeList>
+  )
+}
