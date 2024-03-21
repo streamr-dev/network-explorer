@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
   const fnRef = useRef(fn)
@@ -116,4 +116,21 @@ export function useStreamIdParam() {
   const { streamId = null } = useParams<{ streamId: string }>()
 
   return streamId === null ? null : decodeURIComponent(streamId)
+}
+
+export function useNavigateToNodeCallback() {
+  const navigate = useNavigate()
+
+  const streamId = useStreamIdParam()
+
+  return useCallback(
+    (nodeId: string, { replace = false } = {}) => {
+      const nodePath = nodeId ? `nodes/${encodeURIComponent(nodeId)}/` : ''
+
+      navigate(streamId ? `/streams/${encodeURIComponent(streamId)}/${nodePath}` : `/${nodePath}`, {
+        replace,
+      })
+    },
+    [navigate, streamId],
+  )
 }

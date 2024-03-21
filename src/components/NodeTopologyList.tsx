@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useStore } from '../contexts/Store'
+import { useNavigateToNodeCallback } from '../hooks'
 import { OperatorNode } from '../types'
-import { useAllOperatorNodesQuery } from '../utils/nodes'
+import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 import { TopologyList } from './TopologyList'
 
 const EmptyNodes: OperatorNode[] = []
 
 export function NodeTopologyList() {
-  const nodes = useAllOperatorNodesQuery().data || EmptyNodes
+  const nodes = useOperatorNodesForStreamQuery(undefined).data || EmptyNodes
 
   const { selectedNode } = useStore()
 
@@ -22,7 +22,11 @@ export function NodeTopologyList() {
       .sort(({ title: a }, { title: b }) => a.localeCompare(b))
   }, [nodes, selectedNode])
 
-  const navigate = useNavigate()
+  const navigateToNode = useNavigateToNodeCallback()
+
+  if (!roommates.length) {
+    return null
+  }
 
   return (
     <TopologyList
@@ -35,7 +39,7 @@ export function NodeTopologyList() {
       }
       nodes={roommates}
       onNodeClick={(nodeId) => {
-        navigate(`/nodes/${nodeId}`, { replace: true })
+        navigateToNode(nodeId, { replace: true })
       }}
     />
   )

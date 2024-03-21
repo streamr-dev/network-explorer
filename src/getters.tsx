@@ -7,17 +7,18 @@ import {
   GetNodesQuery,
   GetNodesQueryVariables,
 } from './generated/gql/indexer'
-import { NeighborPair, OperatorNode } from './types'
+import { Neighbour, OperatorNode } from './types'
 import { getIndexerClient } from './utils/queries'
 
 interface GetOperatorNodesParams {
   ids?: string[]
+  streamId?: string
 }
 
 export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<OperatorNode[]> {
   const pageSize = 500
 
-  const { ids } = params
+  const { ids, streamId } = params
 
   const items: OperatorNode[] = []
 
@@ -33,6 +34,7 @@ export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<
         cursor,
         ids,
         pageSize,
+        streamId,
       },
     })
 
@@ -44,7 +46,7 @@ export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<
       const { id, location } = item
 
       const title = entropyToMnemonic(`0x${id}`)
-        .match(/(^\w+|\s\w+){3}/)![0]
+        .match(/(\w+|\s\w+){3}$/)![0]
         .replace(/(^\w|\s\w)/g, (w) => w.toUpperCase())
 
       items.push({
@@ -66,15 +68,16 @@ export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<
 
 interface GetNeighborsParams {
   node?: string
-  streamPart?: string
+  streamId?: string
+  streamPartitionId?: string
 }
 
-export async function getNeighbors(params: GetNeighborsParams): Promise<NeighborPair[]> {
+export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbour[]> {
   const pageSize = 1000
 
-  const { node, streamPart } = params
+  const { node, streamPartitionId } = params
 
-  const items: NeighborPair[] = []
+  const items: Neighbour[] = []
 
   const uniquenessGate: Record<string, true> = {}
 
@@ -90,11 +93,15 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbor
         cursor,
         node,
         pageSize,
-        streamPart,
+        streamPart: streamPartitionId,
       },
     })
 
-    for (const { nodeId1: a, nodeId2: b } of neighbors.items) {
+    for (const {
+      nodeId1: a,
+      nodeId2: b,
+      streamPartId: finalStreamPartitionId,
+    } of neighbors.items) {
       const pair = [a, b].sort() as [string, string]
 
       const key = pair.join('-')
@@ -105,7 +112,13 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbor
 
       uniquenessGate[key] = true
 
-      items.push(pair)
+      const [nodeId0, nodeId1] = pair
+
+      items.push({
+        nodeId0,
+        nodeId1,
+        streamPartitionId: finalStreamPartitionId,
+      })
     }
 
     if (!neighbors.cursor || neighbors.cursor === cursor) {

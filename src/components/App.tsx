@@ -6,6 +6,8 @@ import styled from 'styled-components'
 import { Provider as ControllerProvider } from '../contexts/Controller'
 import { Provider as PendingProvider } from '../contexts/Pending'
 import { StoreProvider } from '../contexts/Store'
+import { useStreamIdParam } from '../hooks'
+import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
 import Debug from './Debug'
 import { ErrorBoundary } from './ErrorBoundary'
@@ -17,8 +19,6 @@ import { NodeTopologyList } from './NodeTopologyList'
 import { SearchBox } from './SearchBox'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
-import { useIsFetchingAllNodes } from '../utils/nodes'
-import { useIsFetchingAllNeighbors } from '../utils/neighbors'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -27,16 +27,16 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
 `
 
 function Page() {
-  const isLoadingNodes = useIsFetchingAllNodes()
+  const streamId = useStreamIdParam()
 
-  const isLoadingTopology = useIsFetchingAllNeighbors()
+  const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
   const mapRef = useRef<MapRef>(null)
 
   return (
     <StoreProvider mapRef={mapRef}>
       <Map innerRef={mapRef} />
-      <LoadingIndicator large loading={isLoadingNodes || isLoadingTopology} />
+      <LoadingIndicator large loading={isLoadingNodes} />
       <Layout>
         <ErrorBoundary>
           <Debug />

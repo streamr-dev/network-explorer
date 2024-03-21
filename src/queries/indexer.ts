@@ -9,8 +9,8 @@ gql`
     }
   }
 
-  query GetNodes($cursor: String, $pageSize: Int, $ids: [String!]) {
-    nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids) {
+  query GetNodes($cursor: String, $pageSize: Int, $ids: [String!], $streamId: String) {
+    nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids, stream: $streamId) {
       cursor
       items {
         id
@@ -55,8 +55,20 @@ gql`
     }
   }
 
-  query GetNeighbors($cursor: String, $pageSize: Int, $streamPart: String, $node: String) {
-    neighbors(cursor: $cursor, pageSize: $pageSize, streamPart: $streamPart, node: $node) {
+  query GetNeighbors(
+    $cursor: String
+    $pageSize: Int
+    $streamPart: String
+    $node: String
+    $streamId: String
+  ) {
+    neighbors(
+      cursor: $cursor
+      pageSize: $pageSize
+      streamPart: $streamPart
+      node: $node
+      stream: $streamId
+    ) {
       items {
         streamPartId
         nodeId1

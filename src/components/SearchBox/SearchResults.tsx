@@ -8,6 +8,7 @@ import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 import { MD, SANS, SM } from '../../utils/styled'
 import Highlight from '../Highlight'
 import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
+import { useNavigateToNodeCallback } from '../../hooks'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -147,6 +148,8 @@ function Item({ highlight, value, onClick }: ItemProps) {
 
   const navigate = useNavigate()
 
+  const navigateToNode = useNavigateToNodeCallback()
+
   const { invalidateLocationParamKey, invalidateNodeIdParamKey, mapRef } = useStore()
 
   return (
@@ -171,7 +174,7 @@ function Item({ highlight, value, onClick }: ItemProps) {
         }
 
         if (value.type === 'node') {
-          navigate(`/nodes/${value.payload.id}`)
+          navigateToNode(value.payload.id)
 
           /**
            * If the page address includes the node id already and the user

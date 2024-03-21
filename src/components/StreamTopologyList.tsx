@@ -1,21 +1,19 @@
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useStore } from '../contexts/Store'
-import { useStreamNodesQuery } from '../utils'
+import { useParams } from 'react-router-dom'
+import { useNavigateToNodeCallback } from '../hooks'
+import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 import { truncate } from '../utils/text'
 import { TopologyList } from './TopologyList'
 
 export function StreamTopologyList() {
-  const { streamId = null } = useParams<{ streamId: string }>()
+  const { streamId } = useParams<{ streamId: string }>()
 
-  const navigate = useNavigate()
+  const navigateToNode = useNavigateToNodeCallback()
 
-  const { selectedNode } = useStore()
+  const { data: nodes = [] } = useOperatorNodesForStreamQuery(streamId)
 
-  const nodes = useStreamNodesQuery(streamId)
-
-  if (!streamId || !nodes.length) {
-    return
+  if (!streamId) {
+    return null
   }
 
   return (
@@ -28,12 +26,7 @@ export function StreamTopologyList() {
         </>
       }
       onNodeClick={(nodeId) => {
-        navigate(
-          nodeId === selectedNode?.id
-            ? `/streams/${streamId}/`
-            : `/streams/${streamId}/nodes/${nodeId}`,
-          { replace: true },
-        )
+        navigateToNode(nodeId, { replace: true })
       }}
     />
   )

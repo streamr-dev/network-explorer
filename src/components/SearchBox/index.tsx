@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../contexts/Store'
+import { useStreamIdParam } from '../../hooks'
 import { useStore as useStoreOld } from '../../hooks/useStore'
 import { ActiveView } from '../../types'
 import { useIsSearching, useSearch } from '../../utils/search'
-import { NetworkStats } from '../NetworkStats'
+import Stats, { ApyStat, MessagesPerSecondStat, NodeCountStat, TvlStat } from '../Stats'
 import { NoSearchResults } from './NoSearchResults'
 import { Search, SlideHandle } from './Search'
 import { SearchInput } from './SearchInput'
@@ -19,13 +20,11 @@ export function SearchBox() {
 
   const selectedNodeId = selectedNode?.id || null
 
-  const searchMode = selectedNodeId === phrase ? 'node' : undefined
+  const streamId = useStreamIdParam()
 
-  /**
-   * For phrase equal to the selected node we don't
-   * do the search.
-   */
-  const finalPhrase = searchMode === 'node' ? '' : phrase
+  const hasSelection = phrase === selectedNodeId || phrase === streamId
+
+  const finalPhrase = hasSelection ? '' : phrase
 
   const isSearchPending = useIsSearching(finalPhrase)
 
@@ -34,10 +33,10 @@ export function SearchBox() {
   const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(
-    function setSelectedNodeIdAsPhrase() {
-      setPhrase(selectedNodeId || '')
+    function setSelectedStreamIdOrNodeIdAsPhrase() {
+      setPhrase(streamId ? streamId : selectedNodeId || '')
     },
-    [selectedNodeId],
+    [selectedNodeId, streamId],
   )
 
   useEffect(() => {
@@ -84,7 +83,7 @@ export function SearchBox() {
             setPhrase(e.target.value)
           }}
           onClearButtonClick={() => {
-            if (phrase === selectedNodeId) {
+            if (phrase === selectedNodeId || phrase === streamId) {
               navigate('/')
             }
 
@@ -94,21 +93,24 @@ export function SearchBox() {
             setActiveView(ActiveView.List)
           }}
         />
-        {/* <StreamStats /> */}
-        <NetworkStats />
+        <Stats>
+          <NodeCountStat />
+          {streamId ? <MessagesPerSecondStat /> : <ApyStat />}
+          <TvlStat />
+        </Stats>
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}
             highlight={phrase}
             onItemClick={(item) => {
-              if (item.type !== 'node') {
+              if (item.type !== 'node' && item.type !== 'stream') {
                 return
               }
 
               /**
-               * If the user modified the phrase and the selected node got on the search
-               * result list then clicking it won't change the URL and won't trigger the
-               * effect calling `setSelectedNodeIdAsPhrase`. We have to set the phrase
+               * If the user modified the phrase and the selected node/stream got on the
+               * search result list then clicking it won't change the URL and won't trigger
+               * the effect calling `setSelectedStreamIdOrNodeIdAsPhrase`. We have to set the phrase
                * manually to ensure things are in good order.
                */
               setPhrase(item.payload.id)

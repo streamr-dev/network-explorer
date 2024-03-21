@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { useDebounce } from '.'
-import { useAllOperatorNodesQuery, useIsFetchingAllNodes } from './nodes'
-import { useIsFetchingLocationFeatures, useLocationFeaturesQuery } from './places'
 import { Location, SearchResultItem } from '../types'
-import { useQuery } from '@tanstack/react-query'
+import { useIsFetchingOperatorNodesForStream, useOperatorNodesForStreamQuery } from './nodes'
+import { useIsFetchingLocationFeatures, useLocationFeaturesQuery } from './places'
 import { useLimitedStreamsQuery } from './streams'
 import { truncate } from './text'
 
@@ -12,7 +11,7 @@ function getValidSearchPhrase(phrase: string) {
 }
 
 export function useIsSearching(phrase: string) {
-  const isFetchingNodes = useIsFetchingAllNodes()
+  const isFetchingNodes = useIsFetchingOperatorNodesForStream(undefined)
 
   const isFetchingPlaces = useIsFetchingLocationFeatures(getValidSearchPhrase(phrase))
 
@@ -20,7 +19,7 @@ export function useIsSearching(phrase: string) {
 }
 
 export function useSearch({ phrase: phraseParam = '' }) {
-  const nodesQuery = useAllOperatorNodesQuery()
+  const nodesQuery = useOperatorNodesForStreamQuery(undefined)
 
   const phrase = useDebounce(getValidSearchPhrase(phraseParam), 250)
 

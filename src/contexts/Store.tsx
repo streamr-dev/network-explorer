@@ -10,9 +10,9 @@ import React, {
 } from 'react'
 import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 'react-map-gl'
 import { useParams } from 'react-router-dom'
-import { useGlobalKeyDownEffect } from '../hooks'
+import { useGlobalKeyDownEffect, useStreamIdParam } from '../hooks'
 import { OperatorNode } from '../types'
-import { useAllOperatorNodesQuery } from '../utils/nodes'
+import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 
 interface Store {
   mapRef: RefObject<MapRef>
@@ -102,7 +102,9 @@ export function useStore() {
 }
 
 function useNodeByNodeIdParam() {
-  const { data: nodes } = useAllOperatorNodesQuery()
+  const streamId = useStreamIdParam()
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined)
 
   const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
 

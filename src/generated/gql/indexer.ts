@@ -68,6 +68,7 @@ export type QueryNeighborsArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   node?: InputMaybe<Scalars['String']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  stream?: InputMaybe<Scalars['String']['input']>;
   streamPart?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -76,6 +77,7 @@ export type QueryNodesArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   ids?: InputMaybe<Array<Scalars['String']['input']>>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  stream?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -130,6 +132,7 @@ export type GetNodesQueryVariables = Exact<{
   cursor?: InputMaybe<Scalars['String']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
   ids?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  streamId?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -153,6 +156,7 @@ export type GetNeighborsQueryVariables = Exact<{
   pageSize?: InputMaybe<Scalars['Int']['input']>;
   streamPart?: InputMaybe<Scalars['String']['input']>;
   node?: InputMaybe<Scalars['String']['input']>;
+  streamId?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -170,8 +174,8 @@ export const GetSummaryDocument = gql`
     `;
 export type GetSummaryQueryResult = Apollo.QueryResult<GetSummaryQuery, GetSummaryQueryVariables>;
 export const GetNodesDocument = gql`
-    query GetNodes($cursor: String, $pageSize: Int, $ids: [String!]) {
-  nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids) {
+    query GetNodes($cursor: String, $pageSize: Int, $ids: [String!], $streamId: String) {
+  nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids, stream: $streamId) {
     cursor
     items {
       id
@@ -212,12 +216,13 @@ export const GetStreamsDocument = gql`
     `;
 export type GetStreamsQueryResult = Apollo.QueryResult<GetStreamsQuery, GetStreamsQueryVariables>;
 export const GetNeighborsDocument = gql`
-    query GetNeighbors($cursor: String, $pageSize: Int, $streamPart: String, $node: String) {
+    query GetNeighbors($cursor: String, $pageSize: Int, $streamPart: String, $node: String, $streamId: String) {
   neighbors(
     cursor: $cursor
     pageSize: $pageSize
     streamPart: $streamPart
     node: $node
+    stream: $streamId
   ) {
     items {
       streamPartId

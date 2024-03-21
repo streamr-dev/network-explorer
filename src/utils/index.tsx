@@ -12,10 +12,11 @@ import {
   GetSponsorshipsQuery,
   GetSponsorshipsQueryVariables,
 } from '../generated/gql/network'
+import { useStreamIdParam } from '../hooks'
 import { OperatorNode } from '../types'
 import { getNodeLocationId } from './map'
 import { useOperatorNodeNeighborsQuery } from './neighbors'
-import { useAllOperatorNodesQuery } from './nodes'
+import { useOperatorNodesForStreamQuery } from './nodes'
 import { getIndexerClient, getNetworkClient } from './queries'
 
 function getSummaryQueryKey() {
@@ -53,11 +54,13 @@ export function useIsFetchingSummary() {
 }
 
 export function useNodeConnections() {
-  const { data: nodes } = useAllOperatorNodesQuery()
+  const streamId = useStreamIdParam() || undefined
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId)
 
   const { selectedNode } = useStore()
 
-  const { data: neighbors } = useOperatorNodeNeighborsQuery(selectedNode?.id)
+  const { data: neighbors } = useOperatorNodeNeighborsQuery(selectedNode?.id, { streamId })
 
   return useMemo(
     function getConnectionsFromNodesAndNeighbors() {
@@ -80,7 +83,7 @@ export function useNodeConnections() {
 
       const uniquenessGate: Record<string, true> = {}
 
-      for (const [sourceId, targetId] of neighbors) {
+      for (const { nodeId0: sourceId, nodeId1: targetId } of neighbors) {
         const source = nodesById[sourceId]?.location
 
         const target = nodesById[targetId]?.location
@@ -174,7 +177,7 @@ export function useSponsorshipSummaryQuery() {
       }
 
       return {
-        apy: totalYearlyPayoutBN.dividedBy(totalStakeBN).multipliedBy(100),
+        apy: totalYearlyPayoutBN.dividedBy(totalStakeBN),
         tvl: totalStakeBN,
       }
     },

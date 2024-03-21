@@ -21,10 +21,6 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
     pageSize: 5,
   })
 
-  if (!selectedNode || !nodes.length) {
-    return null
-  }
-
   return (
     <NodeList>
       {!!title && <NodeListHeader>{title}</NodeListHeader>}
@@ -43,7 +39,7 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
           address="N/A"
           placeName="N/A"
           onClick={onNodeClick}
-          isActive={selectedNode.id === node.id}
+          isActive={selectedNode?.id === node.id}
           data-node-id={node.id}
         >
           <NodeStats id={node.id} />

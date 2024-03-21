@@ -1,10 +1,9 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { RefObject, useRef, useState } from 'react'
 import ReactMapGL, { MapRef } from 'react-map-gl'
-import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useStore } from '../../contexts/Store'
-import { useLocationFromParams } from '../../hooks'
+import { useLocationFromParams, useNavigateToNodeCallback } from '../../hooks'
 import { ConnectionsMode } from '../../types'
 import {
   InteractiveLayerIds,
@@ -12,11 +11,11 @@ import {
   getNodeLocationId,
   setNodeFeatureState,
 } from '../../utils/map'
+import { isOperatorNodeGeoFeature } from '../../utils/nodes'
+import { MapboxToken } from '../../utils/places'
 import { ConnectionLayer } from './ConnectionLayer'
 import { MarkerLayer } from './MarkerLayer'
 import { NavigationControl } from './NavigationControl'
-import { MapboxToken } from '../../utils/places'
-import { isOperatorNodeGeoFeature } from '../../utils/nodes'
 
 /**
  * The value specifies after how long the operation comes
@@ -49,11 +48,11 @@ export function Map({ innerRef: mapRef }: MapProps) {
 
   const navRef = useRef<HTMLDivElement>(null)
 
-  const { selectedNode, viewport, setViewport, resetViewport } = useStore()
+  const { viewport, setViewport, resetViewport } = useStore()
 
   const lastHoveredNodeLocationIdRef = useRef<string | null>(null)
 
-  const navigate = useNavigate()
+  const navigateToNode = useNavigateToNodeCallback()
 
   useSelectedNodeLocationEffect(([longitude, latitude]) => {
     const map = mapRef.current?.getMap()
@@ -95,12 +94,7 @@ export function Map({ innerRef: mapRef }: MapProps) {
 
           const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
 
-          const to =
-            isOperatorNodeGeoFeature(feature) && feature.properties.id !== selectedNode?.id
-              ? `/nodes/${feature.properties.id}`
-              : '/'
-
-          navigate(to)
+          navigateToNode(isOperatorNodeGeoFeature(feature) ? feature.properties.id : '')
         }}
         onHover={(e) => {
           const feature: GeoJSON.Feature | undefined = (e.features || [])[0]

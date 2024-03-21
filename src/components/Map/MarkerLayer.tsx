@@ -1,13 +1,16 @@
 import React, { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl'
+import { useStreamIdParam } from '../../hooks'
 import { OperatorNode } from '../../types'
 import { NodeLayerId, NodeSourceId, getNodeLocationId } from '../../utils/map'
-import { useAllOperatorNodesQuery } from '../../utils/nodes'
+import { useOperatorNodesForStreamQuery } from '../../utils/nodes'
 
 const EmptyNodes: OperatorNode[] = []
 
 export function MarkerLayer() {
-  const nodesQuery = useAllOperatorNodesQuery()
+  const streamId = useStreamIdParam()
+
+  const nodesQuery = useOperatorNodesForStreamQuery(streamId  || undefined)
 
   const nodes = nodesQuery.data || EmptyNodes
 
