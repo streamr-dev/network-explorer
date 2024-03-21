@@ -184,10 +184,3 @@ export function useSponsorshipSummaryQuery() {
     staleTime: 2 * FiveMinutesMs,
   })
 }
-
-export function useStreamNodesQuery(streamId: string | null) {
-  // Get neighbours
-  // Get unique node ids
-  // Get nodes for them ids via network
-  return useMemo<OperatorNode[]>(() => [], [])
-}

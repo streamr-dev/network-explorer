@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { ReactNode, useCallback } from 'react'
 import styled, { css } from 'styled-components'
 import Identicon from 'react-identicons'
 import { useTransition, animated } from 'react-spring'
@@ -98,7 +98,7 @@ const PlacenameOrAddress = styled.div`
 
 const PlaceName = styled.div`
   font-size: 10px;
-  color: #ADADAD;
+  color: #adadad;
   margin-top: 2px;
   font-weight: ${MEDIUM};
 `
@@ -113,8 +113,7 @@ const Address = styled(PlaceName)`
 type Props = {
   nodeId: string
   title: string
-  address: string,
-  placeName: string
+  placeName: ReactNode
   onClick?: (id: string) => void
   isActive?: boolean
   children?: React.ReactNode
@@ -123,19 +122,12 @@ type Props = {
 export const NodeListItem = ({
   nodeId,
   title,
-  address,
   placeName,
-  onClick: onClickProp,
+  onClick,
   isActive,
   children,
   ...props
 }: Props) => {
-  const onClick = useCallback(() => {
-    if (typeof onClickProp === 'function') {
-      onClickProp(nodeId)
-    }
-  }, [onClickProp, nodeId])
-
   const transition = useTransition(isActive, {
     from: { opacity: 0 },
     enter: { opacity: 1 },
@@ -146,13 +138,17 @@ export const NodeListItem = ({
     <NodeElement
       {...props}
       theme={{
-        clickable: typeof onClickProp === 'function',
+        clickable: !!onClick,
         isActive,
       }}
     >
-      <TitleRow onClick={onClick}>
+      <TitleRow
+        onClick={() => {
+          onClick?.(nodeId)
+        }}
+      >
         <IconWrapper>
-          <Identicon string={address} size={20} />
+          <Identicon string={nodeId} size={20} />
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
@@ -160,7 +156,7 @@ export const NodeListItem = ({
             {transition((style, item) =>
               item ? (
                 <animated.div style={style}>
-                  <Address title={address}>{truncate(address)}</Address>
+                  <Address title={nodeId}>{nodeId}</Address>
                 </animated.div>
               ) : (
                 <animated.div style={style}>

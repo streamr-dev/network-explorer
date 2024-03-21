@@ -4,6 +4,7 @@ import { useNavigateToNodeCallback } from '../hooks'
 import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 import { truncate } from '../utils/text'
 import { TopologyList } from './TopologyList'
+import { useStore } from '../contexts/Store'
 
 export function StreamTopologyList() {
   const { streamId } = useParams<{ streamId: string }>()
@@ -11,6 +12,8 @@ export function StreamTopologyList() {
   const navigateToNode = useNavigateToNodeCallback()
 
   const { data: nodes = [] } = useOperatorNodesForStreamQuery(streamId)
+
+  const { selectedNode } = useStore()
 
   if (!streamId) {
     return null
@@ -26,7 +29,7 @@ export function StreamTopologyList() {
         </>
       }
       onNodeClick={(nodeId) => {
-        navigateToNode(nodeId, { replace: true })
+        navigateToNode(selectedNode?.id === nodeId ? '' : nodeId, { replace: true })
       }}
     />
   )

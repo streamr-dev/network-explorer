@@ -6,6 +6,7 @@ import { NodeList, NodeListHeader } from './NodeList'
 import { NodeListItem } from './NodeList/NodeListItem'
 import Pager from './NodeList/Pager'
 import NodeStats from './NodeStats'
+import { Place } from './Place'
 
 interface TopologyListProps {
   nodes: OperatorNode[]
@@ -36,8 +37,9 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
           key={node.id}
           nodeId={node.id}
           title={node.title}
-          address="N/A"
-          placeName="N/A"
+          placeName={
+            <Place longitude={node.location.longitude} latitude={node.location.latitude} />
+          }
           onClick={onNodeClick}
           isActive={selectedNode?.id === node.id}
           data-node-id={node.id}

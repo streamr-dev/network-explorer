@@ -78,10 +78,14 @@ export function useLocationRegionsQuery(params: UseLocationRegionParams) {
   const { latitude, longitude } = params
 
   return useLocationFeaturesQuery(
-    { place: [latitude, longitude] },
+    { place: [longitude, latitude] },
     {
-      eligible: ({ type }) => type.includes('region'),
+      eligible: ({ place_type }) => place_type.includes('region'),
       transform: ({ bbox, place_name: region }) => ({ bbox, region }),
     },
   )
+}
+
+export function useIsFetchingLocationRegions({ longitude, latitude }: UseLocationRegionParams) {
+  return useIsFetchingLocationFeatures(`${longitude},${latitude}`)
 }
