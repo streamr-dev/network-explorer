@@ -1,12 +1,11 @@
-import React, { ReactNode, useCallback } from 'react'
-import styled, { css } from 'styled-components'
+import React, { ReactNode } from 'react'
 import Identicon from 'react-identicons'
-import { useTransition, animated } from 'react-spring'
-import { SANS, MEDIUM } from '../../utils/styled'
-import { truncate } from '../../utils/text'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
+import { animated, useTransition } from 'react-spring'
+import styled, { css } from 'styled-components'
+import { MEDIUM, SANS } from '../../utils/styled'
 import Error from '../Error'
+import Graphs from '../Graphs'
+import Stats from '../Stats'
 
 const Name = styled.div`
   color: #323232;
