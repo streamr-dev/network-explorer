@@ -48,7 +48,7 @@ export function Map({ innerRef: mapRef }: MapProps) {
 
   const navRef = useRef<HTMLDivElement>(null)
 
-  const { viewport, setViewport, resetViewport } = useStore()
+  const { viewport, setViewport, setViewportDebounced, resetViewport } = useStore()
 
   const lastHoveredNodeLocationIdRef = useRef<string | null>(null)
 
@@ -138,13 +138,13 @@ export function Map({ innerRef: mapRef }: MapProps) {
         <MarkerLayer />
         <NavigationControl
           onZoomIn={() => {
-            setViewport(({ zoom = 0, ...rest }) => ({
+            setViewportDebounced(({ zoom = 0, ...rest }) => ({
               ...rest,
               zoom: zoom + 1,
             }))
           }}
           onZoomOut={() => {
-            setViewport(({ zoom = 0, ...rest }) => ({
+            setViewportDebounced(({ zoom = 0, ...rest }) => ({
               ...rest,
               zoom: zoom - 1,
             }))

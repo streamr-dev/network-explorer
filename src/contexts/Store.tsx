@@ -11,6 +11,7 @@ import React, {
 import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 'react-map-gl'
 import { useParams } from 'react-router-dom'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../hooks'
+import { useDebounced } from '../hooks/wrapCallback'
 import { OperatorNode } from '../types'
 import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 
@@ -23,6 +24,7 @@ interface Store {
   invalidateNodeIdParamKey(): void
   viewport: ViewportProps
   setViewport(fn: (viewport: ViewportProps) => ViewportProps): void
+  setViewportDebounced(fn: (viewport: ViewportProps) => ViewportProps): void
   resetViewport(): void
 }
 
@@ -54,6 +56,7 @@ const StoreContext = createContext<Store>({
   invalidateNodeIdParamKey: () => {},
   viewport: defaultViewport,
   setViewport: () => {},
+  setViewportDebounced: () => {},
   resetViewport: () => {},
 })
 
@@ -71,9 +74,14 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
 
   const [viewport, setViewport] = useState(defaultViewport)
 
+  const setViewportDebounced = useDebounced(
+    useCallback((nextViewport: ViewportProps) => setViewport(nextViewport), []),
+    250,
+  )
+
   const resetViewport = useCallback(() => {
-    setViewport(defaultViewport)
-  }, [])
+    setViewportDebounced(defaultViewport)
+  }, [setViewportDebounced])
 
   useGlobalKeyDownEffect('0', () => {
     resetViewport()
@@ -91,6 +99,7 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
         invalidateNodeIdParamKey,
         viewport,
         setViewport,
+        setViewportDebounced,
         resetViewport,
       }}
     />
