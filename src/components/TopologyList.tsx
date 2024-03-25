@@ -41,7 +41,6 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
           }
           onClick={onNodeClick}
           isActive={selectedNode?.id === node.id}
-          data-node-id={node.id}
         >
           <NodeStats id={node.id} />
         </NodeListItem>

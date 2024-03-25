@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect, useRef } from 'react'
 import Identicon from 'react-identicons'
 import { animated, useTransition } from 'react-spring'
 import styled, { css } from 'styled-components'
@@ -133,9 +133,35 @@ export const NodeListItem = ({
     leave: { opacity: 0 },
   })
 
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    if (isActive) {
+      setTimeout(function scrollReffedElementIntoView() {
+        const { current: el } = ref
+
+        if (!el || !mounted) {
+          return
+        }
+
+        el.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth',
+        })
+      }, 1000)
+    }
+
+    return () => {
+      mounted = false
+    }
+  }, [isActive])
+
   return (
     <NodeElement
       {...props}
+      ref={ref}
       theme={{
         clickable: !!onClick,
         isActive,
