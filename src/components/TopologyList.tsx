@@ -19,7 +19,6 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
 
   const pagedNodes = usePaginatedItems(nodes, {
     selectedId: selectedNode?.id,
-    pageSize: 5,
   })
 
   return (
