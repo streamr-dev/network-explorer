@@ -4,7 +4,7 @@ import { useNavigateToNodeCallback } from '../hooks'
 import { useOperatorNodesForStreamQuery } from '../utils/nodes'
 import { truncate } from '../utils/text'
 import { TopologyList } from './TopologyList'
-import { useStore } from '../contexts/Store'
+import { useStore } from '../Store'
 
 export function StreamTopologyList() {
   const { streamId } = useParams<{ streamId: string }>()

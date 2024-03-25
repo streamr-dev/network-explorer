@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { useStore } from '../contexts/Store'
+import { useStore } from '../Store'
 import { useNavigateToNodeCallback } from '../hooks'
 import { OperatorNode } from '../types'
 import { useOperatorNodesForStreamQuery } from '../utils/nodes'

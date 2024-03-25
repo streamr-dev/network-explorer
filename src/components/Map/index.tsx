@@ -2,7 +2,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { RefObject, useRef, useState } from 'react'
 import ReactMapGL, { MapRef } from 'react-map-gl'
 import styled from 'styled-components'
-import { useStore } from '../../contexts/Store'
+import { useStore } from '../../Store'
 import { useLocationFromParams, useNavigateToNodeCallback } from '../../hooks'
 import { ConnectionsMode } from '../../types'
 import {

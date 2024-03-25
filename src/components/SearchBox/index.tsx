@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore } from '../../contexts/Store'
+import { useStore } from '../../Store'
 import { useStreamIdParam } from '../../hooks'
 import { useStore as useStoreOld } from '../../hooks/useStore'
 import { ActiveView } from '../../types'

@@ -10,10 +10,10 @@ import React, {
 } from 'react'
 import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 'react-map-gl'
 import { useParams } from 'react-router-dom'
-import { useGlobalKeyDownEffect, useStreamIdParam } from '../hooks'
-import { useDebounced } from '../hooks/wrapCallback'
-import { OperatorNode } from '../types'
-import { useOperatorNodesForStreamQuery } from '../utils/nodes'
+import { useGlobalKeyDownEffect, useStreamIdParam } from './hooks'
+import { useDebounced } from './hooks/wrapCallback'
+import { OperatorNode } from './types'
+import { useOperatorNodesForStreamQuery } from './utils/nodes'
 
 interface Store {
   mapRef: RefObject<MapRef>

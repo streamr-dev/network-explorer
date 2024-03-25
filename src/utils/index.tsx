@@ -1,7 +1,7 @@
 import { useIsFetching, useQuery } from '@tanstack/react-query'
 import BigNumber from 'bignumber.js'
 import { useEffect, useMemo, useState } from 'react'
-import { useStore } from '../contexts/Store'
+import { useStore } from '../Store'
 import {
   GetSummaryDocument,
   GetSummaryQuery,

@@ -3,13 +3,10 @@ import React, { useRef } from 'react'
 import { MapRef } from 'react-map-gl'
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import styled from 'styled-components'
-import { Provider as ControllerProvider } from '../contexts/Controller'
-import { Provider as PendingProvider } from '../contexts/Pending'
-import { StoreProvider } from '../contexts/Store'
+import { StoreProvider } from '../Store'
 import { useStreamIdParam } from '../hooks'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
-import Debug from './Debug'
 import { ErrorBoundary } from './ErrorBoundary'
 import Layout from './Layout'
 import UnstyledLoadingIndicator from './LoadingIndicator'
@@ -39,7 +36,6 @@ function Page() {
       <LoadingIndicator large loading={isLoadingNodes} />
       <Layout>
         <ErrorBoundary>
-          <Debug />
           <NetworkSelector />
           <SearchBox />
           <Outlet />
@@ -53,20 +49,16 @@ export function App() {
   return (
     <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
       <QueryClientProvider client={getQueryClient()}>
-        <PendingProvider>
-          <StreamrClientProvider>
-            <ControllerProvider>
-              <Routes>
-                <Route element={<Page />}>
-                  <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
-                  <Route path="/streams/:streamId" element={<StreamTopologyList />} />
-                  <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
-                  <Route index element={<NodeTopologyList />} />
-                </Route>
-              </Routes>
-            </ControllerProvider>
-          </StreamrClientProvider>
-        </PendingProvider>
+        <StreamrClientProvider>
+          <Routes>
+            <Route element={<Page />}>
+              <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
+              <Route path="/streams/:streamId" element={<StreamTopologyList />} />
+              <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
+              <Route index element={<NodeTopologyList />} />
+            </Route>
+          </Routes>
+        </StreamrClientProvider>
       </QueryClientProvider>
     </BrowserRouter>
   )

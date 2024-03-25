@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { useStore } from '../contexts/Store'
+import { useStore } from '../Store'
 import { usePaginatedItems } from '../hooks'
 import { OperatorNode } from '../types'
 import { NodeList, NodeListHeader } from './NodeList'
