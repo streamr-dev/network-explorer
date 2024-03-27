@@ -76,6 +76,8 @@ const NodeElement = styled.div`
   ${({ theme }) =>
     !!theme.isActive &&
     css`
+      box-shadow: 0 0 0 3px #ddd;
+
       ${Content} {
         max-height: 100vh;
       }
