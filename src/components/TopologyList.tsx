@@ -5,7 +5,7 @@ import { OperatorNode } from '../types'
 import { NodeList, NodeListHeader } from './NodeList'
 import { NodeListItem } from './NodeList/NodeListItem'
 import Pager from './NodeList/Pager'
-import NodeStats from './NodeStats'
+import { NodeStats } from './NodeStats'
 import { Place } from './Place'
 
 interface TopologyListProps {
@@ -42,7 +42,7 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
           onClick={onNodeClick}
           isActive={selectedNode?.id === node.id}
         >
-          <NodeStats id={node.id} />
+          <NodeStats />
         </NodeListItem>
       ))}
     </NodeList>

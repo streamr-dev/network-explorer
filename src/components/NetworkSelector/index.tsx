@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useStore } from '../../hooks/useStore'
-import envs from '../../utils/envs'
 import { SANS, SM } from '../../utils/styled'
 import { Tooltip } from '../Tooltip'
 
@@ -131,20 +129,11 @@ type Props = {}
 const UnstyledNetworkSelector = (props: Props) => {
   const { env: selectedEnv } = useStore()
   const [open, setOpen] = useState<boolean>(false)
-  const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
 
   const toggleOpen = useCallback(() => {
     setOpen((wasOpen) => !wasOpen)
   }, [])
-
-  const changeEnv = useCallback(
-    (env: string) => {
-      navigate(`/?network=${env}`)
-      setOpen(false)
-    },
-    [navigate],
-  )
 
   useEffect(() => {
     if (!open || !containerRef.current) {
@@ -191,13 +180,13 @@ const UnstyledNetworkSelector = (props: Props) => {
       </Tooltip>
       {!!open && (
         <NetworkList>
-          {Object.keys(envs).map((env) => (
-            <NetworkItem key={env} type="button" onClick={() => changeEnv(env)}>
-              <NetworkIndicator theme={themes[env] ? themes[env] : themes.default} />
-              <NetworkName>{envs[env].title}</NetworkName>
-              <div>{env === selectedEnv && <TickIcon />}</div>
-            </NetworkItem>
-          ))}
+          <NetworkItem type="button">
+            <NetworkIndicator theme={themes.default} />
+            <NetworkName>Mainnet</NetworkName>
+            <div>
+              <TickIcon />
+            </div>
+          </NetworkItem>
         </NetworkList>
       )}
     </div>
