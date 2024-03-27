@@ -64,21 +64,6 @@
       "last 1 safari version"
     ]
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "!<rootDir>/node_modules/",
-      "!*.stories.*"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "lines": 50
-      }
-    },
-    "coverageReporters": [
-      "text"
-    ]
-  },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
@@ -120,6 +105,7 @@
     "prettier-eslint": "^16.3.0",
     "prettier-eslint-cli": "^8.0.1",
     "react-app-rewired": "^2.2.1",
-    "react-is": "^16.13.1"
+    "react-is": "^16.13.1",
+    "ts-jest": "^29.1.2"
   }
 }
