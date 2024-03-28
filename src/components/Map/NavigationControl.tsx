@@ -1,8 +1,7 @@
-import React from 'react'
-import styled from 'styled-components/macro'
-
-import Tooltip from '../Tooltip'
+import React, { RefObject } from 'react'
+import styled from 'styled-components'
 import { SM } from '../../utils/styled'
+import { Tooltip } from '../Tooltip'
 
 const Button = styled.button`
   width: 40px;
@@ -145,13 +144,7 @@ export const ConnectionIcon = () => (
   </svg>
 )
 
-type ButtonGroupProps = {
-  children: React.ReactNode
-}
-
-const UnstyledButtonGroup = (props: ButtonGroupProps) => <div {...props} />
-
-const ButtonGroup = styled(UnstyledButtonGroup)`
+const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -166,69 +159,14 @@ const ButtonGroup = styled(UnstyledButtonGroup)`
     border-bottom: 1px solid #efefef;
   }
 
-  :empty {
+  &:empty {
     display: none;
   }
 `
 
 const ZoomGroup = styled(ButtonGroup)``
 
-export type Props = {
-  onZoomIn?: () => void
-  onZoomOut?: () => void
-  onZoomReset?: () => void
-  onToggleConnections?: () => void
-}
-
-const UnstyledNavigationControl = React.forwardRef<HTMLDivElement, Props>(({
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
-  onToggleConnections,
-  ...props
-}, ref?) => {
-  return (
-    <div {...props} ref={ref}>
-      {typeof onToggleConnections === 'function' && (
-        <ButtonGroup>
-          <Tooltip value="Show node connections">
-            <ConnectionButton type="button" onClick={() => onToggleConnections()}>
-              <ConnectionIcon />
-            </ConnectionButton>
-          </Tooltip>
-        </ButtonGroup>
-      )}
-      {typeof onZoomReset === 'function' && (
-        <ButtonGroup>
-          <Tooltip value="Reset the map">
-            <ResetButton type="button" onClick={() => onZoomReset()}>
-              <RefreshIcon />
-            </ResetButton>
-          </Tooltip>
-        </ButtonGroup>
-      )}
-      {(typeof onZoomIn === 'function' || typeof onZoomOut === 'function') && (
-        <ZoomGroup>
-          {typeof onZoomIn === 'function' && (
-            <Button
-              type="button"
-              onClick={onZoomIn}
-            >
-              <PlusIcon />
-            </Button>
-          )}
-          {typeof onZoomOut === 'function' && (
-            <Button type="button" onClick={() => onZoomOut()}>
-              <MinusIcon />
-            </Button>
-          )}
-        </ZoomGroup>
-      )}
-    </div>
-  )
-})
-
-const NavigationControl = styled(UnstyledNavigationControl)`
+const NavigationControlRoot = styled.div`
   position: absolute;
   right: 16px;
   top: 64px;
@@ -248,4 +186,41 @@ const NavigationControl = styled(UnstyledNavigationControl)`
   }
 `
 
-export default NavigationControl
+export interface NavigationControlProps {
+  innerRef?: RefObject<HTMLDivElement>
+  onResetMap(): void
+  onToggleConnections(): void
+  onZoomIn(): void
+  onZoomOut(): void
+}
+
+export function NavigationControl(props: NavigationControlProps) {
+  const { onZoomIn, onZoomOut, onResetMap, onToggleConnections, innerRef } = props
+
+  return (
+    <NavigationControlRoot ref={innerRef}>
+      <ButtonGroup>
+        <Tooltip value="Show node connections">
+          <ConnectionButton type="button" onClick={onToggleConnections}>
+            <ConnectionIcon />
+          </ConnectionButton>
+        </Tooltip>
+      </ButtonGroup>
+      <ButtonGroup>
+        <Tooltip value="Reset the map">
+          <ResetButton type="button" onClick={onResetMap}>
+            <RefreshIcon />
+          </ResetButton>
+        </Tooltip>
+      </ButtonGroup>
+      <ZoomGroup>
+        <Button type="button" onClick={onZoomIn}>
+          <PlusIcon />
+        </Button>
+        <Button type="button" onClick={() => onZoomOut()}>
+          <MinusIcon />
+        </Button>
+      </ZoomGroup>
+    </NavigationControlRoot>
+  )
+}

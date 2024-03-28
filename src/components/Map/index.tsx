@@ -1,276 +1,230 @@
-import React, {
-  useEffect, useRef, useMemo, useCallback,
-} from 'react'
-import ReactMapGL, {
-  ViewportProps,
-  MapRef,
-} from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import React, { RefObject, useRef, useState } from 'react'
+import ReactMapGL, { MapRef } from 'react-map-gl'
 import styled from 'styled-components'
+import { useStore } from '../../Store'
+import { useLocationFromParams, useNavigateToNodeCallback } from '../../hooks'
+import { ConnectionsMode } from '../../types'
+import {
+  InteractiveLayerIds,
+  getCursor,
+  getNodeLocationId,
+  setNodeFeatureState,
+} from '../../utils/map'
+import { isOperatorNodeGeoFeature } from '../../utils/nodes'
+import { MapboxToken } from '../../utils/places'
+import { ConnectionLayer } from './ConnectionLayer'
+import { MarkerLayer } from './MarkerLayer'
+import { NavigationControl } from './NavigationControl'
 
-import ConnectionLayer from './ConnectionLayer'
-import MarkerLayer from './MarkerLayer'
-import NavigationControl, { Props as NavigationControlProps } from './NavigationControl'
+/**
+ * The value specifies after how long the operation comes
+ * to a stop, in milliseconds.
+ */
+const Inertia = 300
 
-import { useStore, Topology } from '../../contexts/Store'
-import { useController } from '../../contexts/Controller'
-import { MAPBOX_TOKEN } from '../../utils/api/mapbox'
-import { Node } from '../../utils/api/tracker'
-import useKeyDown from '../../hooks/useKeyDown'
-
-type Props = {
-  nodes: Node[]
-  topology: Topology
-  activeNode?: Node
-  viewport: ViewportProps
-  setViewport: React.Dispatch<React.SetStateAction<ViewportProps>>
-  onNodeClick?: (v: string) => void
-  onMapClick?: () => void
-  showConnections?: boolean
-} & NavigationControlProps
-
-const defaultViewport = {
-  width: 0,
-  height: 0,
-  latitude: 53.86859,
-  longitude: -0.36616,
-  zoom: 3,
-  bearing: 0,
-  pitch: 0,
-  altitude: 0,
-  maxZoom: 15,
-  minZoom: 2,
-  maxPitch: 60,
-  minPitch: 0,
+interface LocationFromParams {
+  longitude: number
+  latitude: number
+  zoom: number
 }
 
-// react-map-gl documentation: The value specifies after how long the operation comes to a stop, in milliseconds
-const INERTIA = 300
-
-const NODE_SOURCE_ID = 'node-source'
-const NODE_LAYER_ID = 'node-layer'
-
-function getCursor({ isHovering, isDragging }: { isHovering: boolean; isDragging: boolean }) {
-  if (isDragging) {
-    return 'all-scroll'
-  }
-
-  return isHovering ? 'pointer' : 'default'
+function getLocationKey({ longitude, latitude, zoom }: LocationFromParams) {
+  return JSON.stringify([longitude, latitude, zoom])
 }
 
-export const Map = ({
-  nodes,
-  topology,
-  activeNode,
-  viewport = defaultViewport,
-  setViewport,
-  onNodeClick,
-  onMapClick,
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
-  onToggleConnections,
-  showConnections = false,
-}: Props) => {
-  const mapRef = useRef<MapRef>(null)
+interface MapProps {
+  innerRef: RefObject<MapRef>
+}
+
+export function Map({ innerRef: mapRef }: MapProps) {
+  const streamId: string | undefined = undefined
+
+  const [connectionMode, setConnectionMode] = useState<ConnectionsMode>(ConnectionsMode.Auto)
+
+  const showConnections = !streamId
+    ? connectionMode === ConnectionsMode.Always
+    : connectionMode === ConnectionsMode.Auto
+
   const navRef = useRef<HTMLDivElement>(null)
-  const hoveredNodeIdRef = useRef<string | null>(null)
-  const activeNodeIdRef = useRef<string | null>(null)
 
-  const setNodeFeatureState = useCallback((id: string, state) => {
+  const { viewport, setViewport, setViewportDebounced, resetViewport } = useStore()
+
+  const lastHoveredNodeLocationIdRef = useRef<string | null>(null)
+
+  const navigateToNode = useNavigateToNodeCallback()
+
+  useSelectedNodeLocationEffect(([longitude, latitude]) => {
     const map = mapRef.current?.getMap()
 
-    if (map && map.isStyleLoaded()) {
-      map.setFeatureState({
-        source: NODE_SOURCE_ID,
-        id,
-      }, {
-        ...state,
-      })
-    } else if (map && !map.isStyleLoaded()) {
-      // Defer the call for a while to wait for styles to load
-      setTimeout(() => setNodeFeatureState(id, state), 100)
+    if (!map || map.getBounds().contains([longitude, latitude])) {
+      return
     }
-  }, [])
 
-  useEffect(() => {
-    // Set node feature state to contain active status
-    if (activeNode?.id) {
-      if (activeNodeIdRef.current !== activeNode.id) {
-        if (activeNodeIdRef.current) {
-          setNodeFeatureState(activeNodeIdRef.current, { active: false })
-        }
-        activeNodeIdRef.current = activeNode.id
-      }
+    setViewport((current) => ({
+      ...current,
+      longitude,
+      latitude,
+    }))
+  })
 
-      setNodeFeatureState(activeNodeIdRef.current, { active: true })
-    } else if (activeNodeIdRef.current != null) {
-      setNodeFeatureState(activeNodeIdRef.current, { active: false })
-      activeNodeIdRef.current = null
-    }
-  }, [activeNode, setNodeFeatureState])
-
-  // Bring active node into view if it's outside of map bounds
-  useEffect(() => {
-    const map = mapRef.current?.getMap()
-    if (map && activeNode) {
-      const lngLat = [activeNode.location.longitude, activeNode.location.latitude]
-      const isInBounds = map.getBounds().contains(lngLat)
-      if (!isInBounds) {
-        map.panTo(lngLat)
-      }
-    }
-  }, [activeNode])
+  useSelectedPlaceLocationEffect((location) => {
+    setViewport((current) => ({
+      ...current,
+      ...location,
+    }))
+  })
 
   return (
-    <ReactMapGL
-      {...viewport}
-      width="100%"
-      height="100%"
-      mapboxApiAccessToken={MAPBOX_TOKEN}
-      mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
-      onViewportChange={setViewport}
-      getCursor={getCursor}
-      ref={mapRef}
-      interactiveLayerIds={[NODE_LAYER_ID]}
-      onClick={(e) => {
-        if (!navRef.current!.contains(e.target)) {
-          // Did we click on a node or just the background map layer?
-          if (onNodeClick && e.features && e.features.length > 0) {
-            const firstId = e.features[0].properties.id
-            if (firstId) {
-              onNodeClick(firstId)
-            }
-          } else if (onMapClick) {
-            onMapClick()
+    <MapContainer>
+      <ReactMapGL
+        {...viewport}
+        width="100%"
+        height="100%"
+        mapboxApiAccessToken={MapboxToken}
+        mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
+        onViewportChange={setViewport}
+        getCursor={getCursor}
+        ref={mapRef}
+        interactiveLayerIds={InteractiveLayerIds}
+        onClick={(e) => {
+          if (!navRef.current || navRef.current.contains(e.target)) {
+            return
           }
-        }
-      }}
-      onHover={(e) => {
-        // Set node feature state to contain hover status
-        if (e.features && e.features.length > 0) {
-          if (e.features[0].properties.id) {
-            if (hoveredNodeIdRef.current !== e.features[0].properties.id) {
-              if (hoveredNodeIdRef.current) {
-                setNodeFeatureState(hoveredNodeIdRef.current, { hover: false })
-              }
-              hoveredNodeIdRef.current = e.features[0].properties.id
-            }
 
-            if (hoveredNodeIdRef.current) {
-              setNodeFeatureState(hoveredNodeIdRef.current, { hover: true })
-            }
+          const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
+
+          navigateToNode(isOperatorNodeGeoFeature(feature) ? feature.properties.id : '')
+        }}
+        onHover={(e) => {
+          const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
+
+          const nodeLocationId = isOperatorNodeGeoFeature(feature)
+            ? feature.properties.locationId
+            : null
+
+          const { current: prevNodeLocationId } = lastHoveredNodeLocationIdRef
+
+          if (nodeLocationId === prevNodeLocationId) {
+            return
           }
-        } else {
-          if (hoveredNodeIdRef.current) {
-            setNodeFeatureState(hoveredNodeIdRef.current, { hover: false })
+
+          if (prevNodeLocationId) {
+            setNodeFeatureState(mapRef, prevNodeLocationId, { hover: false })
+
+            lastHoveredNodeLocationIdRef.current = null
           }
-          hoveredNodeIdRef.current = null
-        }
-      }}
-      dragPan={{
-        inertia: INERTIA,
-      }}
-      dragRotate={{
-        inertia: INERTIA,
-      }}
-      touchZoom={{
-        inertia: INERTIA,
-      }}
-      touchRotate={{
-        inertia: INERTIA,
-      }}
-    >
-      <ConnectionLayer
-        topology={topology}
-        nodes={nodes}
-        activeNode={activeNode}
-        visible={!!showConnections}
-      />
-      <MarkerLayer
-        nodes={nodes}
-        sourceId={NODE_SOURCE_ID}
-        layerId={NODE_LAYER_ID}
-      />
-      <NavigationControl
-        onZoomIn={onZoomIn}
-        onZoomOut={onZoomOut}
-        onZoomReset={onZoomReset}
-        onToggleConnections={onToggleConnections}
-        ref={navRef}
-      />
-    </ReactMapGL>
+
+          if (nodeLocationId) {
+            setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
+
+            lastHoveredNodeLocationIdRef.current = nodeLocationId
+          }
+        }}
+        dragPan={{
+          inertia: Inertia,
+        }}
+        dragRotate={{
+          inertia: Inertia,
+        }}
+        touchZoom={{
+          inertia: Inertia,
+        }}
+        touchRotate={{
+          inertia: Inertia,
+        }}
+      >
+        <ConnectionLayer visible={showConnections} />
+        <MarkerLayer />
+        <NavigationControl
+          onZoomIn={() => {
+            setViewportDebounced(({ zoom = 0, ...rest }) => ({
+              ...rest,
+              zoom: zoom + 1,
+            }))
+          }}
+          onZoomOut={() => {
+            setViewportDebounced(({ zoom = 0, ...rest }) => ({
+              ...rest,
+              zoom: zoom - 1,
+            }))
+          }}
+          onResetMap={resetViewport}
+          onToggleConnections={() => {
+            /*
+             * @todo Rename `Always` to just `On` (= On/Off).
+             */
+            setConnectionMode((current) =>
+              current === ConnectionsMode.Always ? ConnectionsMode.Off : ConnectionsMode.Always,
+            )
+          }}
+          innerRef={navRef}
+        />
+      </ReactMapGL>
+    </MapContainer>
   )
 }
 
 const MapContainer = styled.div`
   position: relative;
-  width: 100vw;
   height: 100%;
 `
 
-export const ConnectedMap = () => {
-  const {
-    visibleNodes,
-    topology,
-    activeNode,
-    streamId,
-    showConnections,
-    toggleShowConnections,
-  } = useStore()
-  const {
-    viewport,
-    setViewport,
-    showNode,
-    zoomIn,
-    zoomOut,
-    reset,
-  } = useController()
+function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, number]) => void) {
+  const selectedNodeLocationIdRef = useRef<string | null>(null)
 
-  const { id: activeNodeId } = activeNode || {}
+  const { current: prevSelectedNodeLocationId } = selectedNodeLocationIdRef
 
-  const onNodeClick = useCallback(
-    (nodeId: string) => {
-      showNode(nodeId !== activeNodeId ? nodeId : undefined)
-    },
-    [showNode, activeNodeId],
-  )
+  const { mapRef, selectedNode, nodeIdParamkey } = useStore()
 
-  // reset search view when clicking on map
-  const onMapClick = useCallback(() => {
-    // unselect active node
-    showNode(undefined)
-  }, [showNode])
+  const nodeIdParamkeyRef = useRef(nodeIdParamkey)
 
-  useKeyDown(
-    useMemo(
-      () => ({
-        '0': () => {
-          reset()
-        },
-      }),
-      [reset],
-    ),
-  )
+  if (selectedNode && nodeIdParamkeyRef.current !== nodeIdParamkey) {
+    const { longitude, latitude } = selectedNode.location
 
-  return (
-    <MapContainer>
-      <Map
-        nodes={visibleNodes}
-        viewport={viewport}
-        topology={topology}
-        setViewport={setViewport}
-        activeNode={activeNode}
-        onNodeClick={onNodeClick}
-        onMapClick={onMapClick}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        onZoomReset={reset}
-        showConnections={(showConnections === 'auto' && !!streamId) || showConnections === 'always'}
-        onToggleConnections={toggleShowConnections}
-      />
-    </MapContainer>
-  )
+    onLocationUpdate([longitude, latitude])
+  }
+
+  nodeIdParamkeyRef.current = nodeIdParamkey
+
+  const selectedNodeLocationId = selectedNode ? getNodeLocationId(selectedNode.location) : undefined
+
+  if (prevSelectedNodeLocationId !== selectedNodeLocationId) {
+    if (prevSelectedNodeLocationId) {
+      setNodeFeatureState(mapRef, prevSelectedNodeLocationId, { active: false })
+    }
+
+    if (selectedNodeLocationId) {
+      setNodeFeatureState(mapRef, selectedNodeLocationId, { active: true })
+    }
+
+    selectedNodeLocationIdRef.current = selectedNodeLocationId || null
+  }
 }
 
-export default ConnectedMap
+function useSelectedPlaceLocationEffect(onLocationUpdate: (location: LocationFromParams) => void) {
+  const location = useLocationFromParams()
+
+  const { locationParamKey } = useStore()
+
+  const locationParamKeyRef = useRef(locationParamKey)
+
+  const locationKeyRef = useRef<string | null>(null)
+
+  if (location) {
+    const locationKey = getLocationKey(location)
+
+    if (
+      locationKeyRef.current !== locationKey ||
+      locationParamKeyRef.current !== locationParamKey
+    ) {
+      onLocationUpdate(location)
+
+      locationKeyRef.current = locationKey
+    }
+  } else {
+    locationKeyRef.current = null
+  }
+
+  locationParamKeyRef.current = locationParamKey
+}

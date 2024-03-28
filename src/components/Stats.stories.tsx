@@ -9,9 +9,9 @@ export default {
 } as Meta
 
 export const Selectable = () => {
-  const [selected, setSelected] = useState(undefined)
+  const [selected, setSelected] = useState<string>()
 
-  const onClick = useCallback((name) => {
+  const onClick = useCallback((name: string) => {
     setSelected((prev) => (prev !== name ? name : undefined))
   }, [])
 
@@ -25,9 +25,9 @@ export const Selectable = () => {
 }
 
 export const PartlySelectable = () => {
-  const [selected, setSelected] = useState(undefined)
+  const [selected, setSelected] = useState<string>()
 
-  const onClick = useCallback((name) => {
+  const onClick = useCallback((name: string) => {
     setSelected((prev) => (prev !== name ? name : undefined))
   }, [])
 
