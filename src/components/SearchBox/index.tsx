@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
-import { useStreamIdParam } from '../../hooks'
+import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
 import { ActiveView } from '../../types'
 import { useIsSearching, useSearch } from '../../utils/search'
 import Stats, { ApyStat, MessagesPerSecondStat, NodeCountStat, TvlStat } from '../Stats'
@@ -39,6 +39,16 @@ export function SearchBox() {
   const navigate = useNavigate()
 
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useGlobalKeyDownEffect(
+    '/',
+    () => {
+      inputRef.current?.focus()
+    },
+    {
+      preventDefault: true,
+    },
+  )
 
   return (
     <>

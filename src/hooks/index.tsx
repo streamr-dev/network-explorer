@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
+export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void, { preventDefault = false } = {}) {
   const fnRef = useRef(fn)
 
   if (fnRef.current !== fn) {
@@ -27,6 +27,10 @@ export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void) {
 
         if (match) {
           fnRef.current()
+        }
+
+        if (preventDefault) {
+          e.preventDefault()
         }
       }
 
