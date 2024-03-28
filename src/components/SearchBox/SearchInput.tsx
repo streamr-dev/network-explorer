@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { ChangeEvent, InputHTMLAttributes, useState } from 'react'
+import React, { ChangeEvent, InputHTMLAttributes, RefObject, useState } from 'react'
 import styled from 'styled-components'
 
 import uniqueId from 'lodash/uniqueId'
@@ -162,10 +162,12 @@ const ClearIcon = () => (
 
 interface SearchInputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'autoComplete'> {
+  inputRef: RefObject<HTMLInputElement>
   onClearButtonClick?(): void
 }
 
 const UnstyledSearchInput = ({
+  inputRef,
   className,
   onClearButtonClick,
   placeholder = 'Search Streamr Network',
@@ -189,6 +191,7 @@ const UnstyledSearchInput = ({
         </Logo>
         <Input
           {...props}
+          ref={inputRef}
           autoComplete="off"
           id={inputId}
           onChange={onChange}

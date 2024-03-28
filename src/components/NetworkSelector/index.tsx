@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
-import { useStore } from '../../hooks/useStore'
 import { SANS, SM } from '../../utils/styled'
 import { Tooltip } from '../Tooltip'
 
@@ -28,16 +27,8 @@ const TickIcon = () => (
   </svg>
 )
 
-const themes: Record<string, Object> = {
-  mainnet: {
-    color: '#0EAC1B',
-  },
-  brubeck: {
-    color: '#0EAC1B',
-  },
-  default: {
-    color: '#EFEFEF',
-  },
+const MainnetTheme = {
+  color: '#0EAC1B',
 }
 
 const NetworkIndicator = styled.div`
@@ -127,8 +118,8 @@ const NetworkItem = styled.button`
 type Props = {}
 
 const UnstyledNetworkSelector = (props: Props) => {
-  const { env: selectedEnv } = useStore()
   const [open, setOpen] = useState<boolean>(false)
+
   const containerRef = useRef<HTMLDivElement>(null)
 
   const toggleOpen = useCallback(() => {
@@ -173,15 +164,13 @@ const UnstyledNetworkSelector = (props: Props) => {
       <Tooltip value={!open ? 'Network selector' : undefined}>
         <Button type="button" onClick={toggleOpen}>
           <GlobeIcon />
-          <NetworkIndicator
-            theme={!!selectedEnv && !!themes[selectedEnv] ? themes[selectedEnv] : themes.default}
-          />
+          <NetworkIndicator theme={MainnetTheme} />
         </Button>
       </Tooltip>
       {!!open && (
         <NetworkList>
           <NetworkItem type="button">
-            <NetworkIndicator theme={themes.default} />
+            <NetworkIndicator theme={MainnetTheme} />
             <NetworkName>Mainnet</NetworkName>
             <div>
               <TickIcon />

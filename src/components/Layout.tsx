@@ -1,8 +1,8 @@
 import React, { useMemo, useRef } from 'react'
 import styled, { css } from 'styled-components'
+import { useStore } from '../Store'
 import { ActiveView } from '../types'
 import { SM } from '../utils/styled'
-import { useStore } from '../hooks/useStore'
 import ControlBox from './ControlBox'
 import { NodeListInner } from './NodeList'
 

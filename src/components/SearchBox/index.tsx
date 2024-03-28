@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
 import { useStreamIdParam } from '../../hooks'
-import { useStore as useStoreOld } from '../../hooks/useStore'
 import { ActiveView } from '../../types'
 import { useIsSearching, useSearch } from '../../utils/search'
 import Stats, { ApyStat, MessagesPerSecondStat, NodeCountStat, TvlStat } from '../Stats'
@@ -12,11 +11,9 @@ import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
 
 export function SearchBox() {
-  const { activeView, setActiveView, env } = useStoreOld()
-
   const [phrase, setPhrase] = useState('')
 
-  const { selectedNode } = useStore()
+  const { selectedNode, activeView, setActiveView } = useStore()
 
   const selectedNodeId = selectedNode?.id || null
 
@@ -39,31 +36,9 @@ export function SearchBox() {
     [selectedNodeId, streamId],
   )
 
-  useEffect(() => {
-    if (activeView !== ActiveView.List || !searchRef.current) {
-      return undefined
-    }
-
-    const onMouseDown = (e: MouseEvent) => {
-      const { current: el } = searchRef
-
-      if (!el) {
-        return
-      }
-
-      if (!el.contains(e.target as Element)) {
-        setActiveView(ActiveView.Map)
-      }
-    }
-
-    window.addEventListener('mousedown', onMouseDown)
-
-    return () => {
-      window.removeEventListener('mousedown', onMouseDown)
-    }
-  }, [activeView, setActiveView])
-
   const navigate = useNavigate()
+
+  const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <>
@@ -73,11 +48,11 @@ export function SearchBox() {
           resultsActive: searchResults.length > 0,
           hasStats: true,
         }}
-        key={env}
         ref={searchRef}
       >
         <SlideHandle />
         <SearchInput
+          inputRef={inputRef}
           value={phrase}
           onChange={(e) => {
             setPhrase(e.target.value)
@@ -88,9 +63,14 @@ export function SearchBox() {
             }
 
             setPhrase('')
+
+            inputRef.current?.focus()
           }}
           onFocus={() => {
             setActiveView(ActiveView.List)
+          }}
+          onBlur={() => {
+            setActiveView(ActiveView.Map)
           }}
         />
         <Stats>

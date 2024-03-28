@@ -12,20 +12,22 @@ import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 're
 import { useParams } from 'react-router-dom'
 import { useGlobalKeyDownEffect, useStreamIdParam } from './hooks'
 import { useDebounced } from './hooks/wrapCallback'
-import { OperatorNode } from './types'
+import { ActiveView, OperatorNode } from './types'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 
 interface Store {
-  mapRef: RefObject<MapRef>
-  selectedNode: OperatorNode | null
-  locationParamKey: number
+  activeView: ActiveView
   invalidateLocationParamKey(): void
-  nodeIdParamkey: number
   invalidateNodeIdParamKey(): void
-  viewport: ViewportProps
+  locationParamKey: number
+  mapRef: RefObject<MapRef>
+  nodeIdParamkey: number
+  resetViewport(): void
+  selectedNode: OperatorNode | null
+  setActiveView(value: ActiveView): void
   setViewport(fn: (viewport: ViewportProps) => ViewportProps): void
   setViewportDebounced(fn: (viewport: ViewportProps) => ViewportProps): void
-  resetViewport(): void
+  viewport: ViewportProps
 }
 
 const defaultViewport: ViewportProps = {
@@ -48,21 +50,23 @@ const defaultViewport: ViewportProps = {
 }
 
 const StoreContext = createContext<Store>({
-  mapRef: { current: null },
-  selectedNode: null,
-  locationParamKey: -1,
+  activeView: ActiveView.Map,
   invalidateLocationParamKey: () => {},
-  nodeIdParamkey: -1,
   invalidateNodeIdParamKey: () => {},
-  viewport: defaultViewport,
+  locationParamKey: -1,
+  mapRef: { current: null },
+  nodeIdParamkey: -1,
+  resetViewport: () => {},
+  selectedNode: null,
+  setActiveView: () => {},
   setViewport: () => {},
   setViewportDebounced: () => {},
-  resetViewport: () => {},
+  viewport: defaultViewport,
 })
 
 interface StoreProviderProps {
-  mapRef: RefObject<MapRef>
   children?: ReactNode
+  mapRef: RefObject<MapRef>
 }
 
 export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
@@ -87,20 +91,24 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
     resetViewport()
   })
 
+  const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
+
   return (
     <StoreContext.Provider
       {...props}
       value={{
-        mapRef,
-        selectedNode,
-        locationParamKey,
+        activeView,
         invalidateLocationParamKey,
-        nodeIdParamkey,
         invalidateNodeIdParamKey,
-        viewport,
+        locationParamKey,
+        mapRef,
+        nodeIdParamkey,
+        resetViewport,
+        selectedNode,
+        setActiveView,
         setViewport,
         setViewportDebounced,
-        resetViewport,
+        viewport,
       }}
     />
   )
