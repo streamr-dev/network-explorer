@@ -72,6 +72,19 @@ export function SearchBox() {
           onBlur={() => {
             setActiveView(ActiveView.Map)
           }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Escape') {
+              return
+            }
+
+            if (phrase === '') {
+              inputRef.current?.blur()
+
+              return
+            }
+
+            setPhrase('')
+          }}
         />
         <Stats>
           <NodeCountStat />
