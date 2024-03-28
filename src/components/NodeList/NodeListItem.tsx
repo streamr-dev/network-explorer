@@ -115,6 +115,7 @@ const Address = styled(PlaceName)`
 
 type Props = {
   children?: React.ReactNode
+  highlightPointOnHover?: boolean
   isActive?: boolean
   nodeId: string
   nodeLocationId: string
@@ -125,6 +126,7 @@ type Props = {
 
 export const NodeListItem = ({
   children,
+  highlightPointOnHover = false,
   isActive,
   nodeId,
   nodeLocationId,
@@ -180,10 +182,14 @@ export const NodeListItem = ({
           onClick?.(nodeId)
         }}
         onMouseEnter={() => {
-          setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
+          if (highlightPointOnHover) {
+            setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
+          }
         }}
         onMouseLeave={() => {
-          setNodeFeatureState(mapRef, nodeLocationId, { hover: false })
+          if (highlightPointOnHover) {
+            setNodeFeatureState(mapRef, nodeLocationId, { hover: false })
+          }
         }}
       >
         <IconWrapper>

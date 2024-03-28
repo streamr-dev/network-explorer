@@ -10,12 +10,18 @@ import { NodeStats } from './NodeStats'
 import { Place } from './Place'
 
 interface TopologyListProps {
+  highlightPointsOnHover?: boolean
   nodes: OperatorNode[]
   onNodeClick?(nodeId: string): void
   title?: ReactNode
 }
 
-export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
+export function TopologyList({
+  highlightPointsOnHover = false,
+  nodes,
+  onNodeClick,
+  title,
+}: TopologyListProps) {
   const { selectedNode } = useStore()
 
   const pagedNodes = usePaginatedItems(nodes, {
@@ -43,6 +49,7 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
           }
           onClick={onNodeClick}
           isActive={selectedNode?.id === node.id}
+          highlightPointOnHover={highlightPointsOnHover}
         >
           <NodeStats />
         </NodeListItem>

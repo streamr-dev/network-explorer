@@ -21,6 +21,7 @@ export function StreamTopologyList() {
 
   return (
     <TopologyList
+      highlightPointsOnHover
       nodes={nodes}
       title={
         <>
