@@ -1,5 +1,5 @@
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React, { RefObject, useRef, useState } from 'react'
+import React, { RefObject, useEffect, useRef, useState } from 'react'
 import ReactMapGL, { MapRef } from 'react-map-gl'
 import styled from 'styled-components'
 import { useStore } from '../../Store'
@@ -27,10 +27,6 @@ interface LocationFromParams {
   longitude: number
   latitude: number
   zoom: number
-}
-
-function getLocationKey({ longitude, latitude, zoom }: LocationFromParams) {
-  return JSON.stringify([longitude, latitude, zoom])
 }
 
 interface MapProps {
@@ -171,21 +167,28 @@ const MapContainer = styled.div`
 `
 
 function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, number]) => void) {
+  const { mapRef, selectedNode, nodeIdParamKey } = useStore()
+
+  const { longitude, latitude } = selectedNode?.location || {}
+
+  const onLocationUpdateRef = useRef(onLocationUpdate)
+
+  if (onLocationUpdateRef.current !== onLocationUpdate) {
+    onLocationUpdateRef.current = onLocationUpdate
+  }
+
+  useEffect(
+    function propagateLocationChange() {
+      if (longitude != null && latitude != null) {
+        onLocationUpdateRef.current([longitude, latitude])
+      }
+    },
+    [longitude, latitude, nodeIdParamKey],
+  )
+
   const selectedNodeLocationIdRef = useRef<string | null>(null)
 
   const { current: prevSelectedNodeLocationId } = selectedNodeLocationIdRef
-
-  const { mapRef, selectedNode, nodeIdParamkey } = useStore()
-
-  const nodeIdParamkeyRef = useRef(nodeIdParamkey)
-
-  if (selectedNode && nodeIdParamkeyRef.current !== nodeIdParamkey) {
-    const { longitude, latitude } = selectedNode.location
-
-    onLocationUpdate([longitude, latitude])
-  }
-
-  nodeIdParamkeyRef.current = nodeIdParamkey
 
   const selectedNodeLocationId = selectedNode ? getNodeLocationId(selectedNode.location) : undefined
 
@@ -203,28 +206,22 @@ function useSelectedNodeLocationEffect(onLocationUpdate: (location: [number, num
 }
 
 function useSelectedPlaceLocationEffect(onLocationUpdate: (location: LocationFromParams) => void) {
-  const location = useLocationFromParams()
+  const { longitude, latitude, zoom } = useLocationFromParams() || {}
 
   const { locationParamKey } = useStore()
 
-  const locationParamKeyRef = useRef(locationParamKey)
+  const onLocationUpdateRef = useRef(onLocationUpdate)
 
-  const locationKeyRef = useRef<string | null>(null)
-
-  if (location) {
-    const locationKey = getLocationKey(location)
-
-    if (
-      locationKeyRef.current !== locationKey ||
-      locationParamKeyRef.current !== locationParamKey
-    ) {
-      onLocationUpdate(location)
-
-      locationKeyRef.current = locationKey
-    }
-  } else {
-    locationKeyRef.current = null
+  if (onLocationUpdateRef.current !== onLocationUpdate) {
+    onLocationUpdateRef.current = onLocationUpdate
   }
 
-  locationParamKeyRef.current = locationParamKey
+  useEffect(
+    function propagatePlaceChange() {
+      if (longitude != null && latitude != null && zoom != null) {
+        onLocationUpdateRef.current({ longitude, latitude, zoom })
+      }
+    },
+    [longitude, latitude, zoom, locationParamKey],
+  )
 }
