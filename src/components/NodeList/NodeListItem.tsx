@@ -166,7 +166,7 @@ export const NodeListItem = ({
     }
   }, [isActive])
 
-  const { mapRef } = useStore()
+  const { mapRef, invalidateNodeIdParamKey } = useStore()
 
   return (
     <NodeElement
@@ -180,6 +180,14 @@ export const NodeListItem = ({
       <TitleRow
         onClick={() => {
           onClick?.(nodeId)
+
+          /**
+           * If the page address includes the node id already and the user
+           * panned away then the above won't be sufficient to get node's location
+           * back into viewport. To address it, we have to invalidate the node id
+           * param key.
+           */
+          invalidateNodeIdParamKey()
         }}
         onMouseEnter={() => {
           if (highlightPointOnHover) {

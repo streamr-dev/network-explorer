@@ -14,17 +14,21 @@ import { useGlobalKeyDownEffect, useStreamIdParam } from './hooks'
 import { useDebounced } from './hooks/wrapCallback'
 import { ActiveView, OperatorNode } from './types'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
+import { truncate } from './utils/text'
 
 interface Store {
   activeView: ActiveView
+  displaySearchPhrase: string
   invalidateLocationParamKey(): void
   invalidateNodeIdParamKey(): void
   locationParamKey: number
   mapRef: RefObject<MapRef>
-  nodeIdParamkey: number
+  nodeIdParamKey: number
   resetViewport(): void
+  searchPhrase: string
   selectedNode: OperatorNode | null
   setActiveView(value: ActiveView): void
+  setSearchPhrase(value: string): void
   setViewport(fn: (viewport: ViewportProps) => ViewportProps): void
   setViewportDebounced(fn: (viewport: ViewportProps) => ViewportProps): void
   viewport: ViewportProps
@@ -51,14 +55,17 @@ const defaultViewport: ViewportProps = {
 
 const StoreContext = createContext<Store>({
   activeView: ActiveView.Map,
+  displaySearchPhrase: '',
   invalidateLocationParamKey: () => {},
   invalidateNodeIdParamKey: () => {},
   locationParamKey: -1,
   mapRef: { current: null },
-  nodeIdParamkey: -1,
+  nodeIdParamKey: -1,
   resetViewport: () => {},
+  searchPhrase: '',
   selectedNode: null,
   setActiveView: () => {},
+  setSearchPhrase: () => {},
   setViewport: () => {},
   setViewportDebounced: () => {},
   viewport: defaultViewport,
@@ -74,7 +81,7 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
 
   const [locationParamKey, invalidateLocationParamKey] = useReducer((x: number) => x + 1, 0)
 
-  const [nodeIdParamkey, invalidateNodeIdParamKey] = useReducer((x: number) => x + 1, 0)
+  const [nodeIdParamKey, invalidateNodeIdParamKey] = useReducer((x: number) => x + 1, 0)
 
   const [viewport, setViewport] = useState(defaultViewport)
 
@@ -93,19 +100,32 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
 
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
 
+  const [rawSearchPhrase, setRawSearchPhrase] = useState('')
+
+  const [displaySearchPhrase, setDisplaySearchPhrase] = useState('')
+
+  const setSearchPhrase = useCallback((value: string) => {
+    setRawSearchPhrase(value)
+
+    setDisplaySearchPhrase(truncate(value))
+  }, [])
+
   return (
     <StoreContext.Provider
       {...props}
       value={{
         activeView,
+        displaySearchPhrase,
         invalidateLocationParamKey,
         invalidateNodeIdParamKey,
         locationParamKey,
         mapRef,
-        nodeIdParamkey,
+        nodeIdParamKey,
         resetViewport,
+        searchPhrase: rawSearchPhrase,
         selectedNode,
         setActiveView,
+        setSearchPhrase,
         setViewport,
         setViewportDebounced,
         viewport,

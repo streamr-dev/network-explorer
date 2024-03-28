@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
@@ -11,30 +11,28 @@ import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
 
 export function SearchBox() {
-  const [phrase, setPhrase] = useState('')
-
-  const { selectedNode, activeView, setActiveView } = useStore()
+  const {
+    selectedNode,
+    activeView,
+    setActiveView,
+    searchPhrase,
+    setSearchPhrase,
+    displaySearchPhrase,
+  } = useStore()
 
   const selectedNodeId = selectedNode?.id || null
 
   const streamId = useStreamIdParam()
 
-  const hasSelection = phrase === selectedNodeId || phrase === streamId
+  const hasSelection = searchPhrase === selectedNodeId || searchPhrase === streamId
 
-  const finalPhrase = hasSelection ? '' : phrase
+  const finalPhrase = hasSelection ? '' : searchPhrase
 
   const isSearchPending = useIsSearching(finalPhrase)
 
   const searchResults = useSearch({ phrase: finalPhrase })
 
   const searchRef = useRef<HTMLDivElement>(null)
-
-  useEffect(
-    function setSelectedStreamIdOrNodeIdAsPhrase() {
-      setPhrase(streamId ? streamId : selectedNodeId || '')
-    },
-    [selectedNodeId, streamId],
-  )
 
   const navigate = useNavigate()
 
@@ -50,6 +48,8 @@ export function SearchBox() {
     },
   )
 
+  useSetInitialSearchPhraseEffect()
+
   return (
     <>
       <Search
@@ -63,16 +63,27 @@ export function SearchBox() {
         <SlideHandle />
         <SearchInput
           inputRef={inputRef}
-          value={phrase}
+          value={searchPhrase}
+          displayValue={displaySearchPhrase}
           onChange={(e) => {
-            setPhrase(e.target.value)
+            const { value } = e.target
+
+            setSearchPhrase(value)
+
+            if (streamId) {
+              if (value !== streamId) {
+                navigate('/')
+              }
+            } else if (selectedNodeId && value !== selectedNodeId) {
+              navigate('/')
+            }
           }}
           onClearButtonClick={() => {
-            if (phrase === selectedNodeId || phrase === streamId) {
+            if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
               navigate('/')
             }
 
-            setPhrase('')
+            setSearchPhrase('')
 
             inputRef.current?.focus()
           }}
@@ -87,13 +98,13 @@ export function SearchBox() {
               return
             }
 
-            if (phrase === '') {
+            if (searchPhrase === '') {
               inputRef.current?.blur()
 
               return
             }
 
-            setPhrase('')
+            setSearchPhrase('')
           }}
         />
         <Stats>
@@ -104,7 +115,7 @@ export function SearchBox() {
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}
-            highlight={phrase}
+            highlight={searchPhrase}
             onItemClick={(item) => {
               if (item.type !== 'node' && item.type !== 'stream') {
                 return
@@ -116,7 +127,7 @@ export function SearchBox() {
                * the effect calling `setSelectedStreamIdOrNodeIdAsPhrase`. We have to set the phrase
                * manually to ensure things are in good order.
                */
-              setPhrase(item.payload.id)
+              setSearchPhrase(item.payload.id)
             }}
           />
         )}
@@ -125,5 +136,24 @@ export function SearchBox() {
         <NoSearchResults search={finalPhrase} />
       )}
     </>
+  )
+}
+
+function useSetInitialSearchPhraseEffect() {
+  const { setSearchPhrase, selectedNode } = useStore()
+
+  const streamId = useStreamIdParam()
+
+  const selectedNodeId = selectedNode?.id
+
+  useEffect(
+    function setSearchPhraseOnMountOnly() {
+      if (streamId) {
+        setSearchPhrase(streamId)
+      } else if (selectedNodeId) {
+        setSearchPhrase(selectedNodeId)
+      }
+    },
+    [streamId, selectedNodeId, setSearchPhrase],
   )
 }

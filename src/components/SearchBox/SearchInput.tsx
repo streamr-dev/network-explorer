@@ -1,8 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { ChangeEvent, InputHTMLAttributes, RefObject, useState } from 'react'
-import styled from 'styled-components'
-
 import uniqueId from 'lodash/uniqueId'
+import React, { ChangeEvent, FocusEvent, InputHTMLAttributes, RefObject, useState } from 'react'
+import styled from 'styled-components'
 import { MD, SANS, SM } from '../../utils/styled'
 
 export const SearchInputInner = styled.div`
@@ -161,24 +160,47 @@ const ClearIcon = () => (
 )
 
 interface SearchInputProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'autoComplete'> {
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'autoComplete' | 'value'> {
+  displayValue?: string
   inputRef: RefObject<HTMLInputElement>
   onClearButtonClick?(): void
+  value?: string
 }
 
 const UnstyledSearchInput = ({
-  inputRef,
   className,
+  displayValue = '',
+  inputRef,
+  onBlur: onBlurProp,
+  onChange: onChangeProp,
   onClearButtonClick,
+  onFocus: onFocusProp,
   placeholder = 'Search Streamr Network',
   value = '',
-  onChange: onChangeProp,
   ...props
 }: SearchInputProps) => {
   const inputId = useState(uniqueId('input-'))[0]
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     onChangeProp?.(e)
+  }
+
+  const [focused, setFocused] = useState(false)
+
+  function onFocus(e: FocusEvent<HTMLInputElement>) {
+    onFocusProp?.(e)
+
+    setFocused(true)
+
+    setTimeout(() => {
+      inputRef.current?.setSelectionRange(0, value.length)
+    })
+  }
+
+  function onBlur(e: FocusEvent<HTMLInputElement>) {
+    onBlurProp?.(e)
+
+    setFocused(false)
   }
 
   return (
@@ -191,13 +213,15 @@ const UnstyledSearchInput = ({
         </Logo>
         <Input
           {...props}
+          onFocus={onFocus}
+          onBlur={onBlur}
           ref={inputRef}
           autoComplete="off"
           id={inputId}
           onChange={onChange}
           placeholder={placeholder}
           type="text"
-          value={value}
+          value={focused ? value : displayValue}
         />
         <ButtonWrapper>
           {value ? (

@@ -1,14 +1,13 @@
 import React from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Virtuoso } from 'react-virtuoso'
 import styled from 'styled-components'
 import { useStore } from '../../Store'
+import { useNavigateToNodeCallback } from '../../hooks'
 import { SearchResultItem } from '../../types'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 import { MD, SANS, SM } from '../../utils/styled'
 import Highlight from '../Highlight'
 import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
-import { useNavigateToNodeCallback } from '../../hooks'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -107,17 +106,6 @@ const Details = styled.div`
   }
 `
 
-const List = styled.div`
-  display: grid;
-
-  a,
-  a:hover,
-  a:active,
-  a:visited {
-    text-decoration: none;
-  }
-`
-
 type Props = {
   results: SearchResultItem[]
   highlight?: string
@@ -127,12 +115,9 @@ type Props = {
 export function SearchResults({ results, highlight, onItemClick, ...props }: Props) {
   return (
     <SearchResultsRoot {...props}>
-      <Virtuoso
-        data={results}
-        itemContent={(_, result) => (
-          <Item value={result} highlight={highlight} onClick={onItemClick} />
-        )}
-      />
+      {results.map((value) => (
+        <Item key={value.payload.id} value={value} highlight={highlight} onClick={onItemClick} />
+      ))}
     </SearchResultsRoot>
   )
 }
@@ -228,10 +213,11 @@ function Item({ highlight, value, onClick }: ItemProps) {
 }
 
 export const SearchResultsRoot = styled.div`
+  max-height: 512px;
+  overflow: auto;
+
   @media (max-width: ${SM}px) {
-    ${List} {
-      grid-row-gap: 8px;
-    }
+    max-height: 336px;
 
     ${Row} {
       border: 1px solid #efefef;

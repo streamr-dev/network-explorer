@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useStore } from '../Store'
 
-export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void, { preventDefault = false } = {}) {
+export function useGlobalKeyDownEffect(
+  key: string | RegExp,
+  fn: () => void,
+  { preventDefault = false } = {},
+) {
   const fnRef = useRef(fn)
 
   if (fnRef.current !== fn) {
@@ -29,7 +34,7 @@ export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void, { p
           fnRef.current()
         }
 
-        if (preventDefault) {
+        if (match && preventDefault) {
           e.preventDefault()
         }
       }
@@ -40,7 +45,7 @@ export function useGlobalKeyDownEffect(key: string | RegExp, fn: () => void, { p
         window.removeEventListener('keydown', onKeyDown)
       }
     },
-    [key],
+    [key, preventDefault],
   )
 }
 
@@ -127,6 +132,8 @@ export function useNavigateToNodeCallback() {
 
   const streamId = useStreamIdParam()
 
+  const { setSearchPhrase } = useStore()
+
   return useCallback(
     (nodeId: string, { replace = false } = {}) => {
       const nodePath = nodeId ? `nodes/${encodeURIComponent(nodeId)}/` : ''
@@ -134,7 +141,15 @@ export function useNavigateToNodeCallback() {
       navigate(streamId ? `/streams/${encodeURIComponent(streamId)}/${nodePath}` : `/${nodePath}`, {
         replace,
       })
+
+      if (streamId) {
+        setSearchPhrase(streamId)
+      } else if (nodeId) {
+        setSearchPhrase(nodeId)
+      } else {
+        setSearchPhrase('')
+      }
     },
-    [navigate, streamId],
+    [navigate, streamId, setSearchPhrase],
   )
 }
