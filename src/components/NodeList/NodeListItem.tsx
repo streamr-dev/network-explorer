@@ -6,6 +6,8 @@ import { MEDIUM, SANS } from '../../utils/styled'
 import Error from '../Error'
 import Graphs from '../Graphs'
 import Stats from '../Stats'
+import { setNodeFeatureState } from '../../utils/map'
+import { useStore } from '../../Store'
 
 const Name = styled.div`
   color: #323232;
@@ -112,21 +114,23 @@ const Address = styled(PlaceName)`
 `
 
 type Props = {
-  nodeId: string
-  title: string
-  placeName: ReactNode
-  onClick?: (id: string) => void
-  isActive?: boolean
   children?: React.ReactNode
+  isActive?: boolean
+  nodeId: string
+  nodeLocationId: string
+  onClick?: (id: string) => void
+  placeName: ReactNode
+  title: string
 }
 
 export const NodeListItem = ({
-  nodeId,
-  title,
-  placeName,
-  onClick,
-  isActive,
   children,
+  isActive,
+  nodeId,
+  nodeLocationId,
+  onClick,
+  placeName,
+  title,
   ...props
 }: Props) => {
   const transition = useTransition(isActive, {
@@ -160,6 +164,8 @@ export const NodeListItem = ({
     }
   }, [isActive])
 
+  const { mapRef } = useStore()
+
   return (
     <NodeElement
       {...props}
@@ -172,6 +178,12 @@ export const NodeListItem = ({
       <TitleRow
         onClick={() => {
           onClick?.(nodeId)
+        }}
+        onMouseEnter={() => {
+          setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
+        }}
+        onMouseLeave={() => {
+          setNodeFeatureState(mapRef, nodeLocationId, { hover: false })
         }}
       >
         <IconWrapper>

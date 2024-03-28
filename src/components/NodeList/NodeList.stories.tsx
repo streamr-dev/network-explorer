@@ -7,6 +7,7 @@ import usePaged from '../../hooks/usePaged'
 import { NodeList, NodeListHeader } from '.'
 import { NodeListItem } from './NodeListItem'
 import Pager from './Pager'
+import { getNodeLocationId } from '../../utils/map'
 
 const Wrapper = styled.div`
   background-color: lightblue;
@@ -58,8 +59,14 @@ const nodes = [
 
 export const Basic = () => (
   <NodeList>
-    {nodes.map(({ id, title, placeName }) => (
-      <NodeListItem key={id} nodeId={id} title={title} placeName={placeName} />
+    {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+      <NodeListItem
+        key={id}
+        nodeId={id}
+        nodeLocationId={getNodeLocationId({ longitude, latitude })}
+        title={title}
+        placeName={placeName}
+      />
     ))}
   </NodeList>
 )
@@ -69,8 +76,14 @@ export const WithHeader = () => (
     <NodeListHeader>
       Showing all <strong>{nodes.length}</strong> nodes
     </NodeListHeader>
-    {nodes.map(({ id, title, placeName }) => (
-      <NodeListItem key={id} nodeId={id} title={title} placeName={placeName} />
+    {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+      <NodeListItem
+        key={id}
+        nodeId={id}
+        nodeLocationId={getNodeLocationId({ longitude, latitude })}
+        title={title}
+        placeName={placeName}
+      />
     ))}
   </NodeList>
 )
@@ -80,10 +93,11 @@ export const WithStats = () => {
 
   return (
     <NodeList>
-      {nodes.map(({ id, title, placeName }) => (
+      {nodes.map(({ id, title, placeName, longitude, latitude }) => (
         <NodeListItem
           key={id}
           nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
           title={title}
           placeName={placeName}
           onClick={() => setActiveNode((prev) => (prev !== id ? id : undefined))}
@@ -142,10 +156,11 @@ export const WithStatsAndError = () => {
 
   return (
     <NodeList>
-      {nodes.map(({ id, title, placeName }) => (
+      {nodes.map(({ id, title, placeName, longitude, latitude }) => (
         <NodeListItem
           key={id}
           nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
           title={title}
           placeName={placeName}
           onClick={() => onNodeClick(id !== activeNode ? id : undefined)}
@@ -187,6 +202,8 @@ type Node = {
   title: string
   address: string
   placeName: string
+  longitude: number
+  latitude: number
 }
 
 const longList: Array<Node> = Array.from(
@@ -198,6 +215,8 @@ const longList: Array<Node> = Array.from(
     title: `Node ${i + 1}`,
     address: `node-${i + 1}`,
     placeName: 'Helsinki',
+    longitude: 53,
+    latitude: 17,
   }),
 )
 
@@ -212,8 +231,14 @@ export const Paged = () => {
   return (
     <NodeList>
       <Pager currentPage={currentPage} lastPage={pages} onChange={setPage} />
-      {items.map(({ id, title, placeName }) => (
-        <NodeListItem key={id} nodeId={id} title={title} placeName={placeName} />
+      {items.map(({ id, title, placeName, longitude, latitude }) => (
+        <NodeListItem
+          key={id}
+          nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
+          title={title}
+          placeName={placeName}
+        />
       ))}
     </NodeList>
   )

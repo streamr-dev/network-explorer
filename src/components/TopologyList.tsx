@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react'
 import { useStore } from '../Store'
 import { usePaginatedItems } from '../hooks'
 import { OperatorNode } from '../types'
+import { getNodeLocationId } from '../utils/map'
 import { NodeList, NodeListHeader } from './NodeList'
 import { NodeListItem } from './NodeList/NodeListItem'
 import Pager from './NodeList/Pager'
@@ -35,6 +36,7 @@ export function TopologyList({ onNodeClick, nodes, title }: TopologyListProps) {
         <NodeListItem
           key={node.id}
           nodeId={node.id}
+          nodeLocationId={getNodeLocationId(node.location)}
           title={node.title}
           placeName={
             <Place longitude={node.location.longitude} latitude={node.location.latitude} />
