@@ -6,8 +6,8 @@ import { getNodeLocationId } from '../utils/map'
 import { NodeList, NodeListHeader } from './NodeList'
 import { NodeListItem } from './NodeList/NodeListItem'
 import Pager from './NodeList/Pager'
-import { NodeStats } from './NodeStats'
 import { Place } from './Place'
+import { NodeStats } from './Stats'
 
 interface TopologyListProps {
   highlightPointsOnHover?: boolean
@@ -51,7 +51,7 @@ export function TopologyList({
           isActive={selectedNode?.id === node.id}
           highlightPointOnHover={highlightPointsOnHover}
         >
-          <NodeStats />
+          <NodeStats nodeId={node.id} />
         </NodeListItem>
       ))}
     </NodeList>

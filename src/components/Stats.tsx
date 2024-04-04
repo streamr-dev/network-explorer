@@ -1,14 +1,26 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react'
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import styled, { css } from 'styled-components'
-
-import { SANS } from '../utils/styled'
 import { useSponsorshipSummaryQuery, useSummaryQuery } from '../utils'
+import {
+  NetworkMetricKey,
+  NodeMetricKey,
+  getResendOptionsForInterval,
+  useNetworkMetricEntries,
+  useRecentNetworkMetricEntry,
+  useRecentOperatorNodeMetricEntry,
+  useSortedOperatorNodeMetricEntries,
+} from '../utils/streams'
+import { SANS } from '../utils/styled'
+import { Interval } from './Graphs/Graphs'
+import Graphs from './Graphs'
+import TimeSeries from './Graphs/TimeSeries'
+import BigNumber from 'bignumber.js'
 
 type StatProps = {
   id: string
-  label: string
-  value: number | string | undefined
-  unit?: string | undefined
+  label: ReactNode
+  value?: ReactNode
+  unit?: ReactNode
   onClick?: () => void
   disabled?: boolean
   theme?: Record<string, number | string | boolean>
@@ -34,7 +46,7 @@ const UnstyledStat = ({
       <StatName>{label}</StatName>
       <StatValue>
         {value !== undefined && value}
-        {value === undefined && <InfinityIcon />}
+        {value === undefined && <Dimm>&infin;</Dimm>}
         {value !== undefined && unit}
       </StatValue>
     </button>
@@ -61,6 +73,10 @@ const StatValue = styled.div`
     height: 13px;
     color: #adadad;
   }
+`
+
+const Dimm = styled.span`
+  color: #adadad;
 `
 
 export const Stat = styled(UnstyledStat)`
@@ -260,4 +276,192 @@ export function TvlStat() {
     : '0'
 
   return <Stat id="tvl" label="TVL" value={tvl} unit="M DATA" />
+}
+
+function StreamNodeCountStat() {
+  return <Stat id="streamNodeCount" label="Nodes" value={0} unit="" />
+}
+
+function StreamLatencyStat() {
+  return <Stat id="streamNodeCount" label="Latency ms" value={<Dimm>&infin;</Dimm>} unit="" />
+}
+
+function StreamMessagesPerSecondStat() {
+  return <Stat id="streamMessagesPerSecond" label="Msgs / sec" value={0} />
+}
+
+export function StreamStats() {
+  return (
+    <Stats>
+      <StreamMessagesPerSecondStat />
+      <StreamNodeCountStat />
+      <StreamLatencyStat />
+    </Stats>
+  )
+}
+
+const defaultNetworkMetricEntry = {
+  nodeCount: undefined,
+  tvl: undefined,
+  apy: undefined,
+}
+
+export function NetworkStats() {
+  const [metricKey, setMetricKey] = useState<NetworkMetricKey>()
+
+  const [interval, setInterval] = useState<Interval>('realtime')
+
+  const resendOptions = useMemo(() => getResendOptionsForInterval(interval), [interval])
+
+  const reports = useNetworkMetricEntries({
+    interval,
+    resendOptions,
+  })
+
+  const datapoints = useMemo(() => {
+    if (!metricKey) {
+      return []
+    }
+
+    return reports.map(({ timestamp: x, [metricKey]: rawY }) => {
+      return {
+        x,
+        y: typeof rawY === 'string' ? new BigNumber(rawY).dividedBy(10 ** 18).toNumber() : rawY,
+      }
+    })
+  }, [reports, metricKey])
+
+  const { nodeCount, tvl: tvlWei, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
+
+  return (
+    <>
+      <Stats active={metricKey}>
+        <Stat
+          id="nodeCount"
+          label="Nodes"
+          value={nodeCount}
+          onClick={() => {
+            setMetricKey((current) => (current === 'nodeCount' ? undefined : 'nodeCount'))
+          }}
+        />
+        <Stat
+          id="apy"
+          label="APY"
+          value={apy}
+          unit="%"
+          onClick={() => {
+            setMetricKey((current) => (current === 'apy' ? undefined : 'apy'))
+          }}
+        />
+        <Stat
+          id="tvl"
+          label="TVL"
+          value={tvlWei == null ? undefined : new BigNumber(tvlWei).dividedBy(10 ** 18).toFixed(2)}
+          unit="M DATA"
+          onClick={() => {
+            setMetricKey((current) => (current === 'tvl' ? undefined : 'tvl'))
+          }}
+        />
+      </Stats>
+      {metricKey && (
+        <>
+          <Graphs defaultInterval="realtime">
+            <TimeSeries
+              graphData={{ value: datapoints }}
+              height="200px"
+              ratio="1:2"
+              showCrosshair
+              dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
+              labelFormat={(value) => value.toPrecision(4)}
+            />
+            <Graphs.Intervals
+              options={['realtime', '24hours', '1month', '3months', 'all']}
+              onChange={setInterval}
+            />
+          </Graphs>
+        </>
+      )}
+    </>
+  )
+}
+
+interface NodeStatsProps {
+  nodeId: string
+}
+
+const defaultMetricEntry = {
+  broadcastMessagesPerSecond: undefined,
+  broadcastBytesPerSecond: undefined,
+  receiveBytesPerSecond: undefined,
+}
+
+export function NodeStats({ nodeId }: NodeStatsProps) {
+  const [metricKey, setMetricKey] = useState<NodeMetricKey>('broadcastMessagesPerSecond')
+
+  const [interval, setInterval] = useState<Interval>('realtime')
+
+  const resendOptions = useMemo(() => getResendOptionsForInterval(interval), [interval])
+
+  const reports = useSortedOperatorNodeMetricEntries({
+    interval,
+    nodeId,
+    resendOptions,
+  })
+
+  const datapoints = useMemo(
+    () => reports.map(({ timestamp: x, [metricKey]: y }) => ({ x, y })),
+    [reports, metricKey],
+  )
+
+  const { broadcastMessagesPerSecond, broadcastBytesPerSecond, receiveBytesPerSecond } =
+    useRecentOperatorNodeMetricEntry(nodeId) || defaultMetricEntry
+
+  return (
+    <>
+      <Stats active={metricKey}>
+        <Stat
+          id="broadcastMessagesPerSecond"
+          label="Msgs / sec"
+          value={broadcastMessagesPerSecond?.toPrecision(4)}
+          onClick={() => {
+            setMetricKey('broadcastMessagesPerSecond')
+          }}
+        />
+        <Stat
+          id="broadcastBytesPerSecond"
+          label="Up"
+          unit=""
+          value={broadcastBytesPerSecond && (broadcastBytesPerSecond / 1024 / 1024).toPrecision(4)}
+          onClick={() => {
+            setMetricKey('broadcastBytesPerSecond')
+          }}
+        />
+        <Stat
+          id="receiveBytesPerSecond"
+          label="Down"
+          unit=""
+          value={receiveBytesPerSecond && (receiveBytesPerSecond / 1024 / 1024).toPrecision(4)}
+          onClick={() => {
+            setMetricKey('receiveBytesPerSecond')
+          }}
+        />
+      </Stats>
+      <Graphs defaultInterval="realtime">
+        <TimeSeries
+          graphData={{ value: datapoints }}
+          height="200px"
+          ratio="1:2"
+          showCrosshair
+          dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
+          labelFormat={(value) => {
+            return (/bytes/i.test(metricKey) ? value / 1024 / 1024 : value).toPrecision(4)
+          }}
+        />
+        <Graphs.Intervals
+          options={['realtime', '24hours', '1month', '3months', 'all']}
+          onChange={setInterval}
+        />
+      </Graphs>
+    </>
+  )
 }

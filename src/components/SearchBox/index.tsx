@@ -4,7 +4,7 @@ import { useStore } from '../../Store'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
 import { ActiveView } from '../../types'
 import { useIsSearching, useSearch } from '../../utils/search'
-import Stats, { ApyStat, MessagesPerSecondStat, NodeCountStat, TvlStat } from '../Stats'
+import { NetworkStats, StreamStats } from '../Stats'
 import { NoSearchResults } from './NoSearchResults'
 import { Search, SlideHandle } from './Search'
 import { SearchInput } from './SearchInput'
@@ -107,11 +107,7 @@ export function SearchBox() {
             setSearchPhrase('')
           }}
         />
-        <Stats>
-          <NodeCountStat />
-          {streamId ? <MessagesPerSecondStat /> : <ApyStat />}
-          <TvlStat />
-        </Stats>
+        {streamId ? <StreamStats /> : <NetworkStats />}
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}

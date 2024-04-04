@@ -1,4 +1,9 @@
+import { ResendOptions, StreamDefinition, StreamMessage } from '@streamr/sdk'
+import { keyToArrayIndex } from '@streamr/utils'
 import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSubscribe } from 'streamr-client-react'
+import { Interval } from '../components/Graphs/Graphs'
 import { MinuteMs } from '../consts'
 import {
   GetStreamsDocument,
@@ -56,4 +61,284 @@ export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
     },
     staleTime: 5 * MinuteMs,
   })
+}
+
+interface NodeMetricReport {
+  nodeId: string
+  broadcastMessagesPerSecond: number
+  broadcastBytesPerSecond: number
+  sendMessagesPerSecond: number
+  sendBytesPerSecond: number
+  receiveMessagesPerSecond: number
+  receiveBytesPerSecond: number
+  connectionAverageCount: number
+  connectionTotalFailureCount: number
+  timestamp: number
+}
+
+export type NodeMetricKey = Exclude<keyof NodeMetricReport, 'nodeId' | 'timestamp'>
+
+interface UseSortedOperatorNodeMetricEntriesParams {
+  interval: Interval
+  limit?: number
+  nodeId: string
+  resendOptions?: ResendOptions
+}
+
+const resendLast: ResendOptions = {
+  last: 1,
+}
+
+export function useSortedOperatorNodeMetricEntries(
+  params: UseSortedOperatorNodeMetricEntriesParams,
+) {
+  const { nodeId, interval, resendOptions = resendLast, limit } = params
+
+  const freq =
+    interval === 'realtime' || interval === '24hours'
+      ? 'min'
+      : interval === '1month'
+        ? 'hour'
+        : 'day'
+
+  const streamId = `streamr.eth/metrics/nodes/firehose/${freq}`
+
+  const streamQuery = useStreamFromClient(streamId)
+
+  const { data: stream } = streamQuery
+
+  const partition = useMemo(
+    () => (stream ? keyToArrayIndex(stream.getMetadata().partitions, nodeId) : undefined),
+    [stream, nodeId],
+  )
+
+  return useStreamMessagesOrderedByTime<NodeMetricReport>(
+    {
+      streamId,
+      partition,
+    },
+    {
+      disabled: partition == null,
+      cacheKey: nodeId,
+      eligible: (entry) => entry.nodeId === nodeId,
+      transform: (msg) => {
+        const {
+          messageId: { timestamp },
+        } = msg
+
+        const {
+          node: { id, ...node },
+        } = msg.getParsedContent() as any
+
+        return {
+          nodeId: id,
+          timestamp,
+          ...node,
+        }
+      },
+      resendOptions,
+    },
+  )
+}
+
+export function useRecentOperatorNodeMetricEntry(nodeId: string) {
+  const [recent = null] = useSortedOperatorNodeMetricEntries({
+    interval: 'realtime',
+    limit: 1,
+    nodeId,
+    resendOptions: resendLast,
+  })
+
+  return recent
+}
+
+async function getStreamrClientInstance() {
+  const StreamrClient = (await import('@streamr/sdk')).default
+
+  return new StreamrClient()
+}
+
+function useStreamFromClient(streamId: string) {
+  return useQuery({
+    queryKey: ['useStreamFromClient', streamId],
+    queryFn: async () => {
+      const client = await getStreamrClientInstance()
+
+      return client.getStream(streamId)
+    },
+    staleTime: 10 * MinuteMs,
+  })
+}
+
+const HourMs = MinuteMs * 60
+
+export function getResendOptionsForInterval(interval: Interval): ResendOptions {
+  const now = Date.now()
+
+  const intervalToWindowSize: Record<Interval, number> = {
+    realtime: 6 * HourMs,
+    '24hours': 24 * HourMs,
+    '1month': 30 * 24 * HourMs,
+    '3months': 3 * 30 * 24 * HourMs,
+    all: now - new Date(2021, 1, 1).getTime(),
+  }
+
+  return {
+    from: {
+      timestamp: now - intervalToWindowSize[interval],
+    },
+  }
+}
+
+interface UseStreamMessagesOrderedByTimeOptions<P = StreamMessage> {
+  cacheKey?: string
+  disabled?: boolean
+  eligible?: (payload: P, msg: StreamMessage) => boolean
+  limit?: number
+  resendOptions?: ResendOptions
+  transform?: (msg: StreamMessage) => P
+}
+
+function defaultMessageTransform<P>(msg: StreamMessage): P {
+  return msg as P
+}
+
+function useStreamMessagesOrderedByTime<
+  P = StreamMessage,
+  T extends { timestamp: number; payload: P } = { timestamp: number; payload: P },
+>(streamId: StreamDefinition, options: UseStreamMessagesOrderedByTimeOptions<P> = {}) {
+  const {
+    cacheKey,
+    disabled,
+    eligible,
+    limit,
+    resendOptions,
+    transform = defaultMessageTransform<P>,
+  } = options
+
+  const entriesRef = useRef<T[]>([])
+
+  useSubscribe(streamId, {
+    cacheKey,
+    disabled,
+    resendOptions,
+    onBeforeStart() {
+      entriesRef.current = []
+    },
+    onMessage(msg) {
+      try {
+        const {
+          messageId: { timestamp },
+        } = msg
+
+        const lastEntry = entriesRef.current[entriesRef.current.length - 1]
+
+        if (timestamp === lastEntry?.timestamp) {
+          return
+        }
+
+        const entry = {
+          timestamp,
+          payload: transform(msg),
+        } as T
+
+        if (!eligible || !eligible(entry.payload, msg)) {
+          return
+        }
+
+        entriesRef.current.push(entry)
+
+        if (lastEntry && entry.timestamp < lastEntry.timestamp) {
+          entriesRef.current.sort(({ timestamp: a }, { timestamp: b }) => a - b)
+        }
+
+        if (limit != null) {
+          entriesRef.current.splice(0, entriesRef.current.length - limit)
+        }
+      } catch (e) {
+        console.warn('Error while parsing a message', e, msg)
+      }
+    },
+  })
+
+  const [reports, setReports] = useState<P[]>([])
+
+  useEffect(
+    function periodicallyUpdateReports() {
+      let timeoutId: number | null = null
+
+      function pull() {
+        setReports(entriesRef.current.map(({ payload }) => payload))
+
+        timeoutId = window.setTimeout(pull, 1000)
+      }
+
+      pull()
+
+      return () => {
+        if (timeoutId != null) {
+          window.clearTimeout(timeoutId)
+
+          timeoutId = null
+        }
+      }
+    },
+    [cacheKey],
+  )
+
+  return reports
+}
+
+interface UseNetworkMetricEntriesParams {
+  interval?: Interval
+  limit?: number
+  resendOptions?: ResendOptions
+}
+
+interface NetworkMetricReport {
+  apy: number
+  nodeCount: number
+  timestamp: number
+  tvl: string
+}
+
+export type NetworkMetricKey = Exclude<keyof NetworkMetricReport, 'timestamp'>
+
+export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
+  const { interval = 'realtime', resendOptions, limit } = params
+
+  const freq =
+    interval === 'realtime' || interval === '24hours'
+      ? 'min'
+      : interval === '1month'
+        ? 'hour'
+        : 'day'
+
+  return useStreamMessagesOrderedByTime(`streamr.eth/metrics/network/${freq}`, {
+    transform: (msg) => {
+      const {
+        messageId: { timestamp },
+      } = msg
+
+      const { apy, nodeCount, tvl } = msg.getParsedContent() as any as NetworkMetricReport
+
+      return {
+        apy,
+        nodeCount,
+        timestamp,
+        tvl,
+      }
+    },
+    resendOptions,
+    limit,
+  })
+}
+
+export function useRecentNetworkMetricEntry() {
+  const [entry = null] = useNetworkMetricEntries({
+    limit: 1,
+    resendOptions: resendLast,
+  })
+
+  return entry
 }
