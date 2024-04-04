@@ -2,12 +2,12 @@ import React, { ReactNode, useEffect, useRef } from 'react'
 import Identicon from 'react-identicons'
 import { animated, useTransition } from 'react-spring'
 import styled, { css } from 'styled-components'
+import { useStore } from '../../Store'
+import { setNodeFeatureState } from '../../utils/map'
 import { MEDIUM, SANS } from '../../utils/styled'
 import Error from '../Error'
-import Graphs from '../Graphs'
-import Stats from '../Stats'
-import { setNodeFeatureState } from '../../utils/map'
-import { useStore } from '../../Store'
+import { Graphs } from '../Graphs'
+import { Stats } from '../Stats'
 
 const Name = styled.div`
   color: #323232;

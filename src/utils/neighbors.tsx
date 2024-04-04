@@ -1,4 +1,4 @@
-import { useIsFetching, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { MinuteMs } from '../consts'
 import { getNeighbors } from '../getters'
 
@@ -34,13 +34,4 @@ export function useOperatorNodeNeighborsQuery(
     },
     staleTime: 5 * MinuteMs,
   })
-}
-
-export function useIsFetchingOperatorNodeNeighbors(nodeId: string | undefined) {
-  const queryCount = useIsFetching({
-    exact: true,
-    queryKey: getOperatorNodeNeighborsQueryKey(nodeId),
-  })
-
-  return queryCount > 0
 }

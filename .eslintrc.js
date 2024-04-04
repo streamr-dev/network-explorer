@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {
-  plugins: ['prettier', 'react-hooks'],
+  plugins: ['prettier', 'react-hooks', 'import'],
   extends: [path.resolve('./src/eslint/airbnb-typescript'), 'react-app', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -94,5 +94,6 @@ module.exports = {
         ignoreFunctionalComponents: true,
       },
     ],
+    'import/no-unused-modules': [1, { unusedExports: true, ignoreExports: ['**/*.stories.*', 'src/setupTests.ts'] }],
   },
 }

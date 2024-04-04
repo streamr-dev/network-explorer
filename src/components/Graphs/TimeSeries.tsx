@@ -182,9 +182,7 @@ const UnstyledTimeSeriesGraph = ({
   )
 }
 
-const TimeSeries = styled(UnstyledTimeSeriesGraph)``
-
-export default TimeSeries
+export const TimeSeries = styled(UnstyledTimeSeriesGraph)``
 
 interface RectProps {
   ratio?: string

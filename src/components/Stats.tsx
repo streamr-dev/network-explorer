@@ -1,7 +1,13 @@
+import { useQuery } from '@tanstack/react-query'
 import BigNumber from 'bignumber.js'
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import styled, { css } from 'styled-components'
-import { useSponsorshipSummaryQuery } from '../utils'
+import {
+  GetStreamsDocument,
+  GetStreamsQuery,
+  GetStreamsQueryVariables,
+} from '../generated/gql/indexer'
+import { getIndexerClient } from '../utils/queries'
 import {
   NetworkMetricKey,
   NodeMetricKey,
@@ -12,16 +18,10 @@ import {
   useSortedOperatorNodeMetricEntries,
 } from '../utils/streams'
 import { SANS } from '../utils/styled'
-import Graphs from './Graphs'
+import { Graphs } from './Graphs'
 import { Interval } from './Graphs/Graphs'
-import TimeSeries from './Graphs/TimeSeries'
-import { useQuery } from '@tanstack/react-query'
-import { getIndexerClient } from '../utils/queries'
-import {
-  GetStreamsDocument,
-  GetStreamsQuery,
-  GetStreamsQueryVariables,
-} from '../generated/gql/indexer'
+import { Intervals } from './Graphs/Intervals'
+import { TimeSeries } from './Graphs/TimeSeries'
 
 type StatProps = {
   id: string
@@ -235,10 +235,6 @@ export const Stats = styled(UnstyledStats)`
   position: relative;
 `
 
-export default Object.assign(Stats, {
-  Stat,
-})
-
 function useStreamStatsQuery(streamId: string) {
   return useQuery({
     queryKey: ['useStreamStatsQuery', streamId],
@@ -283,7 +279,7 @@ const defaultStreamStats = {
 export function StreamStats({ streamId }: StreamStatsProps) {
   const { data: stats } = useStreamStatsQuery(streamId)
 
-const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
+  const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
 
   return (
     <Stats>
@@ -372,7 +368,7 @@ export function NetworkStats() {
               dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
               labelFormat={(value) => value.toPrecision(4)}
             />
-            <Graphs.Intervals
+            <Intervals
               options={['realtime', '24hours', '1month', '3months', 'all']}
               onChange={setInterval}
             />
@@ -455,7 +451,7 @@ export function NodeStats({ nodeId }: NodeStatsProps) {
             return (/bytes/i.test(metricKey) ? value / 1024 / 1024 : value).toPrecision(4)
           }}
         />
-        <Graphs.Intervals
+        <Intervals
           options={['realtime', '24hours', '1month', '3months', 'all']}
           onChange={setInterval}
         />

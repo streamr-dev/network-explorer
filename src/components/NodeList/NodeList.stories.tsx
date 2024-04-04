@@ -1,13 +1,13 @@
-import React, { useState, useReducer, useCallback } from 'react'
-import styled from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
-import Stats from '../Stats'
-import Error from '../Error'
-import usePaged from '../../hooks/usePaged'
+import React, { useCallback, useReducer, useState } from 'react'
+import styled from 'styled-components'
 import { NodeList, NodeListHeader } from '.'
+import usePaged from '../../hooks/usePaged'
+import { getNodeLocationId } from '../../utils/map'
+import Error from '../Error'
+import { Stat, Stats } from '../Stats'
 import { NodeListItem } from './NodeListItem'
 import Pager from './Pager'
-import { getNodeLocationId } from '../../utils/map'
 
 const Wrapper = styled.div`
   background-color: lightblue;
@@ -104,9 +104,9 @@ export const WithStats = () => {
           isActive={activeNode === id}
         >
           <Stats>
-            <Stats.Stat id="messagesPerSecond" label="Msgs/sec" value={undefined} />
-            <Stats.Stat id="mbsPerSecond" label="MB/S" value={undefined} />
-            <Stats.Stat id="latency" label="Latency ms" value={undefined} />
+            <Stat id="messagesPerSecond" label="Msgs/sec" value={undefined} />
+            <Stat id="mbsPerSecond" label="MB/S" value={undefined} />
+            <Stat id="latency" label="Latency ms" value={undefined} />
           </Stats>
         </NodeListItem>
       ))}
@@ -167,7 +167,7 @@ export const WithStatsAndError = () => {
           isActive={activeNode === id}
         >
           <Stats active={selectedStat}>
-            <Stats.Stat
+            <Stat
               id="messagesPerSecond"
               label="Msgs/sec"
               value={undefined}
@@ -175,7 +175,7 @@ export const WithStatsAndError = () => {
                 onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)
               }
             />
-            <Stats.Stat
+            <Stat
               id="mbsPerSecond"
               label="MB/S"
               value={undefined}
@@ -183,7 +183,7 @@ export const WithStatsAndError = () => {
                 onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)
               }
             />
-            <Stats.Stat
+            <Stat
               id="latency"
               label="Latency ms"
               value={undefined}

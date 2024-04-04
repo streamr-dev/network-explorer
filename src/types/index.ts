@@ -26,7 +26,7 @@ export interface Neighbour {
   streamPartitionId: string
 }
 
-export interface Stream {
+interface Stream {
   description: string
   id: string
   messagesPerSecond: number
@@ -61,13 +61,6 @@ export enum ActiveView {
   Map = 'map',
   List = 'list',
 }
-
-export enum ActiveRoute {
-  Network = 'network',
-  Stream = 'stream',
-}
-
-export type Topology = Record<string, string[]>
 
 export enum ConnectionsMode {
   Auto = 'auto',

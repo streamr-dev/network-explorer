@@ -1,7 +1,6 @@
+import { Meta, Story } from '@storybook/react/types-6-0'
 import React from 'react'
-import { Story, Meta } from '@storybook/react/types-6-0'
-
-import TimeSeries, { Props } from './TimeSeries'
+import { Props, TimeSeries } from './TimeSeries'
 
 export default {
   title: 'TimeSeries',

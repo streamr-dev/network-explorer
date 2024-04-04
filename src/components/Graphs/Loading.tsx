@@ -17,7 +17,7 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
     `}
 `
 
-const Loading = ({ row, loading, ...props }: LoadingProps) => (
+export const Loading = ({ row, loading, ...props }: LoadingProps) => (
   <LoadingIndicator
     {...props}
     loading={loading}
@@ -26,5 +26,3 @@ const Loading = ({ row, loading, ...props }: LoadingProps) => (
     }}
   />
 )
-
-export default Loading

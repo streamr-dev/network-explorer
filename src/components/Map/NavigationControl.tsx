@@ -186,7 +186,7 @@ const NavigationControlRoot = styled.div`
   }
 `
 
-export interface NavigationControlProps {
+interface NavigationControlProps {
   innerRef?: RefObject<HTMLDivElement>
   onResetMap(): void
   onToggleConnections(): void

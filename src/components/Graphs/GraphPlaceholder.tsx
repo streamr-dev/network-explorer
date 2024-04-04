@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-
 import empty from './assets/empty.png'
 import empty2x from './assets/empty@2x.png'
 import { SANS, MEDIUM } from '../../utils/styled'
@@ -22,7 +21,7 @@ const UnstyledGraphPlaceholder = ({ showImage, ...props }: Props) => (
   </div>
 )
 
-const GraphPlaceholder = styled(UnstyledGraphPlaceholder)`
+export const GraphPlaceholder = styled(UnstyledGraphPlaceholder)`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,5 +36,3 @@ const GraphPlaceholder = styled(UnstyledGraphPlaceholder)`
     transition: 300ms opacity ease-in-out;
   }
 `
-
-export default GraphPlaceholder

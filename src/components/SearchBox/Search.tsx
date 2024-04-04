@@ -1,12 +1,12 @@
 import styled, { css } from 'styled-components'
+import { ActiveView } from '../../types'
 import { SM } from '../../utils/styled'
 import ControlBox from '../ControlBox'
-import { SearchInput, SearchInputInner } from './SearchInput'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
 import Error from '../Error'
+import { Graphs } from '../Graphs'
+import { Stats } from '../Stats'
+import { SearchInput, SearchInputInner } from './SearchInput'
 import { SearchResultsRoot } from './SearchResults'
-import { ActiveView } from '../../types'
 
 export const SlideHandle = styled.div`
   position: absolute;

@@ -42,6 +42,3 @@ export function NodeList({ innerRef, children }: NodeListProps) {
     <NodeListInner>{children}</NodeListInner>
   </ControlBox>
 }
-
-
-export const NodeListPageSize = 10
