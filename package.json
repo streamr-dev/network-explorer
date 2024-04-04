@@ -43,7 +43,8 @@
     "styled-components": "^6.1.8",
     "typescript": "^5.4.2",
     "webpack": "^5.91.0",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^5.0.4",
+    "zod": "^3.22.4"
   },
   "scripts": {
     "start": "NODE_OPTIONS=--openssl-legacy-provider BUILD_ENV=development npm run start-env",
@@ -112,6 +113,7 @@
     "prettier-eslint-cli": "^8.0.1",
     "react-app-rewired": "^2.2.1",
     "react-is": "^16.13.1",
-    "ts-jest": "^29.1.2"
+    "ts-jest": "^29.1.2",
+    "webpack-deadcode-plugin": "^0.1.17"
   }
 }

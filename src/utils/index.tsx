@@ -1,12 +1,7 @@
-import { useIsFetching, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import BigNumber from 'bignumber.js'
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../Store'
-import {
-  GetSummaryDocument,
-  GetSummaryQuery,
-  GetSummaryQueryVariables,
-} from '../generated/gql/indexer'
 import {
   GetSponsorshipsDocument,
   GetSponsorshipsQuery,
@@ -17,41 +12,9 @@ import { OperatorNode } from '../types'
 import { getNodeLocationId } from './map'
 import { useOperatorNodeNeighborsQuery } from './neighbors'
 import { useOperatorNodesForStreamQuery } from './nodes'
-import { getIndexerClient, getNetworkClient } from './queries'
-
-function getSummaryQueryKey() {
-  return ['useSummaryQuery'] as const
-}
+import { getNetworkClient } from './queries'
 
 const FiveMinutesMs = 5 * 60 * 1000
-
-export function useSummaryQuery() {
-  return useQuery({
-    queryKey: getSummaryQueryKey(),
-    queryFn: async () => {
-      const {
-        data: { summary },
-      } = await getIndexerClient().query<GetSummaryQuery, GetSummaryQueryVariables>({
-        fetchPolicy: 'network-only',
-        query: GetSummaryDocument,
-      })
-
-      const { nodeCount, messagesPerSecond, streamCount } = summary
-
-      return { nodeCount, messagesPerSecond, streamCount }
-    },
-    staleTime: FiveMinutesMs,
-  })
-}
-
-export function useIsFetchingSummary() {
-  return (
-    useIsFetching({
-      exact: false,
-      queryKey: [getSummaryQueryKey()[0]],
-    }) > 0
-  )
-}
 
 export function useNodeConnections() {
   const streamId = useStreamIdParam() || undefined

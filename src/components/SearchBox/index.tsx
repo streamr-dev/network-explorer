@@ -107,7 +107,7 @@ export function SearchBox() {
             setSearchPhrase('')
           }}
         />
-        {streamId ? <StreamStats /> : <NetworkStats />}
+        {streamId ? <StreamStats streamId={streamId} /> : <NetworkStats />}
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}

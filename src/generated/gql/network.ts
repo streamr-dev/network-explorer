@@ -32,23 +32,33 @@ export type Block_Height = {
 
 export type Delegation = {
   __typename?: 'Delegation';
+  /** Past value of DATA value of the Operator tokens this delegator holds, at latestDelegationTimestamp. Calculate current value by `operatorTokenBalanceWei * operator.exchangeRate`. */
+  _valueDataWei: Scalars['BigInt']['output'];
   delegator: Delegator;
-  /** earliest time this delegator can undelegate from this operator */
+  /** earliest time this delegator can undelegate from this operator (0 if this.isSelfDelegation because it doesn't apply) */
   earliestUndelegationTimestamp: Scalars['Int']['output'];
   /** 0xoperatorAddress-0xdelegatorAddress */
   id: Scalars['ID']['output'];
+  /** `true` if delegator == operator.owner */
+  isSelfDelegation: Scalars['Boolean']['output'];
   /** latest delegation done by the delegator to this operator */
   latestDelegationTimestamp: Scalars['Int']['output'];
   operator: Operator;
   /** Amount of internal Operator tokens this delegator holds */
   operatorTokenBalanceWei: Scalars['BigInt']['output'];
-  /** DATA value of the Operator tokens this delegator holds */
-  valueDataWei: Scalars['BigInt']['output'];
 };
 
 export type Delegation_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
+  _valueDataWei?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  _valueDataWei_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_not?: InputMaybe<Scalars['BigInt']['input']>;
+  _valueDataWei_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   and?: InputMaybe<Array<InputMaybe<Delegation_Filter>>>;
   delegator?: InputMaybe<Scalars['String']['input']>;
   delegator_?: InputMaybe<Delegator_Filter>;
@@ -87,6 +97,10 @@ export type Delegation_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  isSelfDelegation?: InputMaybe<Scalars['Boolean']['input']>;
+  isSelfDelegation_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  isSelfDelegation_not?: InputMaybe<Scalars['Boolean']['input']>;
+  isSelfDelegation_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   latestDelegationTimestamp?: InputMaybe<Scalars['Int']['input']>;
   latestDelegationTimestamp_gt?: InputMaybe<Scalars['Int']['input']>;
   latestDelegationTimestamp_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -125,17 +139,10 @@ export type Delegation_Filter = {
   operator_starts_with?: InputMaybe<Scalars['String']['input']>;
   operator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   or?: InputMaybe<Array<InputMaybe<Delegation_Filter>>>;
-  valueDataWei?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  valueDataWei_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_not?: InputMaybe<Scalars['BigInt']['input']>;
-  valueDataWei_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
 export enum Delegation_OrderBy {
+  ValueDataWei = '_valueDataWei',
   Delegator = 'delegator',
   DelegatorCumulativeEarningsWei = 'delegator__cumulativeEarningsWei',
   DelegatorId = 'delegator__id',
@@ -143,6 +150,7 @@ export enum Delegation_OrderBy {
   DelegatorTotalValueDataWei = 'delegator__totalValueDataWei',
   EarliestUndelegationTimestamp = 'earliestUndelegationTimestamp',
   Id = 'id',
+  IsSelfDelegation = 'isSelfDelegation',
   LatestDelegationTimestamp = 'latestDelegationTimestamp',
   Operator = 'operator',
   OperatorTokenBalanceWei = 'operatorTokenBalanceWei',
@@ -166,8 +174,7 @@ export enum Delegation_OrderBy {
   OperatorTotalStakeInSponsorshipsWei = 'operator__totalStakeInSponsorshipsWei',
   OperatorValueUpdateBlockNumber = 'operator__valueUpdateBlockNumber',
   OperatorValueUpdateTimestamp = 'operator__valueUpdateTimestamp',
-  OperatorValueWithoutEarnings = 'operator__valueWithoutEarnings',
-  ValueDataWei = 'valueDataWei'
+  OperatorValueWithoutEarnings = 'operator__valueWithoutEarnings'
 }
 
 export type Delegator = {
@@ -1244,6 +1251,8 @@ export type Operator = {
   __typename?: 'Operator';
   /** Version is a bitfield of supported features. Generally, so far, higher version supports lower versions' features, so normal number comparison works. */
   contractVersion: Scalars['BigInt']['output'];
+  /** Addresses that can call all owner/admin methods in the Operator contract (owner alone in this list initially) */
+  controllers: Array<Scalars['String']['output']>;
   /** Operator earnings (cumulative) from all sponsorships. Includes the operator's share of earnings + delegators earnings */
   cumulativeEarningsWei: Scalars['BigInt']['output'];
   /** Operator's share of the earnings (cumulative) */
@@ -1591,6 +1600,12 @@ export type Operator_Filter = {
   contractVersion_lte?: InputMaybe<Scalars['BigInt']['input']>;
   contractVersion_not?: InputMaybe<Scalars['BigInt']['input']>;
   contractVersion_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  controllers?: InputMaybe<Array<Scalars['String']['input']>>;
+  controllers_contains?: InputMaybe<Array<Scalars['String']['input']>>;
+  controllers_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  controllers_not?: InputMaybe<Array<Scalars['String']['input']>>;
+  controllers_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
+  controllers_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   cumulativeEarningsWei?: InputMaybe<Scalars['BigInt']['input']>;
   cumulativeEarningsWei_gt?: InputMaybe<Scalars['BigInt']['input']>;
   cumulativeEarningsWei_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1804,6 +1819,7 @@ export type Operator_Filter = {
 
 export enum Operator_OrderBy {
   ContractVersion = 'contractVersion',
+  Controllers = 'controllers',
   CumulativeEarningsWei = 'cumulativeEarningsWei',
   CumulativeOperatorsCutWei = 'cumulativeOperatorsCutWei',
   CumulativeProfitsWei = 'cumulativeProfitsWei',

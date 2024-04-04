@@ -3,6 +3,7 @@ import { keyToArrayIndex } from '@streamr/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSubscribe } from 'streamr-client-react'
+import { z } from 'zod'
 import { Interval } from '../components/Graphs/Graphs'
 import { MinuteMs } from '../consts'
 import {
@@ -64,7 +65,7 @@ export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
 }
 
 interface NodeMetricReport {
-  nodeId: string
+  nodeId: string | undefined
   broadcastMessagesPerSecond: number
   broadcastBytesPerSecond: number
   sendMessagesPerSecond: number
@@ -121,6 +122,7 @@ export function useSortedOperatorNodeMetricEntries(
       disabled: partition == null,
       cacheKey: nodeId,
       eligible: (entry) => entry.nodeId === nodeId,
+      limit,
       transform: (msg) => {
         const {
           messageId: { timestamp },
@@ -128,7 +130,21 @@ export function useSortedOperatorNodeMetricEntries(
 
         const {
           node: { id, ...node },
-        } = msg.getParsedContent() as any
+        } = z
+          .object({
+            node: z.object({
+              id: z.string().optional(),
+              broadcastMessagesPerSecond: z.number(),
+              broadcastBytesPerSecond: z.number(),
+              sendMessagesPerSecond: z.number(),
+              sendBytesPerSecond: z.number(),
+              receiveMessagesPerSecond: z.number(),
+              receiveBytesPerSecond: z.number(),
+              connectionAverageCount: z.number(),
+              connectionTotalFailureCount: z.number(),
+            }),
+          })
+          .parse(msg.getParsedContent())
 
         return {
           nodeId: id,
@@ -320,7 +336,13 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
         messageId: { timestamp },
       } = msg
 
-      const { apy, nodeCount, tvl } = msg.getParsedContent() as any as NetworkMetricReport
+      const { apy, nodeCount, tvl } = z
+        .object({
+          apy: z.number(),
+          nodeCount: z.number(),
+          tvl: z.string(),
+        })
+        .parse(msg.getParsedContent())
 
       return {
         apy,

@@ -123,11 +123,6 @@ export type Summary = {
   streamCount: Scalars['Int']['output'];
 };
 
-export type GetSummaryQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetSummaryQuery = { __typename?: 'Query', summary: { __typename?: 'Summary', messagesPerSecond: number, nodeCount: number, streamCount: number } };
-
 export type GetNodesQueryVariables = Exact<{
   cursor?: InputMaybe<Scalars['String']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
@@ -163,16 +158,6 @@ export type GetNeighborsQueryVariables = Exact<{
 export type GetNeighborsQuery = { __typename?: 'Query', neighbors: { __typename?: 'Neighbors', cursor?: string | null, items: Array<{ __typename?: 'Neighbor', streamPartId: string, nodeId1: string, nodeId2: string }> } };
 
 
-export const GetSummaryDocument = gql`
-    query GetSummary {
-  summary {
-    messagesPerSecond
-    nodeCount
-    streamCount
-  }
-}
-    `;
-export type GetSummaryQueryResult = Apollo.QueryResult<GetSummaryQuery, GetSummaryQueryVariables>;
 export const GetNodesDocument = gql`
     query GetNodes($cursor: String, $pageSize: Int, $ids: [String!], $streamId: String) {
   nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids, stream: $streamId) {

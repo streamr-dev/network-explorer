@@ -1,10 +1,27 @@
 const isEqual = require('lodash/isEqual')
 const webpack = require('webpack')
+const DeadCodePlugin = require('webpack-deadcode-plugin')
 
 module.exports = function override(config, env) {
   config.plugins.push(
     new webpack.ProvidePlugin({
       process: 'process/browser',
+    }),
+  )
+
+  config.plugins.push(
+    new DeadCodePlugin({
+      exclude: [
+        'node_modules/**/*',
+        'dist/**/*',
+        'README.md',
+        'codegen.ts',
+        'config-overrides.js',
+        'jest.config.js',
+        'nginx.conf',
+        'package-lock.json',
+        'public/robots.txt',
+      ],
     }),
   )
 

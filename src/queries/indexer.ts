@@ -1,14 +1,6 @@
 import { gql } from '@apollo/client'
 
 gql`
-  query GetSummary {
-    summary {
-      messagesPerSecond
-      nodeCount
-      streamCount
-    }
-  }
-
   query GetNodes($cursor: String, $pageSize: Int, $ids: [String!], $streamId: String) {
     nodes(cursor: $cursor, pageSize: $pageSize, ids: $ids, stream: $streamId) {
       cursor

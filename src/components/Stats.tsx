@@ -1,6 +1,7 @@
+import BigNumber from 'bignumber.js'
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import styled, { css } from 'styled-components'
-import { useSponsorshipSummaryQuery, useSummaryQuery } from '../utils'
+import { useSponsorshipSummaryQuery } from '../utils'
 import {
   NetworkMetricKey,
   NodeMetricKey,
@@ -11,10 +12,16 @@ import {
   useSortedOperatorNodeMetricEntries,
 } from '../utils/streams'
 import { SANS } from '../utils/styled'
-import { Interval } from './Graphs/Graphs'
 import Graphs from './Graphs'
+import { Interval } from './Graphs/Graphs'
 import TimeSeries from './Graphs/TimeSeries'
-import BigNumber from 'bignumber.js'
+import { useQuery } from '@tanstack/react-query'
+import { getIndexerClient } from '../utils/queries'
+import {
+  GetStreamsDocument,
+  GetStreamsQuery,
+  GetStreamsQueryVariables,
+} from '../generated/gql/indexer'
 
 type StatProps = {
   id: string
@@ -118,15 +125,6 @@ export const Stat = styled(UnstyledStat)`
       opacity: 0.5;
     `}
 `
-
-const InfinityIcon = () => (
-  <svg viewBox="0 0 13 7" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3.682 6.16c1.2 0 2.144-.672 2.464-2.24h.08c.512 1.504 1.408 2.24 3.088 2.24 1.76 0 2.848-1.28 2.848-3.04S11.074.08 9.314.08c-1.2 0-2.144.672-2.464 2.24h-.08C6.258.816 5.362.08 3.682.08 1.922.08.834 1.36.834 3.12s1.088 3.04 2.848 3.04zm0-1.088c-.928 0-1.536-.624-1.536-1.552v-.8c0-.928.608-1.552 1.536-1.552 1.04 0 1.792.56 2.16 1.952-.368 1.392-1.12 1.952-2.16 1.952zm5.632 0c-1.04 0-1.792-.56-2.16-1.952.368-1.392 1.12-1.952 2.16-1.952.928 0 1.536.624 1.536 1.552v.8c0 .928-.608 1.552-1.536 1.552z"
-      fill="currentColor"
-    />
-  </svg>
-)
 
 const ButtonGrid = styled.div`
   display: flex;
@@ -241,61 +239,61 @@ export default Object.assign(Stats, {
   Stat,
 })
 
-export function ApyStat() {
-  const { data: stakeSummary } = useSponsorshipSummaryQuery()
+function useStreamStatsQuery(streamId: string) {
+  return useQuery({
+    queryKey: ['useStreamStatsQuery', streamId],
+    queryFn: async () => {
+      const {
+        data: { streams },
+      } = await getIndexerClient().query<GetStreamsQuery, GetStreamsQueryVariables>({
+        query: GetStreamsDocument,
+        variables: {
+          ids: [streamId],
+          pageSize: 1,
+        },
+      })
 
-  const apy = stakeSummary ? stakeSummary.apy.multipliedBy(100).toFixed(2) : '0'
+      const [stream = undefined] = streams.items
 
-  return <Stat id="apy" label="APY" value={apy} unit="%" />
+      if (!stream) {
+        return null
+      }
+
+      const { messagesPerSecond, peerCount } = stream
+
+      return {
+        latency: undefined as undefined | number,
+        messagesPerSecond,
+        peerCount,
+      }
+    },
+  })
 }
 
-export function NodeCountStat() {
-  const { data: summary } = useSummaryQuery()
-
-  const { nodeCount = 0 } = summary || {}
-
-  return <Stat id="nodeCount" label="Nodes" value={nodeCount} />
+interface StreamStatsProps {
+  streamId: string
 }
 
-export function MessagesPerSecondStat() {
-  const { data: summary } = useSummaryQuery()
-
-  const { messagesPerSecond = 0 } = summary || {}
-
-  return <Stat id="messagesPerSecond" label="Msgs / sec" value={messagesPerSecond} />
+const defaultStreamStats = {
+  latency: undefined,
+  messagesPerSecond: undefined,
+  peerCount: undefined,
 }
 
-export function TvlStat() {
-  const { data: stakeSummary } = useSponsorshipSummaryQuery()
+export function StreamStats({ streamId }: StreamStatsProps) {
+  const { data: stats } = useStreamStatsQuery(streamId)
 
-  const tvl = stakeSummary
-    ? stakeSummary.tvl
-        .dividedBy(10 ** 18)
-        .dividedBy(10 ** 6)
-        .toFixed(2)
-    : '0'
+const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
 
-  return <Stat id="tvl" label="TVL" value={tvl} unit="M DATA" />
-}
-
-function StreamNodeCountStat() {
-  return <Stat id="streamNodeCount" label="Nodes" value={0} unit="" />
-}
-
-function StreamLatencyStat() {
-  return <Stat id="streamNodeCount" label="Latency ms" value={<Dimm>&infin;</Dimm>} unit="" />
-}
-
-function StreamMessagesPerSecondStat() {
-  return <Stat id="streamMessagesPerSecond" label="Msgs / sec" value={0} />
-}
-
-export function StreamStats() {
   return (
     <Stats>
-      <StreamMessagesPerSecondStat />
-      <StreamNodeCountStat />
-      <StreamLatencyStat />
+      <Stat id="streamMessagesPerSecond" label="Msgs / sec" value={messagesPerSecond} />
+      <Stat id="peerCount" label="Peers" value={peerCount} />
+      <Stat
+        id="latency"
+        label="Latency ms"
+        value={latency == null ? undefined : latency.toFixed(2)}
+      />
     </Stats>
   )
 }
