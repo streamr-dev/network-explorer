@@ -258,7 +258,7 @@ function useStreamMessagesOrderedByTime<
           payload: transform(msg),
         } as T
 
-        if (!eligible || !eligible(entry.payload, msg)) {
+        if (eligible && !eligible(entry.payload, msg)) {
           return
         }
 
