@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import BigNumber from 'bignumber.js'
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import styled, { css } from 'styled-components'
 import {
@@ -317,15 +316,15 @@ export function NetworkStats() {
       return []
     }
 
-    return reports.map(({ timestamp: x, [metricKey]: rawY }) => {
+    return reports.map(({ timestamp: x, [metricKey]: y }) => {
       return {
         x,
-        y: typeof rawY === 'string' ? new BigNumber(rawY).dividedBy(10 ** 18).toNumber() : rawY,
+        y,
       }
     })
   }, [reports, metricKey])
 
-  const { nodeCount, tvl: tvlWei, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
+  const { nodeCount, tvl, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
 
   return (
     <>
@@ -341,7 +340,7 @@ export function NetworkStats() {
         <Stat
           id="apy"
           label="APY"
-          value={apy}
+          value={apy?.toPrecision(4)}
           unit="%"
           onClick={() => {
             setMetricKey((current) => (current === 'apy' ? undefined : 'apy'))
@@ -350,7 +349,7 @@ export function NetworkStats() {
         <Stat
           id="tvl"
           label="TVL"
-          value={tvlWei == null ? undefined : new BigNumber(tvlWei).dividedBy(10 ** 18).toFixed(2)}
+          value={tvl == null ? undefined : (tvl / 1000000).toPrecision(4)}
           unit="M DATA"
           onClick={() => {
             setMetricKey((current) => (current === 'tvl' ? undefined : 'tvl'))

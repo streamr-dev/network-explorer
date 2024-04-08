@@ -340,7 +340,7 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
         .object({
           apy: z.number(),
           nodeCount: z.number(),
-          tvl: z.string(),
+          tvl: z.number(),
         })
         .parse(msg.getParsedContent())
 
