@@ -16,6 +16,7 @@ import { NodeTopologyList } from './NodeTopologyList'
 import { SearchBox } from './SearchBox'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
+import { PublisherDetector } from './PublisherDetector'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -32,6 +33,7 @@ function Page() {
 
   return (
     <StoreProvider mapRef={mapRef}>
+      <PublisherDetector />
       <Map innerRef={mapRef} />
       <LoadingIndicator large loading={isLoadingNodes} />
       <Layout>

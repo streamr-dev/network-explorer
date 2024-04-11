@@ -10,7 +10,6 @@ import { getIndexerClient } from '../utils/queries'
 import {
   NetworkMetricKey,
   NodeMetricKey,
-  getResendOptionsForInterval,
   useNetworkMetricEntries,
   useRecentNetworkMetricEntry,
   useRecentOperatorNodeMetricEntry,
@@ -304,11 +303,8 @@ export function NetworkStats() {
 
   const [interval, setInterval] = useState<Interval>('realtime')
 
-  const resendOptions = useMemo(() => getResendOptionsForInterval(interval), [interval])
-
   const reports = useNetworkMetricEntries({
     interval,
-    resendOptions,
   })
 
   const datapoints = useMemo(() => {
@@ -393,12 +389,9 @@ export function NodeStats({ nodeId }: NodeStatsProps) {
 
   const [interval, setInterval] = useState<Interval>('realtime')
 
-  const resendOptions = useMemo(() => getResendOptionsForInterval(interval), [interval])
-
   const reports = useSortedOperatorNodeMetricEntries({
     interval,
     nodeId,
-    resendOptions,
   })
 
   const datapoints = useMemo(

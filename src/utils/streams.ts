@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSubscribe } from 'streamr-client-react'
 import { z } from 'zod'
+import { useStore } from '../Store'
 import { Interval } from '../components/Graphs/Graphs'
 import { MinuteMs } from '../consts'
 import {
@@ -83,17 +84,14 @@ interface UseSortedOperatorNodeMetricEntriesParams {
   interval: Interval
   limit?: number
   nodeId: string
-  resendOptions?: ResendOptions
-}
-
-const resendLast: ResendOptions = {
-  last: 1,
 }
 
 export function useSortedOperatorNodeMetricEntries(
   params: UseSortedOperatorNodeMetricEntriesParams,
 ) {
-  const { nodeId, interval, resendOptions = resendLast, limit } = params
+  const { nodeId, interval, limit } = params
+
+  const { publishers } = useStore()
 
   const freq =
     interval === 'realtime' || interval === '24hours'
@@ -101,6 +99,22 @@ export function useSortedOperatorNodeMetricEntries(
       : interval === '1month'
         ? 'hour'
         : 'day'
+
+  const { [nodeId]: publisherId } = publishers
+
+  const resendOptions = useMemo<ResendOptions>(() => {
+    if (limit != null) {
+      return {
+        publisherId,
+        last: limit,
+      }
+    }
+
+    return {
+      publisherId,
+      ...getResendOptionsForInterval(interval),
+    }
+  }, [interval, publisherId, limit])
 
   const streamId = `streamr.eth/metrics/nodes/firehose/${freq}`
 
@@ -119,7 +133,7 @@ export function useSortedOperatorNodeMetricEntries(
       partition,
     },
     {
-      disabled: partition == null,
+      disabled: partition == null || !publisherId,
       cacheKey: nodeId,
       eligible: (entry) => entry.nodeId === nodeId,
       limit,
@@ -162,7 +176,6 @@ export function useRecentOperatorNodeMetricEntry(nodeId: string) {
     interval: 'realtime',
     limit: 1,
     nodeId,
-    resendOptions: resendLast,
   })
 
   return recent
@@ -174,7 +187,7 @@ async function getStreamrClientInstance() {
   return new StreamrClient()
 }
 
-function useStreamFromClient(streamId: string) {
+export function useStreamFromClient(streamId: string) {
   return useQuery({
     queryKey: ['useStreamFromClient', streamId],
     queryFn: async () => {
@@ -188,7 +201,7 @@ function useStreamFromClient(streamId: string) {
 
 const HourMs = MinuteMs * 60
 
-export function getResendOptionsForInterval(interval: Interval): ResendOptions {
+function getResendOptionsForInterval(interval: Interval): ResendOptions {
   const now = Date.now()
 
   const intervalToWindowSize: Record<Interval, number> = {
@@ -308,7 +321,6 @@ function useStreamMessagesOrderedByTime<
 interface UseNetworkMetricEntriesParams {
   interval?: Interval
   limit?: number
-  resendOptions?: ResendOptions
 }
 
 interface NetworkMetricReport {
@@ -321,7 +333,7 @@ interface NetworkMetricReport {
 export type NetworkMetricKey = Exclude<keyof NetworkMetricReport, 'timestamp'>
 
 export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
-  const { interval = 'realtime', resendOptions, limit } = params
+  const { interval = 'realtime', limit } = params
 
   const freq =
     interval === 'realtime' || interval === '24hours'
@@ -329,6 +341,11 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
       : interval === '1month'
         ? 'hour'
         : 'day'
+
+  const resendOptions = useMemo(
+    () => (limit != null ? { last: limit } : getResendOptionsForInterval(interval)),
+    [interval, limit],
+  )
 
   return useStreamMessagesOrderedByTime(`streamr.eth/metrics/network/${freq}`, {
     transform: (msg) => {
@@ -359,7 +376,6 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
 export function useRecentNetworkMetricEntry() {
   const [entry = null] = useNetworkMetricEntries({
     limit: 1,
-    resendOptions: resendLast,
   })
 
   return entry

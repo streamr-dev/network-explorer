@@ -1,6 +1,8 @@
 import React, {
+  Dispatch,
   ReactNode,
   RefObject,
+  SetStateAction,
   createContext,
   useCallback,
   useContext,
@@ -24,10 +26,12 @@ interface Store {
   locationParamKey: number
   mapRef: RefObject<MapRef>
   nodeIdParamKey: number
+  publishers: Record<string, string | undefined>
   resetViewport(): void
   searchPhrase: string
   selectedNode: OperatorNode | null
   setActiveView(value: ActiveView): void
+  setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
   setSearchPhrase(value: string): void
   setViewport(fn: (viewport: ViewportProps) => ViewportProps): void
   setViewportDebounced(fn: (viewport: ViewportProps) => ViewportProps): void
@@ -61,10 +65,12 @@ const StoreContext = createContext<Store>({
   locationParamKey: -1,
   mapRef: { current: null },
   nodeIdParamKey: -1,
+  publishers: {},
   resetViewport: () => {},
   searchPhrase: '',
   selectedNode: null,
   setActiveView: () => {},
+  setPublishers: () => ({}),
   setSearchPhrase: () => {},
   setViewport: () => {},
   setViewportDebounced: () => {},
@@ -110,6 +116,8 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
     setDisplaySearchPhrase(truncate(value))
   }, [])
 
+  const [publishers, setPublishers] = useState<Record<string, string | undefined>>({})
+
   return (
     <StoreContext.Provider
       {...props}
@@ -121,10 +129,12 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
         locationParamKey,
         mapRef,
         nodeIdParamKey,
+        publishers,
         resetViewport,
         searchPhrase: rawSearchPhrase,
         selectedNode,
         setActiveView,
+        setPublishers,
         setSearchPhrase,
         setViewport,
         setViewportDebounced,
