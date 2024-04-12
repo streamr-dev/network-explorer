@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { useStore } from '../../Store'
-import { useNavigateToNodeCallback } from '../../hooks'
+import { useMap, useNavigateToNodeCallback } from '../../hooks'
 import { SearchResultItem } from '../../types'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 import { MD, SANS, SM } from '../../utils/styled'
@@ -135,7 +135,9 @@ function Item({ highlight, value, onClick }: ItemProps) {
 
   const navigateToNode = useNavigateToNodeCallback()
 
-  const { invalidateLocationParamKey, invalidateNodeIdParamKey, mapRef } = useStore()
+  const map = useMap()
+
+  const { invalidateLocationParamKey, invalidateNodeIdParamKey } = useStore()
 
   return (
     <Row
@@ -183,14 +185,18 @@ function Item({ highlight, value, onClick }: ItemProps) {
           return
         }
 
-        setNodeFeatureState(mapRef, getNodeLocationId(value.payload.location), { hover: true })
+        setNodeFeatureState(map?.getMap(), getNodeLocationId(value.payload.location), {
+          hover: true,
+        })
       }}
       onMouseLeave={() => {
         if (value.type !== 'node') {
           return
         }
 
-        setNodeFeatureState(mapRef, getNodeLocationId(value.payload.location), { hover: false })
+        setNodeFeatureState(map?.getMap(), getNodeLocationId(value.payload.location), {
+          hover: false,
+        })
       }}
     >
       <IconWrapper>

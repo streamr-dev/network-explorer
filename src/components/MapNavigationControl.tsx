@@ -1,7 +1,9 @@
-import React, { RefObject } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-import { SM } from '../../utils/styled'
-import { Tooltip } from '../Tooltip'
+import { DefaultViewState } from '../consts'
+import { useMap } from '../hooks'
+import { SM } from '../utils/styled'
+import { Tooltip } from './Tooltip'
 
 const Button = styled.button`
   width: 40px;
@@ -187,18 +189,16 @@ const NavigationControlRoot = styled.div`
 `
 
 interface NavigationControlProps {
-  innerRef?: RefObject<HTMLDivElement>
-  onResetMap(): void
   onToggleConnections(): void
-  onZoomIn(): void
-  onZoomOut(): void
 }
 
-export function NavigationControl(props: NavigationControlProps) {
-  const { onZoomIn, onZoomOut, onResetMap, onToggleConnections, innerRef } = props
+export function MapNavigationControl(props: NavigationControlProps) {
+  const { onToggleConnections } = props
+
+  const map = useMap()
 
   return (
-    <NavigationControlRoot ref={innerRef}>
+    <NavigationControlRoot>
       <ButtonGroup>
         <Tooltip value="Show node connections">
           <ConnectionButton type="button" onClick={onToggleConnections}>
@@ -208,16 +208,34 @@ export function NavigationControl(props: NavigationControlProps) {
       </ButtonGroup>
       <ButtonGroup>
         <Tooltip value="Reset the map">
-          <ResetButton type="button" onClick={onResetMap}>
+          <ResetButton
+            type="button"
+            onClick={() => {
+              map?.flyTo({
+                center: [DefaultViewState.longitude, DefaultViewState.latitude],
+                zoom: DefaultViewState.zoom,
+              })
+            }}
+          >
             <RefreshIcon />
           </ResetButton>
         </Tooltip>
       </ButtonGroup>
       <ZoomGroup>
-        <Button type="button" onClick={onZoomIn}>
+        <Button
+          type="button"
+          onClick={() => {
+            map?.zoomIn()
+          }}
+        >
           <PlusIcon />
         </Button>
-        <Button type="button" onClick={() => onZoomOut()}>
+        <Button
+          type="button"
+          onClick={() => {
+            map?.zoomOut()
+          }}
+        >
           <MinusIcon />
         </Button>
       </ZoomGroup>

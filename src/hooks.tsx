@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMap as useProvidedMap } from 'react-map-gl'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useStore } from '../Store'
+import { useStore } from './Store'
+import { MapId } from './consts'
+import { getNodeLocationId, setNodeFeatureState } from './utils/map'
 
 export function useGlobalKeyDownEffect(
   key: string | RegExp,
@@ -49,7 +52,7 @@ export function useGlobalKeyDownEffect(
   )
 }
 
-export function useLocationFromParams() {
+function useLocationFromParams() {
   const location = useSearchParams()[0].get('l') || ''
 
   return useMemo(() => {
@@ -151,5 +154,81 @@ export function useNavigateToNodeCallback() {
       }
     },
     [navigate, streamId, setSearchPhrase],
+  )
+}
+
+export function useMap() {
+  return useProvidedMap()[MapId]
+}
+
+export function useSelectedNodeLocationEffect(
+  onLocationUpdate: (location: [number, number]) => void,
+) {
+  const map = useMap()
+
+  const { selectedNode, nodeIdParamKey } = useStore()
+
+  const { longitude, latitude } = selectedNode?.location || {}
+
+  const onLocationUpdateRef = useRef(onLocationUpdate)
+
+  if (onLocationUpdateRef.current !== onLocationUpdate) {
+    onLocationUpdateRef.current = onLocationUpdate
+  }
+
+  useEffect(
+    function propagateLocationChange() {
+      if (longitude != null && latitude != null) {
+        onLocationUpdateRef.current([longitude, latitude])
+      }
+    },
+    [longitude, latitude, nodeIdParamKey],
+  )
+
+  const selectedNodeLocationIdRef = useRef<string | null>(null)
+
+  const { current: prevSelectedNodeLocationId } = selectedNodeLocationIdRef
+
+  const selectedNodeLocationId = selectedNode ? getNodeLocationId(selectedNode.location) : undefined
+
+  if (prevSelectedNodeLocationId !== selectedNodeLocationId) {
+    if (prevSelectedNodeLocationId) {
+      setNodeFeatureState(map?.getMap(), prevSelectedNodeLocationId, { active: false })
+    }
+
+    if (selectedNodeLocationId) {
+      setNodeFeatureState(map?.getMap(), selectedNodeLocationId, { active: true })
+    }
+
+    selectedNodeLocationIdRef.current = selectedNodeLocationId || null
+  }
+}
+
+interface LocationFromParams {
+  longitude: number
+  latitude: number
+  zoom: number
+}
+
+export function useSelectedPlaceLocationEffect(
+  onLocationUpdate: (location: LocationFromParams) => void,
+) {
+  const { longitude, latitude, zoom } = useLocationFromParams() || {}
+
+  const { locationParamKey } = useStore()
+
+  const onLocationUpdateRef = useRef(onLocationUpdate)
+
+  if (onLocationUpdateRef.current !== onLocationUpdate) {
+    onLocationUpdateRef.current = onLocationUpdate
+  }
+
+  useEffect(
+    function propagatePlaceChange() {
+      if (longitude != null && latitude != null && zoom != null) {
+        onLocationUpdateRef.current({ longitude, latitude, zoom })
+      }
+    },
+    [longitude, latitude, zoom, locationParamKey],
   )
 }

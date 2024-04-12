@@ -1,7 +1,6 @@
 import { useIsFetching, useQuery } from '@tanstack/react-query'
+import { MapboxToken } from '../consts'
 import { PlaceFeature, PlacesResponse } from '../types'
-
-export const MapboxToken = process.env.REACT_APP_MAPBOX_TOKEN
 
 interface UseLocationFeaturesQueryParams {
   place?: string | [number, number]

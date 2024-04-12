@@ -1,10 +1,16 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import React, { useRef } from 'react'
-import { MapRef } from 'react-map-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import React from 'react'
+import { MapProvider } from 'react-map-gl'
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import styled from 'styled-components'
 import { StoreProvider } from '../Store'
-import { useStreamIdParam } from '../hooks'
+import {
+  useMap,
+  useSelectedNodeLocationEffect,
+  useSelectedPlaceLocationEffect,
+  useStreamIdParam,
+} from '../hooks'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
 import { ErrorBoundary } from './ErrorBoundary'
@@ -13,10 +19,10 @@ import UnstyledLoadingIndicator from './LoadingIndicator'
 import { Map } from './Map'
 import NetworkSelector from './NetworkSelector'
 import { NodeTopologyList } from './NodeTopologyList'
+import { PublisherDetector } from './PublisherDetector'
 import { SearchBox } from './SearchBox'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
-import { PublisherDetector } from './PublisherDetector'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -29,12 +35,11 @@ function Page() {
 
   const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
-  const mapRef = useRef<MapRef>(null)
-
   return (
-    <StoreProvider mapRef={mapRef}>
+    <StoreProvider>
       <PublisherDetector />
-      <Map innerRef={mapRef} />
+      <Map />
+      <MapAutoUpdater />
       <LoadingIndicator large loading={isLoadingNodes} />
       <Layout>
         <ErrorBoundary>
@@ -47,19 +52,39 @@ function Page() {
   )
 }
 
+function MapAutoUpdater() {
+  const map = useMap()
+
+  useSelectedNodeLocationEffect(([longitude, latitude]) => {
+    if (!map || map.getBounds().contains([longitude, latitude])) {
+      return
+    }
+
+    map.flyTo({ center: [longitude, latitude] })
+  })
+
+  useSelectedPlaceLocationEffect(({ longitude, latitude, zoom }) => {
+    map?.flyTo({ center: [longitude, latitude], zoom })
+  })
+
+  return null
+}
+
 export function App() {
   return (
     <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
       <QueryClientProvider client={getQueryClient()}>
         <StreamrClientProvider>
-          <Routes>
-            <Route element={<Page />}>
-              <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
-              <Route path="/streams/:streamId" element={<StreamTopologyList />} />
-              <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
-              <Route index element={<NodeTopologyList />} />
-            </Route>
-          </Routes>
+          <MapProvider>
+            <Routes>
+              <Route element={<Page />}>
+                <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
+                <Route path="/streams/:streamId" element={<StreamTopologyList />} />
+                <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
+                <Route index element={<NodeTopologyList />} />
+              </Route>
+            </Routes>
+          </MapProvider>
         </StreamrClientProvider>
       </QueryClientProvider>
     </BrowserRouter>

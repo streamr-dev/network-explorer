@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl'
-import { useNodeConnections } from '../../utils'
+import { useNodeConnections } from '../utils'
 
-export function ConnectionLayer({ visible = false }) {
+export function MapConnectionLayer({ visible = false }) {
   const connections = useNodeConnections()
 
   const lineData = useMemo(

@@ -2,12 +2,12 @@ import { Meta } from '@storybook/react/types-6-0'
 import React, { useCallback, useReducer, useState } from 'react'
 import styled from 'styled-components'
 import { NodeList, NodeListHeader } from '.'
-import usePaged from '../../hooks/usePaged'
 import { getNodeLocationId } from '../../utils/map'
 import Error from '../Error'
 import { Stat, Stats } from '../Stats'
 import { NodeListItem } from './NodeListItem'
 import Pager from './Pager'
+import { usePaginatedItems } from '../../hooks'
 
 const Wrapper = styled.div`
   background-color: lightblue;
@@ -223,9 +223,13 @@ const longList: Array<Node> = Array.from(
 const PAGE_SIZE = 4
 
 export const Paged = () => {
-  const { currentPage, setPage, items, pages } = usePaged<Node>({
-    items: longList,
-    limit: PAGE_SIZE,
+  const {
+    page: currentPage,
+    setPage,
+    items,
+    totalPages: pages,
+  } = usePaginatedItems<Node>(longList, {
+    pageSize: PAGE_SIZE,
   })
 
   return (

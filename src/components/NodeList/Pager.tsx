@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
 
-import { ConnectionIcon } from '../Map/NavigationControl'
+import { ConnectionIcon } from '../MapNavigationControl'
 import { SANS, MEDIUM, BOLD } from '../../utils/styled'
 
 const Title = styled.div`

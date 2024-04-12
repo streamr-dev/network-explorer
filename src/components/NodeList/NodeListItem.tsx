@@ -8,6 +8,7 @@ import { MEDIUM, SANS } from '../../utils/styled'
 import Error from '../Error'
 import { Graphs } from '../Graphs'
 import { Stats } from '../Stats'
+import { useMap } from '../../hooks'
 
 const Name = styled.div`
   color: #323232;
@@ -166,7 +167,9 @@ export const NodeListItem = ({
     }
   }, [isActive])
 
-  const { mapRef, invalidateNodeIdParamKey } = useStore()
+  const { invalidateNodeIdParamKey } = useStore()
+
+  const map = useMap()
 
   return (
     <NodeElement
@@ -191,12 +194,12 @@ export const NodeListItem = ({
         }}
         onMouseEnter={() => {
           if (highlightPointOnHover) {
-            setNodeFeatureState(mapRef, nodeLocationId, { hover: true })
+            setNodeFeatureState(map?.getMap(), nodeLocationId, { hover: true })
           }
         }}
         onMouseLeave={() => {
           if (highlightPointOnHover) {
-            setNodeFeatureState(mapRef, nodeLocationId, { hover: false })
+            setNodeFeatureState(map?.getMap(), nodeLocationId, { hover: false })
           }
         }}
       >

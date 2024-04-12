@@ -1,7 +1,6 @@
 import React, {
   Dispatch,
   ReactNode,
-  RefObject,
   SetStateAction,
   createContext,
   useCallback,
@@ -10,13 +9,12 @@ import React, {
   useReducer,
   useState,
 } from 'react'
-import { LinearInterpolator, MapRef, TRANSITION_EVENTS, ViewportProps } from 'react-map-gl'
 import { useParams } from 'react-router-dom'
-import { useGlobalKeyDownEffect, useStreamIdParam } from './hooks'
-import { useDebounced } from './hooks/wrapCallback'
+import { useGlobalKeyDownEffect, useMap, useStreamIdParam } from './hooks'
 import { ActiveView, OperatorNode } from './types'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
+import { DefaultViewState } from './consts'
 
 interface Store {
   activeView: ActiveView
@@ -24,37 +22,13 @@ interface Store {
   invalidateLocationParamKey(): void
   invalidateNodeIdParamKey(): void
   locationParamKey: number
-  mapRef: RefObject<MapRef>
   nodeIdParamKey: number
   publishers: Record<string, string | undefined>
-  resetViewport(): void
   searchPhrase: string
   selectedNode: OperatorNode | null
   setActiveView(value: ActiveView): void
   setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
   setSearchPhrase(value: string): void
-  setViewport(fn: (viewport: ViewportProps) => ViewportProps): void
-  setViewportDebounced(fn: (viewport: ViewportProps) => ViewportProps): void
-  viewport: ViewportProps
-}
-
-const defaultViewport: ViewportProps = {
-  altitude: 0,
-  bearing: 0,
-  height: 0,
-  latitude: 53.86859,
-  longitude: -0.36616,
-  maxPitch: 60,
-  maxZoom: 15,
-  minPitch: 0,
-  minZoom: 2,
-  pitch: 0,
-  transitionDuration: 300,
-  transitionEasing: (t: number) => t,
-  transitionInterpolator: new LinearInterpolator(),
-  transitionInterruption: TRANSITION_EVENTS.BREAK,
-  width: 0,
-  zoom: 3,
 }
 
 const StoreContext = createContext<Store>({
@@ -63,45 +37,33 @@ const StoreContext = createContext<Store>({
   invalidateLocationParamKey: () => {},
   invalidateNodeIdParamKey: () => {},
   locationParamKey: -1,
-  mapRef: { current: null },
   nodeIdParamKey: -1,
   publishers: {},
-  resetViewport: () => {},
   searchPhrase: '',
   selectedNode: null,
   setActiveView: () => {},
   setPublishers: () => ({}),
   setSearchPhrase: () => {},
-  setViewport: () => {},
-  setViewportDebounced: () => {},
-  viewport: defaultViewport,
 })
 
 interface StoreProviderProps {
   children?: ReactNode
-  mapRef: RefObject<MapRef>
 }
 
-export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
+export function StoreProvider(props: StoreProviderProps) {
   const selectedNode = useNodeByNodeIdParam()
 
   const [locationParamKey, invalidateLocationParamKey] = useReducer((x: number) => x + 1, 0)
 
   const [nodeIdParamKey, invalidateNodeIdParamKey] = useReducer((x: number) => x + 1, 0)
 
-  const [viewport, setViewport] = useState(defaultViewport)
-
-  const setViewportDebounced = useDebounced(
-    useCallback((nextViewport: ViewportProps) => setViewport(nextViewport), []),
-    250,
-  )
-
-  const resetViewport = useCallback(() => {
-    setViewportDebounced(defaultViewport)
-  }, [setViewportDebounced])
+  const map = useMap()
 
   useGlobalKeyDownEffect('0', () => {
-    resetViewport()
+    map?.flyTo({
+      center: [DefaultViewState.longitude, DefaultViewState.latitude],
+      zoom: DefaultViewState.zoom,
+    })
   })
 
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
@@ -127,18 +89,13 @@ export function StoreProvider({ mapRef, ...props }: StoreProviderProps) {
         invalidateLocationParamKey,
         invalidateNodeIdParamKey,
         locationParamKey,
-        mapRef,
         nodeIdParamKey,
         publishers,
-        resetViewport,
         searchPhrase: rawSearchPhrase,
         selectedNode,
         setActiveView,
         setPublishers,
         setSearchPhrase,
-        setViewport,
-        setViewportDebounced,
-        viewport,
       }}
     />
   )
