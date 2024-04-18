@@ -355,11 +355,15 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
         messageId: { timestamp },
       } = msg
 
-      const { apy, nodeCount, tvl } = z
+      const {
+        'staking.24h-APY': apy,
+        'network.totalNumberOfNodes': nodeCount,
+        'staking.24h-data-staked': tvl,
+      } = z
         .object({
-          apy: z.number(),
-          nodeCount: z.number(),
-          tvl: z.number(),
+          'staking.24h-APY': z.number(),
+          'network.totalNumberOfNodes': z.number(),
+          'staking.24h-data-staked': z.number(),
         })
         .parse(msg.getParsedContent())
 
