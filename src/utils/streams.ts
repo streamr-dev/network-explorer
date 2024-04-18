@@ -336,11 +336,13 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
   const { interval = 'realtime', limit } = params
 
   const freq =
-    interval === 'realtime' || interval === '24hours'
-      ? 'min'
-      : interval === '1month'
-        ? 'hour'
-        : 'day'
+    interval === 'realtime'
+      ? 'sec'
+      : interval === '24hours'
+        ? 'min'
+        : interval === '1month'
+          ? 'hour'
+          : 'day'
 
   const resendOptions = useMemo(
     () => (limit != null ? { last: limit } : getResendOptionsForInterval(interval)),
