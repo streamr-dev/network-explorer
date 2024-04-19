@@ -356,14 +356,14 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
       } = msg
 
       const {
-        'staking.24h-APY': apy,
+        'staking.avg-APY': apy,
         'network.totalNumberOfNodes': nodeCount,
-        'staking.24h-data-staked': tvl,
+        'staking.avg-data-staked': tvl,
       } = z
         .object({
-          'staking.24h-APY': z.number(),
+          'staking.avg-APY': z.number(),
           'network.totalNumberOfNodes': z.number(),
-          'staking.24h-data-staked': z.number(),
+          'staking.avg-data-staked': z.number(),
         })
         .parse(msg.getParsedContent())
 
