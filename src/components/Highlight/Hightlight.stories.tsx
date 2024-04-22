@@ -1,5 +1,5 @@
 import React from 'react'
-import { Story, Meta } from '@storybook/react/types-6-0'
+import { Meta, StoryFn } from '@storybook/react'
 
 import Highlight from '.'
 
@@ -8,7 +8,7 @@ export default {
   component: Highlight,
 } as Meta
 
-const Template: Story<{
+const Template: StoryFn<{
   search: string
 }> = ({ search }) => (
   <Highlight search={search}>The quick brown fox jumps over the lazy dog</Highlight>

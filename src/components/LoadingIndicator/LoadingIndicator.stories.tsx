@@ -1,6 +1,5 @@
 import React from 'react'
-import { Story, Meta } from '@storybook/react/types-6-0'
-
+import { Meta, StoryFn } from '@storybook/react'
 import LoadingIndicator from '.'
 
 export default {
@@ -11,4 +10,4 @@ export default {
   },
 } as Meta
 
-export const Loading: Story = (args) => <LoadingIndicator loading />
+export const Loading: StoryFn = (args) => <LoadingIndicator loading />

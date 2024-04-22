@@ -1,4 +1,4 @@
-import { Meta, Story } from '@storybook/react/types-6-0'
+import { Meta, StoryFn } from '@storybook/react'
 import React from 'react'
 import { Props, TimeSeries } from './TimeSeries'
 
@@ -48,7 +48,7 @@ const data2 = [
   },
 ]
 
-const Template: Story<Props> = (args) => <TimeSeries {...args} />
+const Template: StoryFn<Props> = (args) => <TimeSeries {...args} />
 
 export const WithHeightDefined = Template.bind({})
 WithHeightDefined.args = {
