@@ -1,13 +1,14 @@
-import React, { useCallback } from 'react'
-import styled, { css } from 'styled-components/macro'
+import React, { ReactNode, useEffect, useRef } from 'react'
 import Identicon from 'react-identicons'
-import { useTransition, animated } from 'react-spring'
-
-import { SANS, MEDIUM } from '../../utils/styled'
-import { truncate } from '../../utils/text'
-import Stats from '../Stats'
-import Graphs from '../Graphs'
+import { animated, useTransition } from 'react-spring'
+import styled, { css } from 'styled-components'
+import { useStore } from '../../Store'
+import { setNodeFeatureState } from '../../utils/map'
+import { MEDIUM, SANS } from '../../utils/styled'
 import Error from '../Error'
+import { Graphs } from '../Graphs'
+import { Stats } from '../Stats'
+import { useMap } from '../../hooks'
 
 const Name = styled.div`
   color: #323232;
@@ -66,23 +67,26 @@ const NodeElement = styled.div`
   ${({ theme }) =>
     !!theme.clickable &&
     css`
+      ${TitleRow}:hover {
+        background: #f8f8f8;
+      }
+
       ${TitleRow} {
         cursor: pointer;
-
-        :hover {
-          background: #f8f8f8;
-        }
       }
     `}
 
   ${({ theme }) =>
     !!theme.isActive &&
     css`
+      box-shadow: 0 0 0 3px #ddd;
+
       ${Content} {
         max-height: 100vh;
       }
     `}
 `
+
 const PlacenameOrAddress = styled.div`
   position: relative;
   height: 16px;
@@ -98,7 +102,7 @@ const PlacenameOrAddress = styled.div`
 
 const PlaceName = styled.div`
   font-size: 10px;
-  color: #ADADAD;
+  color: #adadad;
   margin-top: 2px;
   font-weight: ${MEDIUM};
 `
@@ -111,48 +115,96 @@ const Address = styled(PlaceName)`
 `
 
 type Props = {
-  nodeId: string
-  title: string
-  address: string,
-  placeName: string
-  onClick?: (id: string) => void
-  isActive?: boolean
   children?: React.ReactNode
+  highlightPointOnHover?: boolean
+  isActive?: boolean
+  nodeId: string
+  nodeLocationId: string
+  onClick?: (id: string) => void
+  placeName: ReactNode
+  title: string
 }
 
-const NodeListItem = ({
-  nodeId,
-  title,
-  address,
-  placeName,
-  onClick: onClickProp,
-  isActive,
+export const NodeListItem = ({
   children,
+  highlightPointOnHover = false,
+  isActive,
+  nodeId,
+  nodeLocationId,
+  onClick,
+  placeName,
+  title,
   ...props
 }: Props) => {
-  const onClick = useCallback(() => {
-    if (typeof onClickProp === 'function') {
-      onClickProp(nodeId)
-    }
-  }, [onClickProp, nodeId])
-
   const transition = useTransition(isActive, {
     from: { opacity: 0 },
     enter: { opacity: 1 },
     leave: { opacity: 0 },
   })
 
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    if (isActive) {
+      setTimeout(function scrollReffedElementIntoView() {
+        const { current: el } = ref
+
+        if (!el || !mounted) {
+          return
+        }
+
+        el.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth',
+        })
+      }, 1000)
+    }
+
+    return () => {
+      mounted = false
+    }
+  }, [isActive])
+
+  const { invalidateNodeIdParamKey } = useStore()
+
+  const map = useMap()
+
   return (
     <NodeElement
       {...props}
+      ref={ref}
       theme={{
-        clickable: typeof onClickProp === 'function',
+        clickable: !!onClick,
         isActive,
       }}
     >
-      <TitleRow onClick={onClick}>
+      <TitleRow
+        onClick={() => {
+          onClick?.(nodeId)
+
+          /**
+           * If the page address includes the node id already and the user
+           * panned away then the above won't be sufficient to get node's location
+           * back into viewport. To address it, we have to invalidate the node id
+           * param key.
+           */
+          invalidateNodeIdParamKey()
+        }}
+        onMouseEnter={() => {
+          if (highlightPointOnHover) {
+            setNodeFeatureState(map?.getMap(), nodeLocationId, { hover: true })
+          }
+        }}
+        onMouseLeave={() => {
+          if (highlightPointOnHover) {
+            setNodeFeatureState(map?.getMap(), nodeLocationId, { hover: false })
+          }
+        }}
+      >
         <IconWrapper>
-          <Identicon string={address} size={20} />
+          <Identicon string={nodeId} size={20} />
         </IconWrapper>
         <Name>
           <strong>{title}</strong>
@@ -160,7 +212,7 @@ const NodeListItem = ({
             {transition((style, item) =>
               item ? (
                 <animated.div style={style}>
-                  <Address title={address}>{truncate(address)}</Address>
+                  <Address title={nodeId}>{nodeId}</Address>
                 </animated.div>
               ) : (
                 <animated.div style={style}>
@@ -179,5 +231,3 @@ const NodeListItem = ({
     </NodeElement>
   )
 }
-
-export default NodeListItem

@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react'
-import styled, { css } from 'styled-components/macro'
-
-import { useGraphContext, Interval } from './Graphs'
+import styled, { css } from 'styled-components'
+import { Interval, useGraphContext } from './Graphs'
 
 const IntervalChoice = styled.div`
   font-weight: 500;
@@ -80,7 +79,7 @@ const UnstyledIntervals = ({
   )
 }
 
-const Intervals = styled(UnstyledIntervals)`
+export const Intervals = styled(UnstyledIntervals)`
   border-top: 1px solid #efefef;
   display: grid;
   grid-auto-flow: column;
@@ -88,5 +87,3 @@ const Intervals = styled(UnstyledIntervals)`
   align-content: center;
   padding: 0 1rem;
 `
-
-export default Intervals

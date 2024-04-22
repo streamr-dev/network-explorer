@@ -1,15 +1,31 @@
-import React, {
-  useCallback, useMemo, useState, useEffect,
-} from 'react'
-import styled, { css } from 'styled-components/macro'
-
+import { useQuery } from '@tanstack/react-query'
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import styled, { css } from 'styled-components'
+import {
+  GetStreamsDocument,
+  GetStreamsQuery,
+  GetStreamsQueryVariables,
+} from '../generated/gql/indexer'
+import { getIndexerClient } from '../utils/queries'
+import {
+  NetworkMetricKey,
+  NodeMetricKey,
+  useNetworkMetricEntries,
+  useRecentNetworkMetricEntry,
+  useRecentOperatorNodeMetricEntry,
+  useSortedOperatorNodeMetricEntries,
+} from '../utils/streams'
 import { SANS } from '../utils/styled'
+import { Graphs } from './Graphs'
+import { Interval } from './Graphs/Graphs'
+import { Intervals } from './Graphs/Intervals'
+import { TimeSeries } from './Graphs/TimeSeries'
 
 type StatProps = {
   id: string
-  label: string
-  value: number | string | undefined
-  unit?: string | undefined
+  label: ReactNode
+  value?: ReactNode
+  unit?: ReactNode
   onClick?: () => void
   disabled?: boolean
   theme?: Record<string, number | string | boolean>
@@ -35,7 +51,7 @@ const UnstyledStat = ({
       <StatName>{label}</StatName>
       <StatValue>
         {value !== undefined && value}
-        {value === undefined && <InfinityIcon />}
+        {value === undefined && <Dimm>&infin;</Dimm>}
         {value !== undefined && unit}
       </StatValue>
     </button>
@@ -45,7 +61,7 @@ const UnstyledStat = ({
 const StatName = styled.div`
   font-size: 10px;
   font-weight: 500;
-  line-height: 16px;
+  line-height: normal;
   letter-spacing: 0.05em;
   color: #adadad;
   text-transform: uppercase;
@@ -53,8 +69,8 @@ const StatName = styled.div`
 
 const StatValue = styled.div`
   font-size: 16px;
-  line-height: 32px;
-  padding-bottom: 4px;
+  line-height: normal;
+  margin-top: 0.25em;
   color: #323232;
 
   svg {
@@ -64,7 +80,11 @@ const StatValue = styled.div`
   }
 `
 
-const Stat = styled(UnstyledStat)`
+const Dimm = styled.span`
+  color: #adadad;
+`
+
+export const Stat = styled(UnstyledStat)`
   background: transparent;
   border: 0;
   appearance: none;
@@ -104,19 +124,10 @@ const Stat = styled(UnstyledStat)`
     `}
 `
 
-const InfinityIcon = () => (
-  <svg viewBox="0 0 13 7" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3.682 6.16c1.2 0 2.144-.672 2.464-2.24h.08c.512 1.504 1.408 2.24 3.088 2.24 1.76 0 2.848-1.28 2.848-3.04S11.074.08 9.314.08c-1.2 0-2.144.672-2.464 2.24h-.08C6.258.816 5.362.08 3.682.08 1.922.08.834 1.36.834 3.12s1.088 3.04 2.848 3.04zm0-1.088c-.928 0-1.536-.624-1.536-1.552v-.8c0-.928.608-1.552 1.536-1.552 1.04 0 1.792.56 2.16 1.952-.368 1.392-1.12 1.952-2.16 1.952zm5.632 0c-1.04 0-1.792-.56-2.16-1.952.368-1.392 1.12-1.952 2.16-1.952.928 0 1.536.624 1.536 1.552v.8c0 .928-.608 1.552-1.536 1.552z"
-      fill="currentColor"
-    />
-  </svg>
-)
-
 const ButtonGrid = styled.div`
   display: flex;
   flex-direction: row;
-  padding-top: 12px;
+  padding: 12px 0;
   font-family: ${SANS};
 
   > ${Stat} {
@@ -156,10 +167,6 @@ const UnderlineContainer = styled.div`
 type StatsProps = {
   children: React.ReactNode
   active?: string | number
-}
-
-type ChildProps = {
-  props: React.Props<StatProps>
 }
 
 const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
@@ -222,10 +229,225 @@ const UnstyledStats = ({ children, active, ...props }: StatsProps) => {
   )
 }
 
-const Stats = styled(UnstyledStats)`
+export const Stats = styled(UnstyledStats)`
   position: relative;
 `
 
-export default Object.assign(Stats, {
-  Stat,
-})
+function useStreamStatsQuery(streamId: string) {
+  return useQuery({
+    queryKey: ['useStreamStatsQuery', streamId],
+    queryFn: async () => {
+      const {
+        data: { streams },
+      } = await getIndexerClient().query<GetStreamsQuery, GetStreamsQueryVariables>({
+        query: GetStreamsDocument,
+        variables: {
+          ids: [streamId],
+          pageSize: 1,
+        },
+      })
+
+      const [stream = undefined] = streams.items
+
+      if (!stream) {
+        return null
+      }
+
+      const { messagesPerSecond, peerCount } = stream
+
+      return {
+        latency: undefined as undefined | number,
+        messagesPerSecond,
+        peerCount,
+      }
+    },
+  })
+}
+
+interface StreamStatsProps {
+  streamId: string
+}
+
+const defaultStreamStats = {
+  latency: undefined,
+  messagesPerSecond: undefined,
+  peerCount: undefined,
+}
+
+export function StreamStats({ streamId }: StreamStatsProps) {
+  const { data: stats } = useStreamStatsQuery(streamId)
+
+  const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
+
+  return (
+    <Stats>
+      <Stat id="streamMessagesPerSecond" label="Msgs / sec" value={messagesPerSecond} />
+      <Stat id="peerCount" label="Peers" value={peerCount} />
+      <Stat
+        id="latency"
+        label="Latency ms"
+        value={latency == null ? undefined : latency.toFixed(2)}
+      />
+    </Stats>
+  )
+}
+
+const defaultNetworkMetricEntry = {
+  nodeCount: undefined,
+  tvl: undefined,
+  apy: undefined,
+}
+
+export function NetworkStats() {
+  const [metricKey, setMetricKey] = useState<NetworkMetricKey>()
+
+  const [interval, setInterval] = useState<Interval>('realtime')
+
+  const reports = useNetworkMetricEntries({
+    interval,
+  })
+
+  const datapoints = useMemo(() => {
+    if (!metricKey) {
+      return []
+    }
+
+    return reports.map(({ timestamp: x, [metricKey]: y }) => {
+      return {
+        x,
+        y,
+      }
+    })
+  }, [reports, metricKey])
+
+  const { nodeCount, tvl, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
+
+  return (
+    <>
+      <Stats active={metricKey}>
+        <Stat
+          id="nodeCount"
+          label="Nodes"
+          value={nodeCount}
+          onClick={() => {
+            setMetricKey((current) => (current === 'nodeCount' ? undefined : 'nodeCount'))
+          }}
+        />
+        <Stat
+          id="apy"
+          label="APY"
+          value={apy?.toPrecision(4)}
+          unit="%"
+          onClick={() => {
+            setMetricKey((current) => (current === 'apy' ? undefined : 'apy'))
+          }}
+        />
+        <Stat
+          id="tvl"
+          label="TVL"
+          value={tvl == null ? undefined : (tvl / 1000000).toPrecision(4)}
+          unit="M DATA"
+          onClick={() => {
+            setMetricKey((current) => (current === 'tvl' ? undefined : 'tvl'))
+          }}
+        />
+      </Stats>
+      {metricKey && (
+        <>
+          <Graphs defaultInterval="realtime">
+            <TimeSeries
+              graphData={{ value: datapoints }}
+              height="200px"
+              ratio="1:2"
+              showCrosshair
+              dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
+              labelFormat={(value) => value.toPrecision(4)}
+            />
+            <Intervals
+              options={['realtime', '24hours', '1month', '3months', 'all']}
+              onChange={setInterval}
+            />
+          </Graphs>
+        </>
+      )}
+    </>
+  )
+}
+
+interface NodeStatsProps {
+  nodeId: string
+}
+
+const defaultMetricEntry = {
+  broadcastMessagesPerSecond: undefined,
+  broadcastBytesPerSecond: undefined,
+  receiveBytesPerSecond: undefined,
+}
+
+export function NodeStats({ nodeId }: NodeStatsProps) {
+  const [metricKey, setMetricKey] = useState<NodeMetricKey>('broadcastMessagesPerSecond')
+
+  const [interval, setInterval] = useState<Interval>('realtime')
+
+  const reports = useSortedOperatorNodeMetricEntries({
+    interval,
+    nodeId,
+  })
+
+  const datapoints = useMemo(
+    () => reports.map(({ timestamp: x, [metricKey]: y }) => ({ x, y })),
+    [reports, metricKey],
+  )
+
+  const { broadcastMessagesPerSecond, broadcastBytesPerSecond, receiveBytesPerSecond } =
+    useRecentOperatorNodeMetricEntry(nodeId) || defaultMetricEntry
+
+  return (
+    <>
+      <Stats active={metricKey}>
+        <Stat
+          id="broadcastMessagesPerSecond"
+          label="Msgs / sec"
+          value={broadcastMessagesPerSecond?.toPrecision(4)}
+          onClick={() => {
+            setMetricKey('broadcastMessagesPerSecond')
+          }}
+        />
+        <Stat
+          id="broadcastBytesPerSecond"
+          label="Up"
+          unit=""
+          value={broadcastBytesPerSecond && (broadcastBytesPerSecond / 1024 / 1024).toPrecision(4)}
+          onClick={() => {
+            setMetricKey('broadcastBytesPerSecond')
+          }}
+        />
+        <Stat
+          id="receiveBytesPerSecond"
+          label="Down"
+          unit=""
+          value={receiveBytesPerSecond && (receiveBytesPerSecond / 1024 / 1024).toPrecision(4)}
+          onClick={() => {
+            setMetricKey('receiveBytesPerSecond')
+          }}
+        />
+      </Stats>
+      <Graphs defaultInterval="realtime">
+        <TimeSeries
+          graphData={{ value: datapoints }}
+          height="200px"
+          ratio="1:2"
+          showCrosshair
+          dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
+          labelFormat={(value) => {
+            return (/bytes/i.test(metricKey) ? value / 1024 / 1024 : value).toPrecision(4)
+          }}
+        />
+        <Intervals
+          options={['realtime', '24hours', '1month', '3months', 'all']}
+          onChange={setInterval}
+        />
+      </Graphs>
+    </>
+  )
+}

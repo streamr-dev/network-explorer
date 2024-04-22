@@ -1,13 +1,13 @@
 import React from 'react'
-import styled from 'styled-components/macro'
-import { Virtuoso } from 'react-virtuoso'
-
-import { StreamIcon, NodeIcon, LocationIcon } from './Icons'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import styled from 'styled-components'
+import { useStore } from '../../Store'
+import { useMap, useNavigateToNodeCallback } from '../../hooks'
+import { SearchResultItem } from '../../types'
+import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
+import { MD, SANS, SM } from '../../utils/styled'
 import Highlight from '../Highlight'
-
-import { SearchResult } from '../../utils/api/streamr'
-import { SM, MD, SANS } from '../../utils/styled'
-import { truncate } from '../../utils/text'
+import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
 
 const IconWrapper = styled.div`
   display: flex;
@@ -75,19 +75,9 @@ const Name = styled.div`
   }
 `
 
-const TruncatedPath = styled.span`
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-`
-
-const PathFragment = styled.span`
-  flex-shrink: 0;
-`
-
 const Description = styled.div``
 
-const Item = styled.div`
+const Details = styled.div`
   align-self: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,109 +106,124 @@ const Item = styled.div`
   }
 `
 
-const List = styled.div`
-  display: grid;
-
-  a,
-  a:hover,
-  a:active,
-  a:visited {
-    text-decoration: none;
-  }
-`
-
 type Props = {
-  results: Array<SearchResult>
-  onClick?: (result: SearchResult) => void
+  results: SearchResultItem[]
   highlight?: string
+  onItemClick?(item: SearchResultItem): void
 }
 
-type ResultIconProps = {
-  type: SearchResult['type']
-}
-
-const ResultIcon = ({ type }: ResultIconProps) => {
-  switch (type) {
-    case 'streams':
-      return <StreamIcon />
-
-    case 'locations':
-      return <LocationIcon />
-
-    case 'nodes':
-      return <NodeIcon />
-
-    default:
-      return null
-  }
-}
-
-const resultTypes = {
-  streams: 'Stream',
-  locations: 'Place',
-  nodes: 'Node',
-}
-
-type ResultRowProps = {
-  result: SearchResult
-}
-
-const UnstyledSearchResults = ({
-  results, onClick, highlight, ...props
-}: Props) => {
-  const ResultRow = ({ result }: ResultRowProps) => {
-    const fullname = truncate(result.name)
-    const search = highlight && truncate(highlight)
-
-    // Preserve last path fragment & allow the path before it to be truncated
-    const lastSlashPos = fullname.lastIndexOf('/')
-
-    const truncatedPath = lastSlashPos >= 0 ? fullname.slice(0, lastSlashPos) : fullname
-    const pathFragment = lastSlashPos >= 0 ? fullname.slice(lastSlashPos + 1) : undefined
-
-    return (
-      <Row onClick={() => typeof onClick === 'function' && onClick(result)}>
-        <IconWrapper>
-          <Icon>
-            <ResultIcon type={result.type} />
-          </Icon>
-        </IconWrapper>
-        <Item>
-          <Name>
-            <TruncatedPath>
-              <Highlight search={search}>{truncatedPath}</Highlight>
-            </TruncatedPath>
-            {!!pathFragment && (
-              <PathFragment>
-                /<Highlight search={search}>{pathFragment}</Highlight>
-              </PathFragment>
-            )}
-          </Name>
-          <Description>
-            {result.type === 'streams' && (result.description || 'No description')}
-            {result.type !== 'streams' && (resultTypes[result.type] || '')}
-          </Description>
-        </Item>
-      </Row>
-    )
-  }
+export function SearchResults({ results, highlight, onItemClick, ...props }: Props) {
   return (
-    <div {...props}>
-      <Virtuoso
-        data={results}
-        itemContent={(index, result) => (
-          <ResultRow result={result} />
-        )}
-      />
-    </div>
+    <SearchResultsRoot {...props}>
+      {results.map((value) => (
+        <Item key={value.payload.id} value={value} highlight={highlight} onClick={onItemClick} />
+      ))}
+    </SearchResultsRoot>
   )
 }
 
-const SearchResults = styled(UnstyledSearchResults)`
+interface ItemProps {
+  highlight: string | undefined
+  onClick?(value: SearchResultItem): void
+  value: SearchResultItem
+}
+
+function Item({ highlight, value, onClick }: ItemProps) {
+  const [, setSearchParams] = useSearchParams()
+
+  const navigate = useNavigate()
+
+  const navigateToNode = useNavigateToNodeCallback()
+
+  const map = useMap()
+
+  const { invalidateLocationParamKey, invalidateNodeIdParamKey } = useStore()
+
+  return (
+    <Row
+      onClick={() => {
+        onClick?.(value)
+
+        if (value.type === 'place') {
+          setSearchParams({
+            l: `${value.payload.longitude},${value.payload.latitude},10z`,
+          })
+
+          /**
+           * If the page address includes the coordinates already and the user
+           * panned away then the above won't be sufficient to get the location
+           * back into viewport. To address it, we have to invalidate the local
+           * location param key.
+           */
+          invalidateLocationParamKey()
+
+          return
+        }
+
+        if (value.type === 'node') {
+          navigateToNode(value.payload.id)
+
+          /**
+           * If the page address includes the node id already and the user
+           * panned away then the above won't be sufficient to get node's location
+           * back into viewport. To address it, we have to invalidate the node id
+           * param key.
+           */
+          invalidateNodeIdParamKey()
+
+          return
+        }
+
+        if (value.type === 'stream') {
+          navigate(`/streams/${encodeURIComponent(value.payload.id)}/`)
+
+          return
+        }
+      }}
+      onMouseEnter={() => {
+        if (value.type !== 'node') {
+          return
+        }
+
+        setNodeFeatureState(map?.getMap(), getNodeLocationId(value.payload.location), {
+          hover: true,
+        })
+      }}
+      onMouseLeave={() => {
+        if (value.type !== 'node') {
+          return
+        }
+
+        setNodeFeatureState(map?.getMap(), getNodeLocationId(value.payload.location), {
+          hover: false,
+        })
+      }}
+    >
+      <IconWrapper>
+        <Icon>
+          {value.type === 'stream' && <StreamIcon />}
+          {value.type === 'place' && <LocationIcon />}
+          {value.type === 'node' && <NodeIcon />}
+        </Icon>
+      </IconWrapper>
+      <Details>
+        <Name>
+          <div>
+            <Highlight search={highlight}>{value.title}</Highlight>
+          </div>
+        </Name>
+        <Description>{value.description}</Description>
+      </Details>
+    </Row>
+  )
+}
+
+export const SearchResultsRoot = styled.div`
+  max-height: 512px;
+  overflow: auto;
+
   @media (max-width: ${SM}px) {
-    ${List} {
-      grid-row-gap: 8px;
-    }
+    max-height: 336px;
 
     ${Row} {
       border: 1px solid #efefef;
@@ -232,5 +237,3 @@ const SearchResults = styled(UnstyledSearchResults)`
     background-color: #ffffff;
   }
 `
-
-export default SearchResults

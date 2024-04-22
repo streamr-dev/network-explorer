@@ -1,13 +1,10 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, {
-  useCallback, useRef, useMemo, useState, useEffect,
-} from 'react'
-import styled from 'styled-components/macro'
-import { truncate } from '../../utils/text'
+import uniqueId from 'lodash/uniqueId'
+import React, { ChangeEvent, FocusEvent, InputHTMLAttributes, RefObject, useState } from 'react'
+import styled from 'styled-components'
+import { MD, SANS, SM } from '../../utils/styled'
 
-import { SM, MD, SANS } from '../../utils/styled'
-
-const Inner = styled.div`
+export const SearchInputInner = styled.div`
   display: flex;
   flex-direction: row;
   height: 64px;
@@ -162,100 +159,87 @@ const ClearIcon = () => (
   </svg>
 )
 
-type Props = {
-  value: string
-  defaultValue?: string | undefined
-  onChange: (text: string) => void
-  onClear: () => void
-  onFocus?: Function
-  onBlur?: Function
-  disabled?: boolean
+interface SearchInputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'type' | 'autoComplete' | 'value'> {
+  displayValue?: string
+  inputRef: RefObject<HTMLInputElement>
+  onClearButtonClick?(): void
+  value?: string
 }
 
 const UnstyledSearchInput = ({
-  value,
-  defaultValue,
-  onChange: onChangeProp,
-  onClear,
-  onFocus: onFocusProp,
+  className,
+  displayValue = '',
+  inputRef,
   onBlur: onBlurProp,
-  disabled = false,
+  onChange: onChangeProp,
+  onClearButtonClick,
+  onFocus: onFocusProp,
+  placeholder = 'Search Streamr Network',
+  value = '',
   ...props
-}: Props) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [inputValue, setInputValue] = useState<string>('')
-  const displayValue = useMemo(() => truncate(value || defaultValue || ''), [value, defaultValue])
+}: SearchInputProps) => {
+  const inputId = useState(uniqueId('input-'))[0]
+
+  function onChange(e: ChangeEvent<HTMLInputElement>) {
+    onChangeProp?.(e)
+  }
+
   const [focused, setFocused] = useState(false)
 
-  useEffect(() => {
-    setInputValue(defaultValue || '')
-  }, [defaultValue])
+  function onFocus(e: FocusEvent<HTMLInputElement>) {
+    onFocusProp?.(e)
 
-  const onFocus = useCallback(() => {
     setFocused(true)
 
-    setInputValue((prevValue) => !prevValue ? (defaultValue || '') : prevValue)
+    setTimeout(() => {
+      inputRef.current?.setSelectionRange(0, value.length)
+    })
+  }
 
-    if (typeof onFocusProp === 'function') {
-      onFocusProp()
-    }
-  }, [onFocusProp, defaultValue])
+  function onBlur(e: FocusEvent<HTMLInputElement>) {
+    onBlurProp?.(e)
 
-  const onBlur = useCallback(() => {
     setFocused(false)
-
-    if (typeof onBlurProp === 'function') {
-      onBlurProp()
-    }
-  }, [onBlurProp])
-
-  const onChange = useCallback((nextValue: string) => {
-    onChangeProp(nextValue)
-    setInputValue(nextValue)
-  }, [onChangeProp])
-
-  useEffect(() => {
-    if (focused && inputRef.current) {
-      inputRef.current.select()
-    }
-  }, [focused])
+  }
 
   return (
-    <div {...props}>
-      <Inner>
+    <div className={className}>
+      <SearchInputInner>
         <Logo>
-          <button type="button" onClick={onClear}>
+          <button type="button" onClick={onClearButtonClick}>
             <StreamrIcon />
           </button>
         </Logo>
         <Input
-          id="input"
-          placeholder="Search Streamr Network"
-          value={focused ? inputValue : displayValue}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={!!disabled}
-          autoComplete="off"
-          ref={inputRef}
+          {...props}
           onFocus={onFocus}
           onBlur={onBlur}
+          ref={inputRef}
+          autoComplete="off"
+          id={inputId}
+          onChange={onChange}
+          placeholder={placeholder}
+          type="text"
+          value={focused ? value : displayValue}
         />
         <ButtonWrapper>
-          {inputValue && inputValue.length > 0 ? (
-            <IconButton type="button" onClick={onClear}>
+          {value ? (
+            <IconButton type="button" onClick={onClearButtonClick}>
               <ClearIcon />
             </IconButton>
           ) : (
-            <InputLabel htmlFor="input">
+            <InputLabel htmlFor={inputId}>
               <SearchIcon />
             </InputLabel>
           )}
         </ButtonWrapper>
-      </Inner>
+      </SearchInputInner>
     </div>
   )
 }
 
-const SearchInput = styled(UnstyledSearchInput)`
+export const SearchInput = styled(UnstyledSearchInput)`
   ${Logo} {
     display: none;
   }
@@ -265,7 +249,7 @@ const SearchInput = styled(UnstyledSearchInput)`
     margin-left: 24px;
   }
 
-  ${Inner} {
+  ${SearchInputInner} {
     background: #ffffff;
   }
 
@@ -281,9 +265,3 @@ const SearchInput = styled(UnstyledSearchInput)`
     }
   }
 `
-
-export default Object.assign(SearchInput, {
-  Logo,
-  Input,
-  Inner,
-})

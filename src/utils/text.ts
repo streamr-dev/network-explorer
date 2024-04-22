@@ -1,7 +1,5 @@
-export const truncate = (path: string) => {
-  if (typeof path === 'string' && path.indexOf('0x') >= 0) {
-    return path.replace(/0x([A-Fa-f0-9]{3})[A-Fa-f0-9]{32,}([A-Fa-f0-9]{5})/g, '0x$1...$2')
-  }
-
-  return path
+export function truncate(value: string) {
+  return value
+    .replace(/0x([a-f\d]{3})[a-f\d]{32,}([a-f\d]{5})/gi, '0x$1...$2')
+    .replace(/([a-f\d]{5})[a-f\d]{24,}([a-f\d]{5})/gi, '$1...$2')
 }

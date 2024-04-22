@@ -1,14 +1,16 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import ControlBox from './ControlBox'
 
-interface Props {}
+interface Props {
+  children: ReactNode
+}
 
-interface ErrorBoundaryProps {
+interface ErrorBoundaryState {
   hasError: boolean
   error: string
 }
 
-export default class ErrorBoundary extends React.Component<Props, ErrorBoundaryProps> {
+export class ErrorBoundary extends React.Component<Props, ErrorBoundaryState> {
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -22,9 +24,14 @@ export default class ErrorBoundary extends React.Component<Props, ErrorBoundaryP
     return { hasError: true, error: error.toString() }
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // You can also log the error to an error reporting service
-    // logError(error, info)
+  componentDidCatch(_: Error, __: React.ErrorInfo) {
+    /**
+     * You can also log the error to an error reporting service:
+     * logError(_, __)
+     *
+     * PS. Use better names.
+     *
+     */
   }
 
   render() {

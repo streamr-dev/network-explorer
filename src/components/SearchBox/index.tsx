@@ -1,135 +1,54 @@
-import React, {
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-  useMemo,
-} from 'react'
-import { useHistory } from 'react-router-dom'
+import React, { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useStore } from '../../Store'
+import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
+import { ActiveView } from '../../types'
+import { useIsSearching, useSearch } from '../../utils/search'
+import { NetworkStats, StreamStats } from '../Stats'
+import { NoSearchResults } from './NoSearchResults'
+import { Search, SlideHandle } from './Search'
+import { SearchInput } from './SearchInput'
+import { SearchResults } from './SearchResults'
 
-import { SearchResult } from '../../utils/api/streamr'
-import { useStore, ActiveView, ActiveRoute } from '../../contexts/Store'
-import { usePending } from '../../contexts/Pending'
-import { useController } from '../../contexts/Controller'
-
-import useSearch from './useSearch'
-import Search from './Search'
-import StreamStats from '../StreamStats'
-import NetworkStats from '../NetworkStats'
-
-const SearchBox = () => {
+export function SearchBox() {
   const {
-    streamId,
-    activeNode,
-    activeRoute,
+    selectedNode,
     activeView,
     setActiveView,
-    env,
-    nodes,
+    searchPhrase,
+    setSearchPhrase,
+    displaySearchPhrase,
   } = useStore()
-  const { isPending: isStreamLoading } = usePending('streams')
-  const { isPending: isSearchPending, start: startSearch, end: endSearch } = usePending('search')
-  const [searchInputValue, setSearchInputValue] = useState<string>('')
 
-  const existingResults: SearchResult[] = useMemo(() => (
-    nodes.map(({ id, title }) => ({
-      id,
-      type: 'nodes',
-      name: title,
-      description: id,
-    }))
-  ), [nodes])
-  const { results: searchResults, reset } = useSearch({
-    search: searchInputValue,
-    onStart: startSearch,
-    onEnd: endSearch,
-    existingResults,
-  })
+  const selectedNodeId = selectedNode?.id || null
+
+  const streamId = useStreamIdParam()
+
+  const hasSelection = searchPhrase === selectedNodeId || searchPhrase === streamId
+
+  const finalPhrase = hasSelection ? '' : searchPhrase
+
+  const isSearchPending = useIsSearching(finalPhrase)
+
+  const searchResults = useSearch({ phrase: finalPhrase })
+
   const searchRef = useRef<HTMLDivElement>(null)
-  const history = useHistory()
-  const { focusLocation } = useController()
 
-  const hasStream = !!(activeRoute === ActiveRoute.Stream)
-  const isDisabled = hasStream && !!isStreamLoading
-  const isNodeSelected = activeNode && searchInputValue === activeNode.title
+  const navigate = useNavigate()
 
-  const { id: activeNodeId } = activeNode || {}
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const defaultSearchValue: string = useMemo(() => {
-    if (activeRoute === ActiveRoute.Stream) {
-      return streamId || ''
-    }
-
-    return activeNodeId || ''
-  }, [activeRoute, streamId, activeNodeId])
-
-  const onClear = useCallback((path = '/') => {
-    setSearchInputValue('')
-    reset()
-    endSearch()
-    history.push(path)
-  }, [history, reset, endSearch])
-
-  const onSearch = useCallback(
-    (value: string) => {
-      setSearchInputValue(value)
-      startSearch()
+  useGlobalKeyDownEffect(
+    '/',
+    () => {
+      inputRef.current?.focus()
     },
-    [startSearch],
+    {
+      preventDefault: true,
+    },
   )
 
-  const onResultClick = useCallback(({
-    id,
-    type,
-    longitude,
-    latitude,
-  }) => {
-    setActiveView(ActiveView.Map)
-    switch (type) {
-      case 'streams':
-        onClear(`/streams/${encodeURIComponent(id)}`)
-        break
-
-      case 'nodes':
-        onClear(`/nodes/${encodeURIComponent(id)}`)
-        break
-
-      case 'locations':
-        focusLocation({
-          longitude,
-          latitude,
-        })
-        break
-
-      default:
-        break
-    }
-  },
-  [setActiveView, onClear, focusLocation])
-
-  useEffect(() => {
-    if (activeView !== ActiveView.List || !searchRef.current) {
-      return undefined
-    }
-
-    const onMouseDown = (e: MouseEvent) => {
-      const { current: el } = searchRef
-
-      if (!el) {
-        return
-      }
-
-      if (!el.contains((e.target as Element))) {
-        setActiveView(ActiveView.Map)
-      }
-    }
-
-    window.addEventListener('mousedown', onMouseDown)
-
-    return () => {
-      window.removeEventListener('mousedown', onMouseDown)
-    }
-  }, [activeView, setActiveView])
+  useSetInitialSearchPhraseEffect()
 
   return (
     <>
@@ -139,47 +58,98 @@ const SearchBox = () => {
           resultsActive: searchResults.length > 0,
           hasStats: true,
         }}
-        key={env}
         ref={searchRef}
       >
-        <Search.SlideHandle />
-        <Search.Input
-          value={searchInputValue}
-          defaultValue={defaultSearchValue}
-          onChange={onSearch}
-          onClear={() => onClear()}
-          disabled={!!isDisabled}
+        <SlideHandle />
+        <SearchInput
+          inputRef={inputRef}
+          value={searchPhrase}
+          displayValue={displaySearchPhrase}
+          onChange={(e) => {
+            const { value } = e.target
+
+            setSearchPhrase(value)
+
+            if (streamId) {
+              if (value !== streamId) {
+                navigate('/')
+              }
+            } else if (selectedNodeId && value !== selectedNodeId) {
+              navigate('/')
+            }
+          }}
+          onClearButtonClick={() => {
+            if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
+              navigate('/')
+            }
+
+            setSearchPhrase('')
+
+            inputRef.current?.focus()
+          }}
           onFocus={() => {
             setActiveView(ActiveView.List)
+          }}
+          onBlur={() => {
+            setActiveView(ActiveView.Map)
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Escape') {
+              return
+            }
 
-            // For mobile Safari 14 this scrollTo(0, 0) is needed to make input element
-            // visible on screen. This has something to do with Safari calculating
-            // element position at focus time but since we animate that position, it's
-            // not correct after animation without this.
-            setTimeout(() => {
-              window.scrollTo(0, 0)
-            }, 100)
+            if (searchPhrase === '') {
+              inputRef.current?.blur()
+
+              return
+            }
+
+            setSearchPhrase('')
           }}
         />
-        {!!hasStream && <StreamStats />}
-        {!hasStream && <NetworkStats />}
+        {streamId ? <StreamStats streamId={streamId} /> : <NetworkStats />}
         {searchResults.length > 0 && (
-          <Search.Results
+          <SearchResults
             results={searchResults}
-            onClick={onResultClick}
-            highlight={searchInputValue}
+            highlight={searchPhrase}
+            onItemClick={(item) => {
+              if (item.type !== 'node' && item.type !== 'stream') {
+                return
+              }
+
+              /**
+               * If the user modified the phrase and the selected node/stream got on the
+               * search result list then clicking it won't change the URL and won't trigger
+               * the effect calling `setSelectedStreamIdOrNodeIdAsPhrase`. We have to set the phrase
+               * manually to ensure things are in good order.
+               */
+              setSearchPhrase(item.payload.id)
+            }}
           />
         )}
       </Search>
-      {(!isSearchPending &&
-        !isNodeSelected &&
-        !hasStream &&
-        searchInputValue && searchInputValue.length > 0 &&
-        searchResults.length === 0) && (
-          <Search.NoResults search={searchInputValue} />
+      {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
+        <NoSearchResults search={finalPhrase} />
       )}
     </>
   )
 }
 
-export default SearchBox
+function useSetInitialSearchPhraseEffect() {
+  const { setSearchPhrase, selectedNode } = useStore()
+
+  const streamId = useStreamIdParam()
+
+  const selectedNodeId = selectedNode?.id
+
+  useEffect(
+    function setSearchPhraseOnMountOnly() {
+      if (streamId) {
+        setSearchPhrase(streamId)
+      } else if (selectedNodeId) {
+        setSearchPhrase(selectedNodeId)
+      }
+    },
+    [streamId, selectedNodeId, setSearchPhrase],
+  )
+}

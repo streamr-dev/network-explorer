@@ -1,15 +1,14 @@
 import React, { useMemo, useRef } from 'react'
-import styled, { css } from 'styled-components/macro'
-
+import styled, { css } from 'styled-components'
+import { useStore } from '../Store'
+import { ActiveView } from '../types'
 import { SM } from '../utils/styled'
-import { useStore } from '../contexts/Store'
-
 import ControlBox from './ControlBox'
-import NodeList from './NodeList'
+import { NodeListInner } from './NodeList'
 
 const Backdrop = styled.div`
   position: absolute;
-  background: rgba(0, 0, 0, ${({ theme }) => (theme.activeView === 'list' ? '0.2' : '0')});
+  background: rgba(0, 0, 0, ${({ theme }) => (theme.activeView === ActiveView.List ? '0.2' : '0')});
   transition: all 180ms ease-in-out;
   top: 0;
   left: 0;
@@ -23,7 +22,7 @@ const LayoutComponent = styled.div`
   width: 375px;
   z-index: 2;
 
-  ${NodeList.Inner} {
+  ${NodeListInner} {
     overflow-y: scroll;
     max-height: calc(100% - 245px);
   }
@@ -36,7 +35,7 @@ const LayoutComponent = styled.div`
       margin-top: 24px;
     }
 
-    ${NodeList.Inner} {
+    ${NodeListInner} {
       max-height: calc(100vh - 245px);
     }
   }
@@ -67,7 +66,7 @@ const LayoutComponent = styled.div`
     }
 
     ${({ theme }) =>
-    theme.activeView === 'list' &&
+      theme.activeView === ActiveView.List &&
       css`
         top: ${searchPadding}px;
         // bottom: 0;
@@ -97,7 +96,7 @@ const Layout = ({ children, ...props }: Props) => {
   const dragRef = useRef<HTMLDivElement>(null)
 
   const currentTop = useMemo(() => {
-    if (activeView === 'list') {
+    if (activeView === ActiveView.List) {
       return `${searchPadding}px`
     }
 
@@ -121,9 +120,7 @@ const Layout = ({ children, ...props }: Props) => {
         }}
         {...props}
       >
-        <LayoutComponentWrapper ref={ref}>
-          {children}
-        </LayoutComponentWrapper>
+        <LayoutComponentWrapper ref={ref}>{children}</LayoutComponentWrapper>
       </LayoutComponent>
     </>
   )

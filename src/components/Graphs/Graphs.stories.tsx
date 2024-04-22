@@ -1,7 +1,10 @@
-import React from 'react'
 import { Meta } from '@storybook/react/types-6-0'
-
-import Graphs from '.'
+import React from 'react'
+import { Graphs } from '.'
+import { GraphPlaceholder } from './GraphPlaceholder'
+import { Intervals } from './Intervals'
+import { TimeSeries } from './TimeSeries'
+import { Loading } from './Loading'
 
 export default {
   title: 'Graphs',
@@ -33,8 +36,8 @@ const data = [
 export const WithIntervalSelect = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
-      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
+      <TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
+      <Intervals options={['24hours', '1month', '3months', 'all']} />
     </Graphs>
   )
 }
@@ -42,8 +45,8 @@ export const WithIntervalSelect = () => {
 export const WithDisabledInterval = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
-      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
+      <TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
+      <Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -51,8 +54,8 @@ export const WithDisabledInterval = () => {
 export const WithEmptyPlaceholder = () => {
   return (
     <Graphs>
-      <Graphs.Placeholder />
-      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
+      <GraphPlaceholder />
+      <Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -60,8 +63,8 @@ export const WithEmptyPlaceholder = () => {
 export const WithImagePlaceholder = () => {
   return (
     <Graphs>
-      <Graphs.Placeholder showImage />
-      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} disabled />
+      <GraphPlaceholder showImage />
+      <Intervals options={['24hours', '1month', '3months', 'all']} disabled />
     </Graphs>
   )
 }
@@ -69,9 +72,9 @@ export const WithImagePlaceholder = () => {
 export const WithLoadingIndicator = () => {
   return (
     <Graphs>
-      <Graphs.TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
-      <Graphs.Loading loading row={2} />
-      <Graphs.Intervals options={['24hours', '1month', '3months', 'all']} />
+      <TimeSeries graphData={{ data }} height="200px" ratio="1:2" />
+      <Loading loading row={2} />
+      <Intervals options={['24hours', '1month', '3months', 'all']} />
     </Graphs>
   )
 }

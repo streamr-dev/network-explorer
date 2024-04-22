@@ -37,4 +37,4 @@ const useGraphContext = () => {
   return context
 }
 
-export { GraphProvider as Provider, GraphContext as Context, useGraphContext }
+export { GraphProvider as Provider, useGraphContext }

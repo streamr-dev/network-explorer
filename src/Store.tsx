@@ -1,0 +1,125 @@
+import React, {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react'
+import { useParams } from 'react-router-dom'
+import { useGlobalKeyDownEffect, useMap, useStreamIdParam } from './hooks'
+import { ActiveView, OperatorNode } from './types'
+import { useOperatorNodesForStreamQuery } from './utils/nodes'
+import { truncate } from './utils/text'
+import { DefaultViewState } from './consts'
+
+interface Store {
+  activeView: ActiveView
+  displaySearchPhrase: string
+  invalidateLocationParamKey(): void
+  invalidateNodeIdParamKey(): void
+  locationParamKey: number
+  nodeIdParamKey: number
+  publishers: Record<string, string | undefined>
+  searchPhrase: string
+  selectedNode: OperatorNode | null
+  setActiveView(value: ActiveView): void
+  setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
+  setSearchPhrase(value: string): void
+}
+
+const StoreContext = createContext<Store>({
+  activeView: ActiveView.Map,
+  displaySearchPhrase: '',
+  invalidateLocationParamKey: () => {},
+  invalidateNodeIdParamKey: () => {},
+  locationParamKey: -1,
+  nodeIdParamKey: -1,
+  publishers: {},
+  searchPhrase: '',
+  selectedNode: null,
+  setActiveView: () => {},
+  setPublishers: () => ({}),
+  setSearchPhrase: () => {},
+})
+
+interface StoreProviderProps {
+  children?: ReactNode
+}
+
+export function StoreProvider(props: StoreProviderProps) {
+  const selectedNode = useNodeByNodeIdParam()
+
+  const [locationParamKey, invalidateLocationParamKey] = useReducer((x: number) => x + 1, 0)
+
+  const [nodeIdParamKey, invalidateNodeIdParamKey] = useReducer((x: number) => x + 1, 0)
+
+  const map = useMap()
+
+  useGlobalKeyDownEffect('0', () => {
+    map?.flyTo({
+      center: [DefaultViewState.longitude, DefaultViewState.latitude],
+      zoom: DefaultViewState.zoom,
+    })
+  })
+
+  const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
+
+  const [rawSearchPhrase, setRawSearchPhrase] = useState('')
+
+  const [displaySearchPhrase, setDisplaySearchPhrase] = useState('')
+
+  const setSearchPhrase = useCallback((value: string) => {
+    setRawSearchPhrase(value)
+
+    setDisplaySearchPhrase(truncate(value))
+  }, [])
+
+  const [publishers, setPublishers] = useState<Record<string, string | undefined>>({})
+
+  return (
+    <StoreContext.Provider
+      {...props}
+      value={{
+        activeView,
+        displaySearchPhrase,
+        invalidateLocationParamKey,
+        invalidateNodeIdParamKey,
+        locationParamKey,
+        nodeIdParamKey,
+        publishers,
+        searchPhrase: rawSearchPhrase,
+        selectedNode,
+        setActiveView,
+        setPublishers,
+        setSearchPhrase,
+      }}
+    />
+  )
+}
+
+export function useStore() {
+  return useContext(StoreContext)
+}
+
+function useNodeByNodeIdParam() {
+  const streamId = useStreamIdParam()
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined)
+
+  const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
+
+  return useMemo(
+    function findNodeById() {
+      if (!nodes || !activeNodeId) {
+        return null
+      }
+
+      return nodes.find(({ id }) => id === activeNodeId) || null
+    },
+    [activeNodeId, nodes],
+  )
+}

@@ -1,16 +1,13 @@
-import React, {
-  useState,
-  useReducer,
-  useCallback,
-} from 'react'
-import styled from 'styled-components'
 import { Meta } from '@storybook/react/types-6-0'
-
-import Stats from '../Stats'
+import React, { useCallback, useReducer, useState } from 'react'
+import styled from 'styled-components'
+import { NodeList, NodeListHeader } from '.'
+import { getNodeLocationId } from '../../utils/map'
 import Error from '../Error'
-import usePaged from '../../hooks/usePaged'
-
-import NodeList from '.'
+import { Stat, Stats } from '../Stats'
+import { NodeListItem } from './NodeListItem'
+import Pager from './Pager'
+import { usePaginatedItems } from '../../hooks'
 
 const Wrapper = styled.div`
   background-color: lightblue;
@@ -33,7 +30,6 @@ const nodes = [
   {
     id: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1',
     title: 'Quick Green Aadvaark',
-    address: '0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1',
     latitude: 60.16952,
     longitude: 24.93545,
     placeName: 'Helsinki',
@@ -41,7 +37,6 @@ const nodes = [
   {
     id: '0x13581255eE2D20e780B0cD3D07fac018241B5E03',
     title: 'Warm Fiery Octagon',
-    address: '0x13581255eE2D20e780B0cD3D07fac018241B5E03',
     latitude: 60.14952,
     longitude: 24.92545,
     placeName: 'Helsinki',
@@ -49,7 +44,6 @@ const nodes = [
   {
     id: '0xFeaDE0B77130F5468D57037e2a259295bfdD8390',
     title: 'Gold Spicy Fieldmouse',
-    address: '0x13581255eE2D20e780B0cD3D07fac018241B5E03',
     latitude: 52.51667,
     longitude: 13.38333,
     placeName: 'Berlin',
@@ -57,7 +51,6 @@ const nodes = [
   {
     id: '0x538a2Fa87E03B280e10C83AA8dD7E5B15B868BD9',
     title: 'Curved Slick Diamond',
-    address: '0x13581255eE2D20e780B0cD3D07fac018241B5E03',
     latitude: 47.49833,
     longitude: 19.04083,
     placeName: 'Budapest',
@@ -66,17 +59,12 @@ const nodes = [
 
 export const Basic = () => (
   <NodeList>
-    {nodes.map(({
-      id,
-      title,
-      address,
-      placeName,
-    }) => (
-      <NodeList.Node
+    {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+      <NodeListItem
         key={id}
         nodeId={id}
+        nodeLocationId={getNodeLocationId({ longitude, latitude })}
         title={title}
-        address={address}
         placeName={placeName}
       />
     ))}
@@ -85,20 +73,15 @@ export const Basic = () => (
 
 export const WithHeader = () => (
   <NodeList>
-    <NodeList.Header>
+    <NodeListHeader>
       Showing all <strong>{nodes.length}</strong> nodes
-    </NodeList.Header>
-    {nodes.map(({
-      id,
-      title,
-      address,
-      placeName,
-    }) => (
-      <NodeList.Node
+    </NodeListHeader>
+    {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+      <NodeListItem
         key={id}
         nodeId={id}
+        nodeLocationId={getNodeLocationId({ longitude, latitude })}
         title={title}
-        address={address}
         placeName={placeName}
       />
     ))}
@@ -110,27 +93,22 @@ export const WithStats = () => {
 
   return (
     <NodeList>
-      {nodes.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
+      {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+        <NodeListItem
           key={id}
           nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
           title={title}
-          address={address}
           placeName={placeName}
           onClick={() => setActiveNode((prev) => (prev !== id ? id : undefined))}
           isActive={activeNode === id}
         >
           <Stats>
-            <Stats.Stat id="messagesPerSecond" label="Msgs/sec" value={undefined} />
-            <Stats.Stat id="mbsPerSecond" label="MB/S" value={undefined} />
-            <Stats.Stat id="latency" label="Latency ms" value={undefined} />
+            <Stat id="messagesPerSecond" label="Msgs/sec" value={undefined} />
+            <Stat id="mbsPerSecond" label="MB/S" value={undefined} />
+            <Stat id="latency" label="Latency ms" value={undefined} />
           </Stats>
-        </NodeList.Node>
+        </NodeListItem>
       ))}
     </NodeList>
   )
@@ -156,7 +134,7 @@ export const WithStatsAndError = () => {
   )
 
   const onNodeClick = useCallback(
-    (id) => {
+    (id: string | undefined) => {
       update({
         activeNode: id,
         selectedStat: undefined,
@@ -167,7 +145,7 @@ export const WithStatsAndError = () => {
   )
 
   const onStatClick = useCallback(
-    (id) => {
+    (id: string | undefined) => {
       update({
         selectedStat: id,
         error: id && `Failed to load ${id}`,
@@ -178,37 +156,34 @@ export const WithStatsAndError = () => {
 
   return (
     <NodeList>
-      {nodes.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
+      {nodes.map(({ id, title, placeName, longitude, latitude }) => (
+        <NodeListItem
           key={id}
           nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
           title={title}
-          address={address}
           placeName={placeName}
           onClick={() => onNodeClick(id !== activeNode ? id : undefined)}
           isActive={activeNode === id}
         >
           <Stats active={selectedStat}>
-            <Stats.Stat
+            <Stat
               id="messagesPerSecond"
               label="Msgs/sec"
               value={undefined}
               onClick={() =>
-                onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)}
+                onStatClick(selectedStat !== 'messagesPerSecond' ? 'messagesPerSecond' : undefined)
+              }
             />
-            <Stats.Stat
+            <Stat
               id="mbsPerSecond"
               label="MB/S"
               value={undefined}
               onClick={() =>
-                onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)}
+                onStatClick(selectedStat !== 'mbsPerSecond' ? 'mbsPerSecond' : undefined)
+              }
             />
-            <Stats.Stat
+            <Stat
               id="latency"
               label="Latency ms"
               value={undefined}
@@ -216,7 +191,7 @@ export const WithStatsAndError = () => {
             />
           </Stats>
           {!!error && <Error>{error}</Error>}
-        </NodeList.Node>
+        </NodeListItem>
       ))}
     </NodeList>
   )
@@ -225,47 +200,47 @@ export const WithStatsAndError = () => {
 type Node = {
   id: string
   title: string
-  address: string,
+  address: string
   placeName: string
+  longitude: number
+  latitude: number
 }
 
-const longList: Array<Node> = Array.from({
-  length: 150,
-}, (v, i) => ({
-  id: `node-${i + 1}`,
-  title: `Node ${i + 1}`,
-  address: `node-${i + 1}`,
-  placeName: 'Helsinki',
-}))
+const longList: Array<Node> = Array.from(
+  {
+    length: 150,
+  },
+  (v, i) => ({
+    id: `node-${i + 1}`,
+    title: `Node ${i + 1}`,
+    address: `node-${i + 1}`,
+    placeName: 'Helsinki',
+    longitude: 53,
+    latitude: 17,
+  }),
+)
 
 const PAGE_SIZE = 4
 
 export const Paged = () => {
   const {
-    currentPage,
+    page: currentPage,
     setPage,
     items,
-    pages,
-  } = usePaged<Node>({ items: longList, limit: PAGE_SIZE })
+    totalPages: pages,
+  } = usePaginatedItems<Node>(longList, {
+    pageSize: PAGE_SIZE,
+  })
 
   return (
     <NodeList>
-      <NodeList.Pager
-        currentPage={currentPage}
-        lastPage={pages}
-        onChange={setPage}
-      />
-      {items.map(({
-        id,
-        title,
-        address,
-        placeName,
-      }) => (
-        <NodeList.Node
+      <Pager currentPage={currentPage} lastPage={pages} onChange={setPage} />
+      {items.map(({ id, title, placeName, longitude, latitude }) => (
+        <NodeListItem
           key={id}
           nodeId={id}
+          nodeLocationId={getNodeLocationId({ longitude, latitude })}
           title={title}
-          address={address}
           placeName={placeName}
         />
       ))}
