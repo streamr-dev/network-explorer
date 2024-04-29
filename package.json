@@ -11,7 +11,7 @@
     "@streamr/utils": "^100.2.0",
     "@tanstack/react-query": "^5.28.4",
     "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
+    "@testing-library/react": "^15.0.5",
     "@testing-library/user-event": "^7.2.1",
     "@types/lodash": "^4.14.161",
     "@types/react-map-gl": "^5.2.9",
