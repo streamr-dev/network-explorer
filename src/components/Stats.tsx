@@ -301,25 +301,6 @@ const defaultNetworkMetricEntry = {
 export function NetworkStats() {
   const [metricKey, setMetricKey] = useState<NetworkMetricKey>()
 
-  const [interval, setInterval] = useState<Interval>('realtime')
-
-  const reports = useNetworkMetricEntries({
-    interval,
-  })
-
-  const datapoints = useMemo(() => {
-    if (!metricKey) {
-      return []
-    }
-
-    return reports.map(({ timestamp: x, [metricKey]: y }) => {
-      return {
-        x,
-        y,
-      }
-    })
-  }, [reports, metricKey])
-
   const { nodeCount, tvl, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
 
   return (
@@ -352,25 +333,50 @@ export function NetworkStats() {
           }}
         />
       </Stats>
-      {metricKey && (
-        <>
-          <Graphs defaultInterval="realtime">
-            <TimeSeries
-              graphData={{ value: datapoints }}
-              height="200px"
-              ratio="1:2"
-              showCrosshair
-              dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
-              labelFormat={(value) => value.toPrecision(4)}
-            />
-            <Intervals
-              options={['realtime', '24hours', '1month', '3months', 'all']}
-              onChange={setInterval}
-            />
-          </Graphs>
-        </>
-      )}
+      {metricKey && <NetworkStatsGraph metricKey={metricKey} />}
     </>
+  )
+}
+
+interface NetworkStatsGraphProps {
+  metricKey: NetworkMetricKey
+}
+
+function NetworkStatsGraph({ metricKey }: NetworkStatsGraphProps) {
+  const [interval, setInterval] = useState<Interval>('realtime')
+
+  const reports = useNetworkMetricEntries({
+    interval,
+  })
+
+  const datapoints = useMemo(() => {
+    if (!metricKey) {
+      return []
+    }
+
+    return reports.map(({ timestamp: x, [metricKey]: y }) => {
+      return {
+        x,
+        y,
+      }
+    })
+  }, [reports, metricKey])
+
+  return (
+    <Graphs defaultInterval="realtime">
+      <TimeSeries
+        graphData={{ value: datapoints }}
+        height="200px"
+        ratio="1:2"
+        showCrosshair
+        dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
+        labelFormat={(value) => value.toPrecision(4)}
+      />
+      <Intervals
+        options={['realtime', '24hours', '1month', '3months', 'all']}
+        onChange={setInterval}
+      />
+    </Graphs>
   )
 }
 
