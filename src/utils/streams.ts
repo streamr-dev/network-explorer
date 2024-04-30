@@ -112,7 +112,17 @@ export function useSortedOperatorNodeMetricEntries(
 
     return {
       publisherId,
-      ...getResendOptionsForInterval(interval),
+      ...getResendOptionsForInterval(interval, {
+        /**
+         * Both `realtime` and `24h` use `/min` stream thus the only difference here
+         * is that for realtime we resend *just* 6 hours.
+         */
+        realtime: 6 * HourMs,
+        '24hours': 24 * HourMs,
+        '1month': 30 * 24 * HourMs,
+        '3months': 3 * 30 * 24 * HourMs,
+        all: Date.now() - new Date(2021, 1, 1).getTime(),
+      }),
     }
   }, [interval, publisherId, limit])
 
@@ -201,24 +211,16 @@ export function useStreamFromClient(streamId: string) {
 
 const HourMs = MinuteMs * 60
 
-function getResendOptionsForInterval(interval: Interval): ResendOptions {
-  const now = Date.now()
-
-  const intervalToWindowSize: Record<Interval, number> = {
-    realtime: 6 * HourMs,
-    '24hours': 24 * HourMs,
-    '1month': 30 * 24 * HourMs,
-    '3months': 3 * 30 * 24 * HourMs,
-    all: now - new Date(2021, 1, 1).getTime(),
-  }
-
+function getResendOptionsForInterval(
+  interval: Interval,
+  intervalToWindowSize: Record<Interval, number>,
+): ResendOptions {
   return {
     from: {
-      timestamp: now - intervalToWindowSize[interval],
+      timestamp: Date.now() - intervalToWindowSize[interval],
     },
   }
 }
-
 interface UseStreamMessagesOrderedByTimeOptions<P = StreamMessage> {
   cacheKey?: string
   disabled?: boolean
@@ -344,10 +346,19 @@ export function useNetworkMetricEntries(params: UseNetworkMetricEntriesParams) {
           ? 'hour'
           : 'day'
 
-  const resendOptions = useMemo(
-    () => (limit != null ? { last: limit } : getResendOptionsForInterval(interval)),
-    [interval, limit],
-  )
+  const resendOptions = useMemo(() => {
+    if (limit != null) {
+      return { last: limit }
+    }
+
+    return getResendOptionsForInterval(interval, {
+      realtime: 1 * HourMs,
+      '24hours': 24 * HourMs,
+      '1month': 30 * 24 * HourMs,
+      '3months': 3 * 30 * 24 * HourMs,
+      all: Date.now() - new Date(2021, 1, 1).getTime(),
+    })
+  }, [interval, limit])
 
   return useStreamMessagesOrderedByTime(`streamr.eth/metrics/network/${freq}`, {
     transform: (msg) => {
