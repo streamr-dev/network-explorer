@@ -385,8 +385,8 @@ function networkMetricValueFormatter(metricKey: NetworkMetricKey, value: number)
     return `${value.toFixed(2)}%`
   }
 
-  if (metricKey === 'tvl') {
-    return value < 10 ** 6 ? value.toPrecision(4) : `${(value / 10 ** 6).toPrecision(4)}M`
+  if (metricKey === 'tvl' && value >= 10 ** 6) {
+    return `${(value / 10 ** 6).toPrecision(4)}M`
   }
 
   return value.toPrecision(4)
