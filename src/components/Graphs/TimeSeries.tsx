@@ -60,13 +60,17 @@ const formatDate = (milliseconds: number, dateDisplay: DateDisplay = 'day') => {
   return `${monthName} ${date.getDate()}`
 }
 
+function defaultLabelFormat(x: number): string {
+  return `${x}`
+}
+
 const UnstyledTimeSeriesGraph = ({
   graphData,
   showCrosshair,
   dateDisplay,
   height,
   ratio,
-  labelFormat,
+  labelFormat = defaultLabelFormat,
   ...props
 }: Props) => {
   const [tooltipWidth, setTooltipWidth] = useState(0)
@@ -142,10 +146,8 @@ const UnstyledTimeSeriesGraph = ({
                   if (data.payload != null && data.payload[0] != null) {
                     return (
                       <CrosshairValue ref={tooltipRef}>
-                        {typeof labelFormat === 'function'
-                          ? labelFormat(data.payload[0].payload.y)
-                          : data.payload[0].payload.y}{' '}
-                        ({formatDate(data.payload[0].payload.x, dateDisplay)})
+                        {labelFormat(data.payload[0].payload.y)} (
+                        {formatDate(data.payload[0].payload.x, dateDisplay)})
                       </CrosshairValue>
                     )
                   }
