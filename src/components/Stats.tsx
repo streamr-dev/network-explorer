@@ -370,7 +370,7 @@ function NetworkStatsGraph({ metricKey }: NetworkStatsGraphProps) {
         ratio="1:2"
         showCrosshair
         dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
-        labelFormat={(value) => value.toPrecision(4)}
+        labelFormat={(value) => networkMetricValueFormatter(metricKey, value)}
       />
       <Intervals
         options={['realtime', '24hours', '1month', '3months', 'all']}
@@ -378,6 +378,18 @@ function NetworkStatsGraph({ metricKey }: NetworkStatsGraphProps) {
       />
     </Graphs>
   )
+}
+
+function networkMetricValueFormatter(metricKey: NetworkMetricKey, value: number): string {
+  if (metricKey === 'apy') {
+    return `${value.toFixed(2)}%`
+  }
+
+  if (metricKey === 'tvl') {
+    return value < 10 ** 6 ? value.toPrecision(4) : `${(value / 10 ** 6).toPrecision(4)}M`
+  }
+
+  return value.toPrecision(4)
 }
 
 interface NodeStatsProps {
@@ -445,9 +457,7 @@ export function NodeStats({ nodeId }: NodeStatsProps) {
           ratio="1:2"
           showCrosshair
           dateDisplay={['realtime', '24hours'].includes(interval) ? 'hour' : 'day'}
-          labelFormat={(value) => {
-            return (/bytes/i.test(metricKey) ? value / 1024 / 1024 : value).toPrecision(4)
-          }}
+          labelFormat={(value) => nodeMetricValueFormatter(metricKey, value)}
         />
         <Intervals
           options={['realtime', '24hours', '1month', '3months', 'all']}
@@ -456,4 +466,12 @@ export function NodeStats({ nodeId }: NodeStatsProps) {
       </Graphs>
     </>
   )
+}
+
+function nodeMetricValueFormatter(metricKey: NodeMetricKey, value: number): string {
+  if (/bytes/i.test(metricKey)) {
+    return (value / 1024 / 1024).toPrecision(4)
+  }
+
+  return value.toPrecision(4)
 }
