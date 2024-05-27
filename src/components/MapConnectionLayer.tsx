@@ -1,9 +1,15 @@
 import React, { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl'
 import { useNodeConnections } from '../utils'
+import { useStore } from '../Store'
+import { ConnectionsMode } from '../types'
 
-export function MapConnectionLayer({ visible = false }) {
+export function MapConnectionLayer() {
   const connections = useNodeConnections()
+
+  const { connectionsMode } = useStore()
+
+  const visible = connectionsMode === ConnectionsMode.Always
 
   const lineData = useMemo(
     function getFeatureConnection(): GeoJSON.FeatureCollection {
