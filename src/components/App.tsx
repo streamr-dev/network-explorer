@@ -13,10 +13,11 @@ import {
 } from '../hooks'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
+import { Backdrop } from './Backdrop'
 import { ErrorBoundary } from './ErrorBoundary'
-import Layout from './Layout'
 import UnstyledLoadingIndicator from './LoadingIndicator'
 import { Map } from './Map'
+import { MapNavigationControl } from './MapNavigationControl'
 import NetworkSelector from './NetworkSelector'
 import { NodeTopologyList } from './NodeTopologyList'
 import { PublisherDetector } from './PublisherDetector'
@@ -41,16 +42,41 @@ function Page() {
       <Map />
       <MapAutoUpdater />
       <LoadingIndicator large loading={isLoadingNodes} />
-      <Layout>
-        <ErrorBoundary>
-          <NetworkSelector />
+      <Backdrop />
+      <ErrorBoundary>
+        <NetworkSelector />
+        <Sidebar>
           <SearchBox />
           <Outlet />
-        </ErrorBoundary>
-      </Layout>
+        </Sidebar>
+        <Controls>
+          <MapNavigationControl />
+        </Controls>
+      </ErrorBoundary>
     </StoreProvider>
   )
 }
+
+const Sidebar = styled.div`
+  box-sizing: border-box;
+  max-height: 100%;
+  left: 0;
+  padding: 32px;
+  position: absolute;
+  top: 0;
+  width: 460px;
+
+  > * + * {
+    margin-top: 16px;
+  }
+`
+
+const Controls = styled.div`
+  bottom: 0;
+  padding: 16px;
+  position: absolute;
+  right: 0;
+`
 
 function MapAutoUpdater() {
   const map = useMap()
