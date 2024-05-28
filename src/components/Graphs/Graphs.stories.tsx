@@ -3,8 +3,8 @@ import React from 'react'
 import { Graphs } from '.'
 import { GraphPlaceholder } from './GraphPlaceholder'
 import { Intervals } from './Intervals'
-import { TimeSeries } from './TimeSeries'
 import { Loading } from './Loading'
+import { TimeSeries } from './TimeSeries'
 
 export default {
   title: 'Graphs',
