@@ -88,28 +88,31 @@ export function useDebounce<T>(value: T, delay: number) {
 }
 
 const Hud = {
-  ShowConnections: /*         */ 0x01,
-  ShowConnectionsToggle: /*   */ 0x02,
-  ShowNodeList: /*            */ 0x04,
-  ShowNetworkSelector: /*     */ 0x08,
-  ShowResetViewportButton: /* */ 0x10,
-  ShowSearch: /*              */ 0x20,
-  ShowStats: /*               */ 0x40,
-  ShowZoomButtons: /*         */ 0x80,
+  showConnections: /*         */ 0x01,
+  showConnectionsToggle: /*   */ 0x02,
+  showNodeList: /*            */ 0x04,
+  showNetworkSelector: /*     */ 0x08,
+  showResetViewportButton: /* */ 0x10,
+  showSearch: /*              */ 0x20,
+  showStats: /*               */ 0x40,
+  showZoomButtons: /*         */ 0x80,
 } as const
 
-const ShowAllHud = Object.values(Hud).reduce((sum, x) => sum + x, 0)
-
-export function useHud<T extends (keyof typeof Hud)[]>(flagKeys: T): { [K in keyof T]: boolean } {
+export function useHud() {
   const [params] = useSearchParams()
 
-  const hud = Number(params.get('hud') || ShowAllHud) & ShowAllHud
+  const hud = Number(params.get('hud') || 0xff)
 
-  console.log(hud)
+  return Object.entries(Hud).reduce(
+    (memo, [key, value]) => {
+      memo[key as keyof typeof Hud] = !!(hud & value)
 
-  return flagKeys.map((key) => (hud & Hud[key]) === Hud[key]) as { [K in keyof T]: boolean }
+      return memo
+    },
+    {} as Partial<Record<keyof typeof Hud, boolean>>,
+  ) as Record<keyof typeof Hud, boolean>
 }
 
-export function hudToNumber<T extends (keyof typeof Hud)[]>(flagKeys: T): number {
-  return flagKeys.reduce((sum, key) => sum + Hud[key], 0)
+export function hudToNumber<T extends (keyof typeof Hud)[]>(keys: T): number {
+  return keys.reduce((sum, key) => sum + Hud[key], 0)
 }

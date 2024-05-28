@@ -88,7 +88,7 @@ export function StoreProvider(props: StoreProviderProps) {
 
   const [connectionsMode, setConnectionsMode] = useState(ConnectionsMode.Auto)
 
-  const [showConnections] = useHud(['ShowConnections'] as const)
+  const { showConnections } = useHud()
 
   useEffect(
     function applyShowConnectionsParam() {

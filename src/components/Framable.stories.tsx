@@ -17,7 +17,7 @@ const Pad = styled.div`
 
 interface FramableProps {
   streamId: string
-  hud: Parameters<typeof useHud>[0]
+  hud: (keyof ReturnType<typeof useHud>)[]
 }
 
 function Framable(props: FramableProps) {
@@ -47,13 +47,13 @@ export const Default: StoryObj<typeof Framable> = {
   ],
   args: {
     hud: [
-      'ShowConnectionsToggle',
-      'ShowNodeList',
-      'ShowNetworkSelector',
-      'ShowResetViewportButton',
-      'ShowSearch',
-      'ShowStats',
-      'ShowZoomButtons',
+      'showConnectionsToggle',
+      'showNodeList',
+      'showNetworkSelector',
+      'showResetViewportButton',
+      'showSearch',
+      'showStats',
+      'showZoomButtons',
     ],
     streamId: '',
   },
@@ -61,14 +61,14 @@ export const Default: StoryObj<typeof Framable> = {
     hud: {
       control: 'check',
       options: [
-        'ShowConnections',
-        'ShowConnectionsToggle',
-        'ShowNodeList',
-        'ShowNetworkSelector',
-        'ShowResetViewportButton',
-        'ShowSearch',
-        'ShowStats',
-        'ShowZoomButtons',
+        'showConnections',
+        'showConnectionsToggle',
+        'showNodeList',
+        'showNetworkSelector',
+        'showResetViewportButton',
+        'showSearch',
+        'showStats',
+        'showZoomButtons',
       ],
     },
   },

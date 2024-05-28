@@ -15,10 +15,7 @@ export function Map() {
 
   const [cursor, setCursor] = useState<string | undefined>()
 
-  const [showConnections, showConnectionsToggle] = useHud([
-    'ShowConnections',
-    'ShowConnectionsToggle',
-  ] as const)
+  const { showConnections, showConnectionsToggle } = useHud()
 
   return (
     <Kartta

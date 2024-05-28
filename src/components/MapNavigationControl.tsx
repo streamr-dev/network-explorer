@@ -12,11 +12,7 @@ export function MapNavigationControl() {
 
   const { setConnectionsMode } = useStore()
 
-  const [showConnectionsToggle, showResetViewportButton, showZoomButtons] = useHud([
-    'ShowConnectionsToggle',
-    'ShowResetViewportButton',
-    'ShowZoomButtons',
-  ] as const)
+  const { showConnectionsToggle, showResetViewportButton, showZoomButtons } = useHud()
 
   if (!showConnectionsToggle && !showResetViewportButton && !showZoomButtons) {
     return null
