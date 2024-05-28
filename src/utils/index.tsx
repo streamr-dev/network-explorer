@@ -189,3 +189,11 @@ function findNearestToDefaultCenter(nodes: OperatorNode[]) {
 
   return nearestNode
 }
+
+export function isFramed() {
+  try {
+    return window.self !== window.top
+  } catch (e) {
+    return true
+  }
+}

@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { useStore } from '../../Store'
 import { useMap, useNavigateToNodeCallback } from '../../hooks'
 import { SearchResultItem } from '../../types'
+import { isFramed } from '../../utils'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
 import { MD, SANS, SM } from '../../utils/styled'
 import Highlight from '../Highlight'
@@ -175,10 +176,15 @@ function Item({ highlight, value, onClick }: ItemProps) {
         }
 
         if (value.type === 'stream') {
-          navigate({
-            pathname: `/streams/${encodeURIComponent(value.payload.id)}/`,
-            search: window.location.search,
-          })
+          navigate(
+            {
+              pathname: `/streams/${encodeURIComponent(value.payload.id)}/`,
+              search: window.location.search,
+            },
+            {
+              replace: isFramed(),
+            },
+          )
 
           return
         }

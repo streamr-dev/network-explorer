@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
 import { ActiveView } from '../../types'
+import { isFramed } from '../../utils'
 import { useIsSearching, useSearch } from '../../utils/search'
 import { NetworkStats, StreamStats } from '../Stats'
 import { NoSearchResults } from './NoSearchResults'
@@ -72,15 +73,30 @@ export function SearchBox() {
 
             if (streamId) {
               if (value !== streamId) {
-                navigate({ pathname: '/', search: window.location.search })
+                navigate(
+                  { pathname: '/', search: window.location.search },
+                  {
+                    replace: isFramed(),
+                  },
+                )
               }
             } else if (selectedNodeId && value !== selectedNodeId) {
-              navigate({ pathname: '/', search: window.location.search })
+              navigate(
+                { pathname: '/', search: window.location.search },
+                {
+                  replace: isFramed(),
+                },
+              )
             }
           }}
           onClearButtonClick={() => {
             if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
-              navigate({ pathname: '/', search: window.location.search })
+              navigate(
+                { pathname: '/', search: window.location.search },
+                {
+                  replace: isFramed(),
+                },
+              )
             }
 
             setSearchPhrase('')

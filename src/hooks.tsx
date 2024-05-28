@@ -3,6 +3,7 @@ import { useMap as useProvidedMap } from 'react-map-gl'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from './Store'
 import { MapId } from './consts'
+import { isFramed } from './utils'
 import { getNodeLocationId, setNodeFeatureState } from './utils/map'
 
 export function useGlobalKeyDownEffect(
@@ -149,7 +150,7 @@ export function useNavigateToNodeCallback() {
           search: window.location.search,
         },
         {
-          replace,
+          replace: isFramed() || replace,
         },
       )
 
