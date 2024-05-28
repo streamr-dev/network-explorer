@@ -48,10 +48,12 @@ function Page() {
       <Backdrop />
       <ErrorBoundary>
         {showNetworkSelector && <NetworkSelector />}
-        <Sidebar>
-          {showSearch && <SearchBox />}
-          {showNodeList && <Outlet />}
-        </Sidebar>
+        <SidebarContainer>
+          <Sidebar>
+            {showSearch && <SearchBox />}
+            {showNodeList && <Outlet />}
+          </Sidebar>
+        </SidebarContainer>
         <Controls>
           <MapNavigationControl />
         </Controls>
@@ -60,14 +62,26 @@ function Page() {
   )
 }
 
+const SidebarContainer = styled.div`
+  height: 100vh;
+  width: 100vw;
+  overflow: auto;
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+`
+
 const Sidebar = styled.div`
   box-sizing: border-box;
   max-height: 100%;
-  left: 0;
   padding: max(12px, min(32px, 10vw));
-  position: absolute;
-  top: 0;
-  width: 460px;
+  width: min(460px, max(360px, 50vw));
+  pointer-events: auto;
+
+  &:empty {
+    display: none;
+  }
 
   > * + * {
     margin-top: 16px;
