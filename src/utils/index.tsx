@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../Store'
-import { useStreamIdParam } from '../hooks'
+import { DefaultViewState } from '../consts'
+import { useMap, useStreamIdParam } from '../hooks'
 import { OperatorNode } from '../types'
 import { getNodeLocationId } from './map'
 import { useOperatorNodeNeighborsQuery } from './neighbors'
@@ -88,20 +89,30 @@ export function useDebounce<T>(value: T, delay: number) {
 }
 
 const Hud = {
-  showConnections: /*         */ 0x01,
-  showConnectionsToggle: /*   */ 0x02,
-  showNodeList: /*            */ 0x04,
-  showNetworkSelector: /*     */ 0x08,
-  showResetViewportButton: /* */ 0x10,
-  showSearch: /*              */ 0x20,
-  showStats: /*               */ 0x40,
-  showZoomButtons: /*         */ 0x80,
+  showConnections: /*         */ 0x0001,
+  showConnectionsToggle: /*   */ 0x0002,
+  showNodeList: /*            */ 0x0004,
+  showNetworkSelector: /*     */ 0x0008,
+  showResetViewportButton: /* */ 0x0010,
+  showSearch: /*              */ 0x0020,
+  showStats: /*               */ 0x0040,
+  showZoomButtons: /*         */ 0x0080,
+  autoCenter: /*              */ 0x0100,
 } as const
+
+const fallbackHud =
+  Hud.showConnectionsToggle |
+  Hud.showNodeList |
+  Hud.showNetworkSelector |
+  Hud.showResetViewportButton |
+  Hud.showSearch |
+  Hud.showStats |
+  Hud.showZoomButtons
 
 export function useHud() {
   const [params] = useSearchParams()
 
-  const hud = Number(params.get('hud') || 0xff)
+  const hud = Number(params.get('hud') || fallbackHud)
 
   return Object.entries(Hud).reduce(
     (memo, [key, value]) => {
@@ -115,4 +126,66 @@ export function useHud() {
 
 export function hudToNumber<T extends (keyof typeof Hud)[]>(keys: T): number {
   return keys.reduce((sum, key) => sum + Hud[key], 0)
+}
+
+export function useAutoCenterNodeEffect() {
+  const { autoCenter } = useHud()
+
+  const streamId = useStreamIdParam()
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined)
+
+  const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
+
+  const map = useMap()
+
+  const node = useMemo(
+    function findNodeByIdOrUseFirst() {
+      if (!autoCenter) {
+        return null
+      }
+
+      if (!nodes) {
+        return null
+      }
+
+      if (activeNodeId) {
+        return nodes.find(({ id }) => id === activeNodeId) || null
+      }
+
+      return findNearestToDefaultCenter(nodes)
+    },
+    [activeNodeId, nodes, autoCenter],
+  )
+
+  useEffect(
+    function flyToNode() {
+      if (node) {
+        map?.flyTo({ center: [node.location.longitude, node.location.latitude] })
+      }
+    },
+    [node, map],
+  )
+}
+
+function findNearestToDefaultCenter(nodes: OperatorNode[]) {
+  let distance = Infinity
+
+  let nearestNode: OperatorNode | null = null
+
+  const { longitude: y0, latitude: x0 } = DefaultViewState
+
+  for (const node of nodes) {
+    const { longitude: y1, latitude: x1 } = node.location
+
+    const currentDistance = Math.sqrt((y0 - y1) ** 2 + (x0 - x1) ** 2)
+
+    if (currentDistance < distance) {
+      nearestNode = node
+
+      distance = currentDistance
+    }
+  }
+
+  return nearestNode
 }

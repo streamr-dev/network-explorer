@@ -11,7 +11,7 @@ import {
   useSelectedPlaceLocationEffect,
   useStreamIdParam,
 } from '../hooks'
-import { useHud } from '../utils'
+import { useAutoCenterNodeEffect, useHud } from '../utils'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
 import { Backdrop } from './Backdrop'
@@ -48,12 +48,14 @@ function Page() {
       <Backdrop />
       <ErrorBoundary>
         {showNetworkSelector && <NetworkSelector />}
-        <SidebarContainer>
-          <Sidebar>
-            {showSearch && <SearchBox />}
-            {showNodeList && <Outlet />}
-          </Sidebar>
-        </SidebarContainer>
+        {(showSearch || showNodeList) && (
+          <SidebarContainer>
+            <Sidebar>
+              {showSearch && <SearchBox />}
+              {showNodeList && <Outlet />}
+            </Sidebar>
+          </SidebarContainer>
+        )}
         <Controls>
           <MapNavigationControl />
         </Controls>
@@ -109,6 +111,8 @@ function MapAutoUpdater() {
   useSelectedPlaceLocationEffect(({ longitude, latitude, zoom }) => {
     map?.flyTo({ center: [longitude, latitude], zoom })
   })
+
+  useAutoCenterNodeEffect()
 
   return null
 }
