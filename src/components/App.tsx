@@ -11,6 +11,7 @@ import {
   useSelectedPlaceLocationEffect,
   useStreamIdParam,
 } from '../hooks'
+import { useHud } from '../utils'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
 import { Backdrop } from './Backdrop'
@@ -36,6 +37,12 @@ function Page() {
 
   const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
+  const [showNetworkSelector, showSearch, showNodeList] = useHud([
+    'ShowNetworkSelector',
+    'ShowSearch',
+    'ShowNodeList',
+  ] as const)
+
   return (
     <StoreProvider>
       <PublisherDetector />
@@ -44,10 +51,10 @@ function Page() {
       <LoadingIndicator large loading={isLoadingNodes} />
       <Backdrop />
       <ErrorBoundary>
-        <NetworkSelector />
+        {showNetworkSelector && <NetworkSelector />}
         <Sidebar>
-          <SearchBox />
-          <Outlet />
+          {showSearch && <SearchBox />}
+          {showNodeList && <Outlet />}
         </Sidebar>
         <Controls>
           <MapNavigationControl />
@@ -61,7 +68,7 @@ const Sidebar = styled.div`
   box-sizing: border-box;
   max-height: 100%;
   left: 0;
-  padding: 32px;
+  padding: max(12px, min(32px, 10vw));
   position: absolute;
   top: 0;
   width: 460px;
@@ -73,7 +80,7 @@ const Sidebar = styled.div`
 
 const Controls = styled.div`
   bottom: 0;
-  padding: 16px;
+  padding: max(12px, min(32px, 10vw));
   position: absolute;
   right: 0;
 `

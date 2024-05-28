@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
-import { SANS, SM } from '../../utils/styled'
+import { SANS } from '../../utils/styled'
 import { Tooltip } from '../Tooltip'
 
 const GlobeIcon = () => (
@@ -110,14 +110,18 @@ const NetworkItem = styled.button`
     min-width: 64px;
   }
 
-  :hover {
+  &:hover {
     background-color: #ebebeb;
   }
 `
 
-type Props = {}
+const NetworkSelectorRoot = styled.div`
+  position: fixed;
+  top: max(12px, min(32px, 10vw));
+  right: max(12px, min(32px, 10vw));
+`
 
-const UnstyledNetworkSelector = (props: Props) => {
+export default function NetworkSelector() {
   const [open, setOpen] = useState<boolean>(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -160,7 +164,7 @@ const UnstyledNetworkSelector = (props: Props) => {
   }, [open])
 
   return (
-    <div {...props} ref={containerRef}>
+    <NetworkSelectorRoot ref={containerRef}>
       <Tooltip value={!open ? 'Network selector' : undefined}>
         <Button type="button" onClick={toggleOpen}>
           <GlobeIcon />
@@ -178,19 +182,6 @@ const UnstyledNetworkSelector = (props: Props) => {
           </NetworkItem>
         </NetworkList>
       )}
-    </div>
+    </NetworkSelectorRoot>
   )
 }
-
-const NetworkSelector = styled(UnstyledNetworkSelector)`
-  position: fixed;
-  top: 16px;
-  right: 16px;
-
-  @media (min-width: ${SM}px) {
-    top: 32px;
-    right: 32px;
-  }
-`
-
-export default NetworkSelector

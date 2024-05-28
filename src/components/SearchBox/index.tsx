@@ -72,15 +72,15 @@ export function SearchBox() {
 
             if (streamId) {
               if (value !== streamId) {
-                navigate('/')
+                navigate({ pathname: '/', search: window.location.search })
               }
             } else if (selectedNodeId && value !== selectedNodeId) {
-              navigate('/')
+              navigate({ pathname: '/', search: window.location.search })
             }
           }}
           onClearButtonClick={() => {
             if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
-              navigate('/')
+              navigate({ pathname: '/', search: window.location.search })
             }
 
             setSearchPhrase('')

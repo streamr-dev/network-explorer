@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Map as Kartta } from 'react-map-gl'
 import { DefaultViewState, MapId, MapboxToken } from '../consts'
 import { useNavigateToNodeCallback } from '../hooks'
+import { useHud } from '../utils'
 import { InteractiveLayerIds, setNodeFeatureState } from '../utils/map'
 import { isOperatorNodeGeoFeature } from '../utils/nodes'
 import { MapConnectionLayer } from './MapConnectionLayer'
@@ -13,6 +14,11 @@ export function Map() {
   const navigateToNode = useNavigateToNodeCallback()
 
   const [cursor, setCursor] = useState<string | undefined>()
+
+  const [showConnections, showConnectionsToggle] = useHud([
+    'ShowConnections',
+    'ShowConnectionsToggle',
+  ] as const)
 
   return (
     <Kartta
@@ -56,7 +62,7 @@ export function Map() {
         setCursor(nodeLocationId ? 'pointer' : undefined)
       }}
     >
-      <MapConnectionLayer />
+      {(showConnections || showConnectionsToggle) && <MapConnectionLayer />}
       <MapMarkerLayer />
     </Kartta>
   )

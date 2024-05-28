@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../Store'
 import { useStreamIdParam } from '../hooks'
 import { OperatorNode } from '../types'
@@ -84,4 +85,31 @@ export function useDebounce<T>(value: T, delay: number) {
   )
 
   return debouncedValue
+}
+
+const Hud = {
+  ShowConnections: /*         */ 0x01,
+  ShowConnectionsToggle: /*   */ 0x02,
+  ShowNodeList: /*            */ 0x04,
+  ShowNetworkSelector: /*     */ 0x08,
+  ShowResetViewportButton: /* */ 0x10,
+  ShowSearch: /*              */ 0x20,
+  ShowStats: /*               */ 0x40,
+  ShowZoomButtons: /*         */ 0x80,
+} as const
+
+const ShowAllHud = Object.values(Hud).reduce((sum, x) => sum + x, 0)
+
+export function useHud<T extends (keyof typeof Hud)[]>(flagKeys: T): { [K in keyof T]: boolean } {
+  const [params] = useSearchParams()
+
+  const hud = Number(params.get('hud') || ShowAllHud) & ShowAllHud
+
+  console.log(hud)
+
+  return flagKeys.map((key) => (hud & Hud[key]) === Hud[key]) as { [K in keyof T]: boolean }
+}
+
+export function hudToNumber<T extends (keyof typeof Hud)[]>(flagKeys: T): number {
+  return flagKeys.reduce((sum, key) => sum + Hud[key], 0)
 }

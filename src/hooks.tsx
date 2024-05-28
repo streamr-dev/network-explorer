@@ -141,9 +141,17 @@ export function useNavigateToNodeCallback() {
     (nodeId: string, { replace = false } = {}) => {
       const nodePath = nodeId ? `nodes/${encodeURIComponent(nodeId)}/` : ''
 
-      navigate(streamId ? `/streams/${encodeURIComponent(streamId)}/${nodePath}` : `/${nodePath}`, {
-        replace,
-      })
+      navigate(
+        {
+          pathname: streamId
+            ? `/streams/${encodeURIComponent(streamId)}/${nodePath}`
+            : `/${nodePath}`,
+          search: window.location.search,
+        },
+        {
+          replace,
+        },
+      )
 
       if (streamId) {
         setSearchPhrase(streamId)

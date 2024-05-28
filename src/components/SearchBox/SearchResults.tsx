@@ -175,7 +175,10 @@ function Item({ highlight, value, onClick }: ItemProps) {
         }
 
         if (value.type === 'stream') {
-          navigate(`/streams/${encodeURIComponent(value.payload.id)}/`)
+          navigate({
+            pathname: `/streams/${encodeURIComponent(value.payload.id)}/`,
+            search: window.location.search,
+          })
 
           return
         }

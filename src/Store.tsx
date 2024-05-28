@@ -5,16 +5,18 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   useState,
 } from 'react'
 import { useParams } from 'react-router-dom'
+import { DefaultViewState } from './consts'
 import { useGlobalKeyDownEffect, useMap, useStreamIdParam } from './hooks'
 import { ActiveView, ConnectionsMode, OperatorNode } from './types'
+import { useHud } from './utils'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
-import { DefaultViewState } from './consts'
 
 interface Store {
   activeView: ActiveView
@@ -85,6 +87,17 @@ export function StoreProvider(props: StoreProviderProps) {
   const [publishers, setPublishers] = useState<Record<string, string | undefined>>({})
 
   const [connectionsMode, setConnectionsMode] = useState(ConnectionsMode.Auto)
+
+  const [showConnections] = useHud(['ShowConnections'] as const)
+
+  useEffect(
+    function applyShowConnectionsParam() {
+      if (showConnections) {
+        setConnectionsMode(ConnectionsMode.Always)
+      }
+    },
+    [showConnections],
+  )
 
   return (
     <StoreContext.Provider

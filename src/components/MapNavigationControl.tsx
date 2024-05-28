@@ -4,6 +4,7 @@ import { useStore } from '../Store'
 import { DefaultViewState } from '../consts'
 import { useMap } from '../hooks'
 import { ConnectionsMode } from '../types'
+import { useHud } from '../utils'
 import { Tooltip } from './Tooltip'
 
 export function MapNavigationControl() {
@@ -11,57 +12,73 @@ export function MapNavigationControl() {
 
   const { setConnectionsMode } = useStore()
 
+  const [showConnectionsToggle, showResetViewportButton, showZoomButtons] = useHud([
+    'ShowConnectionsToggle',
+    'ShowResetViewportButton',
+    'ShowZoomButtons',
+  ] as const)
+
+  if (!showConnectionsToggle && !showResetViewportButton && !showZoomButtons) {
+    return null
+  }
+
   return (
     <NavigationControlRoot>
-      <ButtonGroup>
-        <Tooltip value="Show node connections">
-          <ConnectionButton
+      {showConnectionsToggle && (
+        <ButtonGroup>
+          <Tooltip value="Show node connections">
+            <ConnectionButton
+              type="button"
+              onClick={() => {
+                setConnectionsMode((current) => {
+                  return current === ConnectionsMode.Always
+                    ? ConnectionsMode.Off
+                    : ConnectionsMode.Always
+                })
+              }}
+            >
+              <ConnectionIcon />
+            </ConnectionButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {showResetViewportButton && (
+        <ButtonGroup>
+          <Tooltip value="Reset the map">
+            <ResetButton
+              type="button"
+              onClick={() => {
+                map?.flyTo({
+                  center: [DefaultViewState.longitude, DefaultViewState.latitude],
+                  zoom: DefaultViewState.zoom,
+                })
+              }}
+            >
+              <RefreshIcon />
+            </ResetButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {showZoomButtons && (
+        <ZoomGroup>
+          <Button
             type="button"
             onClick={() => {
-              setConnectionsMode((current) => {
-                return current === ConnectionsMode.Always
-                  ? ConnectionsMode.Off
-                  : ConnectionsMode.Always
-              })
+              map?.zoomIn()
             }}
           >
-            <ConnectionIcon />
-          </ConnectionButton>
-        </Tooltip>
-      </ButtonGroup>
-      <ButtonGroup>
-        <Tooltip value="Reset the map">
-          <ResetButton
+            <PlusIcon />
+          </Button>
+          <Button
             type="button"
             onClick={() => {
-              map?.flyTo({
-                center: [DefaultViewState.longitude, DefaultViewState.latitude],
-                zoom: DefaultViewState.zoom,
-              })
+              map?.zoomOut()
             }}
           >
-            <RefreshIcon />
-          </ResetButton>
-        </Tooltip>
-      </ButtonGroup>
-      <ZoomGroup>
-        <Button
-          type="button"
-          onClick={() => {
-            map?.zoomIn()
-          }}
-        >
-          <PlusIcon />
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            map?.zoomOut()
-          }}
-        >
-          <MinusIcon />
-        </Button>
-      </ZoomGroup>
+            <MinusIcon />
+          </Button>
+        </ZoomGroup>
+      )}
     </NavigationControlRoot>
   )
 }
