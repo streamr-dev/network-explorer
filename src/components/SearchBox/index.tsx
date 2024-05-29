@@ -1,13 +1,14 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
 import { ActiveView } from '../../types'
 import { isFramed } from '../../utils'
+import { NetworkMetricKey } from '../../utils/streams'
 import { useIsSearching, useSearch } from '../../utils/search'
-import { NetworkStats, StreamStats } from '../Stats'
+import { NetworkStats, NetworkStatsGraph, StreamStats } from '../Stats'
 import { NoSearchResults } from './NoSearchResults'
-import { Search, SlideHandle } from './Search'
+import { Search, SlideHandle, StatsWrap } from './Search'
 import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
 
@@ -38,6 +39,8 @@ export function SearchBox() {
   const navigate = useNavigate()
 
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const [networkMetricKey, setNetworkMetricKey] = useState<NetworkMetricKey>()
 
   useGlobalKeyDownEffect(
     '/',
@@ -123,7 +126,14 @@ export function SearchBox() {
             setSearchPhrase('')
           }}
         />
-        {streamId ? <StreamStats streamId={streamId} /> : <NetworkStats />}
+        <StatsWrap>
+          {streamId ? (
+            <StreamStats streamId={streamId} />
+          ) : (
+            <NetworkStats metricKey={networkMetricKey} onMetricKeyChange={setNetworkMetricKey} />
+          )}
+        </StatsWrap>
+        {networkMetricKey && <NetworkStatsGraph metricKey={networkMetricKey} />}
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}

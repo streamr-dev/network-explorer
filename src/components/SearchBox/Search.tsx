@@ -20,6 +20,8 @@ export const SlideHandle = styled.div`
   display: none;
 `
 
+export const StatsWrap = styled.div``
+
 export const Search = styled(ControlBox)`
   height: 100%;
 
