@@ -153,10 +153,10 @@ export function SearchBox() {
             }}
           />
         )}
+        {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
+          <NoSearchResults search={finalPhrase} />
+        )}
       </Search>
-      {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
-        <NoSearchResults search={finalPhrase} />
-      )}
     </>
   )
 }

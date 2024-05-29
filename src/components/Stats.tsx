@@ -1,5 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import React, {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import styled, { css } from 'styled-components'
 import {
   GetStreamsDocument,
@@ -298,43 +306,45 @@ const defaultNetworkMetricEntry = {
   apy: undefined,
 }
 
-export function NetworkStats() {
-  const [metricKey, setMetricKey] = useState<NetworkMetricKey>()
+interface NetworkStatsProps {
+  metricKey?: NetworkMetricKey | undefined
+  onMetricKeyChange?: Dispatch<SetStateAction<NetworkMetricKey | undefined>>
+}
+
+export function NetworkStats(props: NetworkStatsProps) {
+  const { metricKey, onMetricKeyChange } = props
 
   const { nodeCount, tvl, apy } = useRecentNetworkMetricEntry() || defaultNetworkMetricEntry
 
   return (
-    <>
-      <Stats active={metricKey}>
-        <Stat
-          id="nodeCount"
-          label="Nodes"
-          value={nodeCount}
-          onClick={() => {
-            setMetricKey((current) => (current === 'nodeCount' ? undefined : 'nodeCount'))
-          }}
-        />
-        <Stat
-          id="apy"
-          label="APY"
-          value={apy?.toPrecision(4)}
-          unit="%"
-          onClick={() => {
-            setMetricKey((current) => (current === 'apy' ? undefined : 'apy'))
-          }}
-        />
-        <Stat
-          id="tvl"
-          label="TVL"
-          value={tvl == null ? undefined : (tvl / 1000000).toPrecision(4)}
-          unit="M DATA"
-          onClick={() => {
-            setMetricKey((current) => (current === 'tvl' ? undefined : 'tvl'))
-          }}
-        />
-      </Stats>
-      {metricKey && <NetworkStatsGraph metricKey={metricKey} />}
-    </>
+    <Stats active={metricKey}>
+      <Stat
+        id="nodeCount"
+        label="Nodes"
+        value={nodeCount}
+        onClick={() => {
+          onMetricKeyChange?.((current) => (current === 'nodeCount' ? undefined : 'nodeCount'))
+        }}
+      />
+      <Stat
+        id="apy"
+        label="APY"
+        value={apy?.toPrecision(4)}
+        unit="%"
+        onClick={() => {
+          onMetricKeyChange?.((current) => (current === 'apy' ? undefined : 'apy'))
+        }}
+      />
+      <Stat
+        id="tvl"
+        label="TVL"
+        value={tvl == null ? undefined : (tvl / 1000000).toPrecision(4)}
+        unit="M DATA"
+        onClick={() => {
+          onMetricKeyChange?.((current) => (current === 'tvl' ? undefined : 'tvl'))
+        }}
+      />
+    </Stats>
   )
 }
 
@@ -342,7 +352,7 @@ interface NetworkStatsGraphProps {
   metricKey: NetworkMetricKey
 }
 
-function NetworkStatsGraph({ metricKey }: NetworkStatsGraphProps) {
+export function NetworkStatsGraph({ metricKey }: NetworkStatsGraphProps) {
   const [interval, setInterval] = useState<Interval>('realtime')
 
   const reports = useNetworkMetricEntries({
