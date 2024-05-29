@@ -90,9 +90,8 @@ const SidebarContainer = styled.div`
 const Sidebar = styled.div`
   box-sizing: border-box;
   max-height: 100%;
-  padding: max(12px, min(32px, 10vw));
-  width: min(460px, max(360px, 50vw));
   pointer-events: auto;
+  height: 100%;
 
   &:empty {
     display: none;
@@ -100,6 +99,12 @@ const Sidebar = styled.div`
 
   > * + * {
     margin-top: 16px;
+  }
+
+  @media ${TabletMedia} {
+    height: auto;
+    padding: 32px;
+    width: min(460px, max(360px, 50vw));
   }
 `
 

@@ -2,7 +2,7 @@
 import uniqueId from 'lodash/uniqueId'
 import React, { ChangeEvent, FocusEvent, InputHTMLAttributes, RefObject, useState } from 'react'
 import styled from 'styled-components'
-import { MD, SANS, SM } from '../../utils/styled'
+import { MD, SANS, SM, TabletMedia } from '../../utils/styled'
 
 export const SearchInputInner = styled.div`
   display: flex;
@@ -253,7 +253,7 @@ export const SearchInput = styled(UnstyledSearchInput)`
     background: #ffffff;
   }
 
-  @media (min-width: ${SM}px) {
+  @media ${TabletMedia} {
     ${Logo} {
       display: block;
     }

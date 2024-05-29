@@ -6,7 +6,7 @@ import { useMap, useNavigateToNodeCallback } from '../../hooks'
 import { SearchResultItem } from '../../types'
 import { isFramed } from '../../utils'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
-import { MD, SANS, SM } from '../../utils/styled'
+import { MD, SANS, SM, TabletMedia } from '../../utils/styled'
 import Highlight from '../Highlight'
 import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
 
@@ -37,7 +37,7 @@ const Icon = styled.div`
 
 const Row = styled.div`
   display: grid;
-  grid-template-columns: 64px 1fr;
+  grid-template-columns: 48px 1fr;
   height: 64px;
   cursor: pointer;
   color: #cdcdcd;
@@ -58,11 +58,6 @@ const Row = styled.div`
 
   &:active {
     background-color: #f5f5f5;
-  }
-
-  @media (min-width: ${SM}px) {
-    grid-template-columns: 48px 1fr;
-    height: 40px;
   }
 `
 
@@ -228,12 +223,10 @@ function Item({ highlight, value, onClick }: ItemProps) {
 }
 
 export const SearchResultsRoot = styled.div`
-  max-height: 512px;
+  border-top: 1px solid #efefef;
   overflow: auto;
 
   @media (max-width: ${SM}px) {
-    max-height: 336px;
-
     ${Row} {
       border: 1px solid #efefef;
       border-radius: 4px;
@@ -242,7 +235,7 @@ export const SearchResultsRoot = styled.div`
     }
   }
 
-  @media (min-width: ${SM}px) {
+  @media ${TabletMedia} {
     background-color: #ffffff;
   }
 `
