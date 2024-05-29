@@ -25,6 +25,7 @@ import { PublisherDetector } from './PublisherDetector'
 import { SearchBox } from './SearchBox'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
+import { TabletMedia } from '../utils/styled'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -52,7 +53,11 @@ function Page() {
           <SidebarContainer>
             <Sidebar>
               {showSearch && <SearchBox />}
-              {showNodeList && <Outlet />}
+              {showNodeList && (
+                <OutletWrap>
+                  <Outlet />
+                </OutletWrap>
+              )}
             </Sidebar>
           </SidebarContainer>
         )}
@@ -63,6 +68,14 @@ function Page() {
     </StoreProvider>
   )
 }
+
+const OutletWrap = styled.div`
+  display: none;
+
+  @media ${TabletMedia} {
+    display: block;
+  }
+`
 
 const SidebarContainer = styled.div`
   height: 100vh;
