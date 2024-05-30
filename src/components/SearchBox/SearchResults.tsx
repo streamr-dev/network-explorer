@@ -6,7 +6,7 @@ import { useMap, useNavigateToNodeCallback } from '../../hooks'
 import { ActiveView, SearchResultItem } from '../../types'
 import { isFramed } from '../../utils'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
-import { MD, SANS, SM, SmallDesktopMedia, TabletMedia } from '../../utils/styled'
+import { SANS, SM, SmallDesktopMedia, TabletMedia } from '../../utils/styled'
 import Highlight from '../Highlight'
 import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
 
@@ -154,9 +154,10 @@ function Item({ highlight, value, onClick }: ItemProps) {
         setActiveView(ActiveView.Map)
 
         if (value.type === 'place') {
-          setSearchParams({
+          setSearchParams((prev) => ({
+            ...Object.fromEntries(prev),
             l: `${value.payload.longitude},${value.payload.latitude},10z`,
-          })
+          }))
 
           /**
            * If the page address includes the coordinates already and the user
