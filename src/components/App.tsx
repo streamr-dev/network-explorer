@@ -116,14 +116,70 @@ function Sidebar(props: HTMLAttributes<HTMLDivElement>) {
     }
   }, [])
 
-  return <SidebarRoot {...props} ref={sidebarRootRef} $expand={activeView === ActiveView.List} />
+  const [animate, setAnimate] = useState(true)
+
+  useEffect(function temporarilySuppressAnimationsOnResize() {
+    /**
+     * Disable animation during a resize to avoid lenghty transition
+     * between mobile sidebar (drawer) and desktop sidebar.
+     */
+
+    let timeoutId: number | undefined
+
+    let mounted = true
+
+    function clearTimeout() {
+      if (timeoutId != null) {
+        window.clearTimeout(timeoutId)
+
+        timeoutId = undefined
+      }
+    }
+
+    function onWindowResize() {
+      setAnimate(false)
+
+      clearTimeout()
+
+      timeoutId = window.setTimeout(() => {
+        if (mounted) {
+          setAnimate(true)
+        }
+      }, 1000)
+    }
+
+    window.addEventListener('resize', onWindowResize)
+
+    return () => {
+      mounted = false
+
+      clearTimeout()
+
+      window.removeEventListener('resize', onWindowResize)
+    }
+  }, [])
+
+  return (
+    <SidebarRoot
+      {...props}
+      ref={sidebarRootRef}
+      $animate={animate}
+      $expand={activeView === ActiveView.List}
+    />
+  )
 }
 
-const SidebarRoot = styled.div<{ $expand?: boolean }>`
+const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean }>`
   box-sizing: border-box;
   max-height: 100%;
   pointer-events: auto;
   height: 100%;
+
+  ${({ $animate = false }) =>
+    $animate &&
+    css`
+      transition: 0.3s ease-in-out transform;
+    `}
 
   ${({ $expand = false }) =>
     !$expand &&
