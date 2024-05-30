@@ -1,19 +1,21 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React from 'react'
+import React, { HTMLAttributes, useEffect, useRef, useState } from 'react'
 import { MapProvider } from 'react-map-gl'
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
-import styled from 'styled-components'
-import { StoreProvider } from '../Store'
+import styled, { css } from 'styled-components'
+import { StoreProvider, useStore } from '../Store'
 import {
   useMap,
   useSelectedNodeLocationEffect,
   useSelectedPlaceLocationEffect,
   useStreamIdParam,
 } from '../hooks'
+import { ActiveView } from '../types'
 import { useAutoCenterNodeEffect, useHud } from '../utils'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
+import { TabletMedia } from '../utils/styled'
 import { Backdrop } from './Backdrop'
 import { ErrorBoundary } from './ErrorBoundary'
 import UnstyledLoadingIndicator from './LoadingIndicator'
@@ -25,7 +27,6 @@ import { PublisherDetector } from './PublisherDetector'
 import { SearchBox } from './SearchBox'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
-import { TabletMedia } from '../utils/styled'
 
 const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   position: fixed;
@@ -78,20 +79,57 @@ const OutletWrap = styled.div`
 `
 
 const SidebarContainer = styled.div`
-  height: 100vh;
   width: 100vw;
-  overflow: auto;
   position: absolute;
+  overflow: hidden;
   pointer-events: none;
-  top: 0;
   left: 0;
+  height: 100vh;
+  top: 0;
+  padding-top: min(calc(40px + 20vw), 104px);
+  box-sizing: border-box;
+
+  @media ${TabletMedia} {
+    overflow: auto;
+    padding-top: 0;
+  }
 `
 
-const Sidebar = styled.div`
+function Sidebar(props: HTMLAttributes<HTMLDivElement>) {
+  const { activeView, setActiveView } = useStore()
+
+  const sidebarRootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(function handleInteractionsOutsideSidebar() {
+    function onMouseDown(e: MouseEvent) {
+      const { current: sidebarRoot } = sidebarRootRef
+
+      if (!sidebarRoot || !(e.target instanceof Element) || !sidebarRoot.contains(e.target)) {
+        setActiveView(ActiveView.Map)
+      }
+    }
+
+    window.addEventListener('mousedown', onMouseDown)
+
+    return () => {
+      window.removeEventListener('mousedown', onMouseDown)
+    }
+  }, [])
+
+  return <SidebarRoot {...props} ref={sidebarRootRef} $expand={activeView === ActiveView.List} />
+}
+
+const SidebarRoot = styled.div<{ $expand?: boolean }>`
   box-sizing: border-box;
   max-height: 100%;
   pointer-events: auto;
   height: 100%;
+
+  ${({ $expand = false }) =>
+    !$expand &&
+    css`
+      transform: translateY(100%) translateY(-168px);
+    `}
 
   &:empty {
     display: none;
@@ -102,6 +140,7 @@ const Sidebar = styled.div`
   }
 
   @media ${TabletMedia} {
+    transform: translateY(0);
     height: auto;
     padding: 32px;
     width: min(460px, max(360px, 50vw));

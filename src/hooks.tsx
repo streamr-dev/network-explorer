@@ -3,6 +3,7 @@ import { useMap as useProvidedMap } from 'react-map-gl'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from './Store'
 import { MapId } from './consts'
+import { ActiveView } from './types'
 import { isFramed } from './utils'
 import { getNodeLocationId, setNodeFeatureState } from './utils/map'
 
@@ -136,7 +137,7 @@ export function useNavigateToNodeCallback() {
 
   const streamId = useStreamIdParam()
 
-  const { setSearchPhrase } = useStore()
+  const { setSearchPhrase, setActiveView } = useStore()
 
   return useCallback(
     (nodeId: string, { replace = false } = {}) => {
@@ -161,6 +162,8 @@ export function useNavigateToNodeCallback() {
       } else {
         setSearchPhrase('')
       }
+
+      setActiveView(ActiveView.Map)
     },
     [navigate, streamId, setSearchPhrase],
   )

@@ -9,3 +9,5 @@ export const SM = 576
 export const TabletMedia = `(min-width: ${SM}px)`
 
 export const MD = 768
+
+export const SmallDesktopMedia = `(min-width: ${MD}px)`

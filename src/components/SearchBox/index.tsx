@@ -64,18 +64,27 @@ export function SearchBox() {
         }}
         ref={searchRef}
       >
-        <SlideHandle />
-        <SearchInput
-          inputRef={inputRef}
-          value={searchPhrase}
-          displayValue={displaySearchPhrase}
-          onChange={(e) => {
-            const { value } = e.target
+        <div>
+          <SlideHandle />
+          <SearchInput
+            inputRef={inputRef}
+            value={searchPhrase}
+            displayValue={displaySearchPhrase}
+            onChange={(e) => {
+              const { value } = e.target
 
-            setSearchPhrase(value)
+              setSearchPhrase(value)
 
-            if (streamId) {
-              if (value !== streamId) {
+              if (streamId) {
+                if (value !== streamId) {
+                  navigate(
+                    { pathname: '/', search: window.location.search },
+                    {
+                      replace: isFramed(),
+                    },
+                  )
+                }
+              } else if (selectedNodeId && value !== selectedNodeId) {
                 navigate(
                   { pathname: '/', search: window.location.search },
                   {
@@ -83,57 +92,47 @@ export function SearchBox() {
                   },
                 )
               }
-            } else if (selectedNodeId && value !== selectedNodeId) {
-              navigate(
-                { pathname: '/', search: window.location.search },
-                {
-                  replace: isFramed(),
-                },
-              )
-            }
-          }}
-          onClearButtonClick={() => {
-            if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
-              navigate(
-                { pathname: '/', search: window.location.search },
-                {
-                  replace: isFramed(),
-                },
-              )
-            }
+            }}
+            onClearButtonClick={() => {
+              if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
+                navigate(
+                  { pathname: '/', search: window.location.search },
+                  {
+                    replace: isFramed(),
+                  },
+                )
+              }
 
-            setSearchPhrase('')
+              setSearchPhrase('')
 
-            inputRef.current?.focus()
-          }}
-          onFocus={() => {
-            setActiveView(ActiveView.List)
-          }}
-          onBlur={() => {
-            setActiveView(ActiveView.Map)
-          }}
-          onKeyDown={(e) => {
-            if (e.key !== 'Escape') {
-              return
-            }
+              inputRef.current?.focus()
+            }}
+            onFocus={() => {
+              setActiveView(ActiveView.List)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape') {
+                return
+              }
 
-            if (searchPhrase === '') {
-              inputRef.current?.blur()
+              if (searchPhrase === '') {
+                inputRef.current?.blur()
 
-              return
-            }
+                return
+              }
 
-            setSearchPhrase('')
-          }}
-        />
-        <StatsWrap>
-          {streamId ? (
-            <StreamStats streamId={streamId} />
-          ) : (
-            <NetworkStats metricKey={networkMetricKey} onMetricKeyChange={setNetworkMetricKey} />
-          )}
-        </StatsWrap>
-        {networkMetricKey && <NetworkStatsGraph metricKey={networkMetricKey} />}
+              setSearchPhrase('')
+            }}
+          />
+          <StatsWrap>
+            {streamId ? (
+              <StreamStats streamId={streamId} />
+            ) : (
+              <NetworkStats metricKey={networkMetricKey} onMetricKeyChange={setNetworkMetricKey} />
+            )}
+          </StatsWrap>
+          {networkMetricKey && <NetworkStatsGraph metricKey={networkMetricKey} />}
+        </div>
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}

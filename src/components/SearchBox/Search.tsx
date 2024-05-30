@@ -28,6 +28,9 @@ export const SlideHandle = styled.div`
 export const StatsWrap = styled.div``
 
 export const Search = styled(ControlBox)`
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
   height: 100%;
   position: relative;
 
@@ -61,8 +64,6 @@ export const Search = styled(ControlBox)`
   }
 
   @media ${TabletMedia} {
-    height: auto;
-
     ${Stats} {
       border: 0;
       border-radius: 0 0 4px 4px;
@@ -87,6 +88,7 @@ export const Search = styled(ControlBox)`
     }
 
     ${SearchResultsRoot} {
+      max-height: 336px;
       padding: 0;
     }
   }

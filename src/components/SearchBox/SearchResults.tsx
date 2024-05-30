@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { useStore } from '../../Store'
 import { useMap, useNavigateToNodeCallback } from '../../hooks'
-import { SearchResultItem } from '../../types'
+import { ActiveView, SearchResultItem } from '../../types'
 import { isFramed } from '../../utils'
 import { getNodeLocationId, setNodeFeatureState } from '../../utils/map'
-import { MD, SANS, SM, TabletMedia } from '../../utils/styled'
+import { MD, SANS, SM, SmallDesktopMedia, TabletMedia } from '../../utils/styled'
 import Highlight from '../Highlight'
 import { LocationIcon, NodeIcon, StreamIcon } from './Icons'
 
@@ -36,13 +36,16 @@ const Icon = styled.div`
 `
 
 const Row = styled.div`
-  display: grid;
-  grid-template-columns: 48px 1fr;
-  height: 64px;
-  cursor: pointer;
-  color: #cdcdcd;
   background-color: #ffffff;
+  border: 1px solid #efefef;
+  border-radius: 4px;
+  color: #cdcdcd;
+  cursor: pointer;
+  display: grid;
   font-family: ${SANS};
+  grid-template-columns: 48px 1fr;
+  height: 42px;
+  margin-bottom: 4px;
 
   ${Icon} {
     background-color: #f5f5f5;
@@ -50,10 +53,17 @@ const Row = styled.div`
 
   &:hover {
     background-color: #f5f5f5;
+  }
 
-    ${Icon} {
-      background-color: #efefef;
-    }
+  &:hover ${Icon} {
+    background-color: #efefef;
+  }
+
+  @media ${TabletMedia} {
+    border: 0;
+    grid-template-columns: 48px 1fr;
+    height: 48px;
+    margin-bottom: 0;
   }
 
   &:active {
@@ -82,8 +92,9 @@ const Details = styled.div`
 
   ${Name} {
     color: #323232;
-    font-weight: 500;
     font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
   }
 
   ${Description} {
@@ -95,9 +106,9 @@ const Details = styled.div`
     display: block;
   }
 
-  @media (max-width: ${MD}px) {
+  @media ${SmallDesktopMedia} {
     ${Name} {
-      margin-bottom: 2px;
+      margin-bottom: 0;
     }
   }
 `
@@ -133,12 +144,14 @@ function Item({ highlight, value, onClick }: ItemProps) {
 
   const map = useMap()
 
-  const { invalidateLocationParamKey, invalidateNodeIdParamKey } = useStore()
+  const { invalidateLocationParamKey, invalidateNodeIdParamKey, setActiveView } = useStore()
 
   return (
     <Row
       onClick={() => {
         onClick?.(value)
+
+        setActiveView(ActiveView.Map)
 
         if (value.type === 'place') {
           setSearchParams({
@@ -224,16 +237,8 @@ function Item({ highlight, value, onClick }: ItemProps) {
 
 export const SearchResultsRoot = styled.div`
   border-top: 1px solid #efefef;
+  border-radius: 0 0 4px 4px;
   overflow: auto;
-
-  @media (max-width: ${SM}px) {
-    ${Row} {
-      border: 1px solid #efefef;
-      border-radius: 4px;
-      height: 42px;
-      margin-bottom: 4px;
-    }
-  }
 
   @media ${TabletMedia} {
     background-color: #ffffff;
