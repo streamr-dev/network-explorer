@@ -1,8 +1,6 @@
-import styled, { css } from 'styled-components'
-import { ActiveView } from '../../types'
-import { SM, TabletMedia } from '../../utils/styled'
-import ControlBox from '../ControlBox'
-import Error from '../Error'
+import styled from 'styled-components'
+import { TabletMedia } from '../../utils/styled'
+import ControlBox, { ControlBoxBorderRadius } from '../ControlBox'
 import { Graphs } from '../Graphs'
 import { Stats } from '../Stats'
 import { SearchInput, SearchInputInner } from './SearchInput'
@@ -28,6 +26,7 @@ export const SlideHandle = styled.div`
 export const StatsWrap = styled.div``
 
 export const Search = styled(ControlBox)`
+  border-radius: ${ControlBoxBorderRadius}px ${ControlBoxBorderRadius}px 0 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
@@ -64,6 +63,8 @@ export const Search = styled(ControlBox)`
   }
 
   @media ${TabletMedia} {
+    border-radius: ${ControlBoxBorderRadius}px;
+
     ${Stats} {
       border: 0;
       border-radius: 0 0 4px 4px;
@@ -90,20 +91,6 @@ export const Search = styled(ControlBox)`
     ${SearchResultsRoot} {
       max-height: 336px;
       padding: 0;
-    }
-  }
-
-  @media (min-width: ${SM}px) {
-    ${({ theme }) =>
-      theme.resultsActive &&
-      css`
-        ${Graphs} {
-          // display: none;
-        }
-      `}
-
-    ${SearchResultsRoot} {
-      // height: 280px;
     }
   }
 `

@@ -115,11 +115,7 @@ const NetworkItem = styled.button`
   }
 `
 
-const NetworkSelectorRoot = styled.div`
-  position: fixed;
-  top: max(12px, min(32px, 10vw));
-  right: max(12px, min(32px, 10vw));
-`
+const NetworkSelectorRoot = styled.div``
 
 export default function NetworkSelector() {
   const [open, setOpen] = useState<boolean>(false)

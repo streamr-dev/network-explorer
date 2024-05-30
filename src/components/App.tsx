@@ -47,9 +47,14 @@ function Page() {
       <Map />
       <MapAutoUpdater />
       <LoadingIndicator large loading={isLoadingNodes} />
-      <Backdrop />
       <ErrorBoundary>
-        {showNetworkSelector && <NetworkSelector />}
+        <Controls>
+          <NetworkSelectorWrap $alwaysGrow={!showSearch}>
+            {showNetworkSelector && <NetworkSelector />}
+          </NetworkSelectorWrap>
+          <MapNavigationControl />
+        </Controls>
+        <Backdrop />
         {(showSearch || showNodeList) && (
           <SidebarContainer>
             <Sidebar>
@@ -62,13 +67,31 @@ function Page() {
             </Sidebar>
           </SidebarContainer>
         )}
-        <Controls>
-          <MapNavigationControl />
-        </Controls>
       </ErrorBoundary>
     </StoreProvider>
   )
 }
+
+const NetworkSelectorWrap = styled.div<{ $alwaysGrow?: boolean }>`
+  ${({ $alwaysGrow = false }) =>
+    $alwaysGrow
+      ? css`
+          flex-grow: 1;
+        `
+      : css`
+          &:empty {
+            display: none;
+          }
+        `}
+
+  @media ${TabletMedia} {
+    flex-grow: 1;
+
+    &:empty {
+      display: block;
+    }
+  }
+`
 
 const OutletWrap = styled.div`
   display: none;
@@ -204,10 +227,15 @@ const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean }>`
 `
 
 const Controls = styled.div`
-  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100vh;
   padding: max(12px, min(32px, 10vw));
   position: absolute;
   right: 0;
+  top: 0;
 `
 
 function MapAutoUpdater() {
