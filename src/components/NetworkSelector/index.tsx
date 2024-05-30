@@ -115,7 +115,9 @@ const NetworkItem = styled.button`
   }
 `
 
-const NetworkSelectorRoot = styled.div``
+const NetworkSelectorRoot = styled.div`
+  pointer-events: auto;
+`
 
 export default function NetworkSelector() {
   const [open, setOpen] = useState<boolean>(false)

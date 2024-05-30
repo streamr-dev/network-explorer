@@ -242,4 +242,6 @@ const ButtonGroup = styled.div`
 
 const ZoomGroup = styled(ButtonGroup)``
 
-const NavigationControlRoot = styled.div``
+const NavigationControlRoot = styled.div`
+  pointer-events: auto;
+`

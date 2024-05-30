@@ -25,7 +25,12 @@ function Framable(props: FramableProps) {
 
   const path = streamId ? `/streams/${encodeURIComponent(streamId)}` : `/`
 
-  return <IFrame src={`http://localhost:3000${path}?hud=${hudToNumber(hud)}`} />
+  return (
+    <>
+      <div>HUD: {hudToNumber(hud)}</div>
+      <IFrame src={`http://localhost:3000${path}?hud=${hudToNumber(hud)}`} />
+    </>
+  )
 }
 
 const Story: Meta<typeof Framable> = {
@@ -52,8 +57,9 @@ export const Default: StoryObj<typeof Framable> = {
       'showNetworkSelector',
       'showResetViewportButton',
       'showSearch',
-      'showStats',
+      'compact',
       'showZoomButtons',
+      'autoCenter',
     ],
     streamId: '',
   },
@@ -67,8 +73,9 @@ export const Default: StoryObj<typeof Framable> = {
         'showNetworkSelector',
         'showResetViewportButton',
         'showSearch',
-        'showStats',
+        'compact',
         'showZoomButtons',
+        'autoCenter',
       ],
     },
   },

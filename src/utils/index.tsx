@@ -95,7 +95,7 @@ const Hud = {
   showNetworkSelector: /*     */ 0x0008,
   showResetViewportButton: /* */ 0x0010,
   showSearch: /*              */ 0x0020,
-  showStats: /*               */ 0x0040,
+  compact: /*                 */ 0x0040,
   showZoomButtons: /*         */ 0x0080,
   autoCenter: /*              */ 0x0100,
 } as const
@@ -106,7 +106,6 @@ const fallbackHud =
   Hud.showNetworkSelector |
   Hud.showResetViewportButton |
   Hud.showSearch |
-  Hud.showStats |
   Hud.showZoomButtons
 
 export function useHud() {

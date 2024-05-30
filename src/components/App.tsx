@@ -39,7 +39,7 @@ function Page() {
 
   const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
-  const { showNetworkSelector, showSearch, showNodeList } = useHud()
+  const { showNetworkSelector, showSearch, showNodeList, compact } = useHud()
 
   return (
     <StoreProvider>
@@ -48,7 +48,7 @@ function Page() {
       <MapAutoUpdater />
       <LoadingIndicator large loading={isLoadingNodes} />
       <ErrorBoundary>
-        <Controls>
+        <Controls $compact={compact}>
           <NetworkSelectorWrap $alwaysGrow={!showSearch}>
             {showNetworkSelector && <NetworkSelector />}
           </NetworkSelectorWrap>
@@ -56,7 +56,7 @@ function Page() {
         </Controls>
         <Backdrop />
         {(showSearch || showNodeList) && (
-          <SidebarContainer>
+          <SidebarContainer $compact={compact}>
             <Sidebar>
               {showSearch && <SearchBox />}
               {showNodeList && (
@@ -101,16 +101,24 @@ const OutletWrap = styled.div`
   }
 `
 
-const SidebarContainer = styled.div`
-  width: 100vw;
-  position: absolute;
+const SidebarContainer = styled.div<{ $compact?: boolean }>`
+  box-sizing: border-box;
+  height: 100vh;
+  left: 0;
   overflow: hidden;
   pointer-events: none;
-  left: 0;
-  height: 100vh;
+  position: absolute;
   top: 0;
-  padding-top: min(calc(40px + 20vw), 104px);
-  box-sizing: border-box;
+  width: 100vw;
+
+  ${({ $compact = false }) =>
+    $compact
+      ? css`
+          padding-top: min(calc(40px + 20vw), 72px);
+        `
+      : css`
+          padding-top: min(calc(40px + 20vw), 104px);
+        `}
 
   @media ${TabletMedia} {
     overflow: auto;
@@ -182,17 +190,20 @@ function Sidebar(props: HTMLAttributes<HTMLDivElement>) {
     }
   }, [])
 
+  const { compact } = useHud()
+
   return (
     <SidebarRoot
       {...props}
       ref={sidebarRootRef}
       $animate={animate}
       $expand={activeView === ActiveView.List}
+      $compact={compact}
     />
   )
 }
 
-const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean }>`
+const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean; $compact?: boolean }>`
   box-sizing: border-box;
   max-height: 100%;
   pointer-events: auto;
@@ -219,23 +230,45 @@ const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean }>`
   }
 
   @media ${TabletMedia} {
+    box-sizing: content-box;
     transform: translateY(0);
     height: auto;
-    padding: 32px;
     width: min(460px, max(360px, 50vw));
   }
+
+  ${({ $compact = false }) =>
+    $compact
+      ? css`
+          @media ${TabletMedia} {
+            padding: 16px;
+          }
+        `
+      : css`
+          @media ${TabletMedia} {
+            padding: 32px;
+          }
+        `}
 `
 
-const Controls = styled.div`
+const Controls = styled.div<{ $compact?: boolean }>`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 8px;
   height: 100vh;
-  padding: max(12px, min(32px, 10vw));
+  pointer-events: none;
   position: absolute;
   right: 0;
   top: 0;
+
+  ${({ $compact }) =>
+    $compact
+      ? css`
+          padding: max(12px, min(16px, 10vw));
+        `
+      : css`
+          padding: max(12px, min(32px, 10vw));
+        `}
 `
 
 function MapAutoUpdater() {
