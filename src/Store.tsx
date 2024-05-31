@@ -5,19 +5,22 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   useState,
 } from 'react'
 import { useParams } from 'react-router-dom'
+import { DefaultViewState } from './consts'
 import { useGlobalKeyDownEffect, useMap, useStreamIdParam } from './hooks'
-import { ActiveView, OperatorNode } from './types'
+import { ActiveView, ConnectionsMode, OperatorNode } from './types'
+import { useHud } from './utils'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
-import { DefaultViewState } from './consts'
 
 interface Store {
   activeView: ActiveView
+  connectionsMode: ConnectionsMode
   displaySearchPhrase: string
   invalidateLocationParamKey(): void
   invalidateNodeIdParamKey(): void
@@ -27,12 +30,14 @@ interface Store {
   searchPhrase: string
   selectedNode: OperatorNode | null
   setActiveView(value: ActiveView): void
+  setConnectionsMode: Dispatch<SetStateAction<ConnectionsMode>>
   setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
   setSearchPhrase(value: string): void
 }
 
 const StoreContext = createContext<Store>({
   activeView: ActiveView.Map,
+  connectionsMode: ConnectionsMode.Auto,
   displaySearchPhrase: '',
   invalidateLocationParamKey: () => {},
   invalidateNodeIdParamKey: () => {},
@@ -42,6 +47,7 @@ const StoreContext = createContext<Store>({
   searchPhrase: '',
   selectedNode: null,
   setActiveView: () => {},
+  setConnectionsMode: () => {},
   setPublishers: () => ({}),
   setSearchPhrase: () => {},
 })
@@ -80,11 +86,25 @@ export function StoreProvider(props: StoreProviderProps) {
 
   const [publishers, setPublishers] = useState<Record<string, string | undefined>>({})
 
+  const [connectionsMode, setConnectionsMode] = useState(ConnectionsMode.Auto)
+
+  const { showConnections } = useHud()
+
+  useEffect(
+    function applyShowConnectionsParam() {
+      if (showConnections) {
+        setConnectionsMode(ConnectionsMode.Always)
+      }
+    },
+    [showConnections],
+  )
+
   return (
     <StoreContext.Provider
       {...props}
       value={{
         activeView,
+        connectionsMode,
         displaySearchPhrase,
         invalidateLocationParamKey,
         invalidateNodeIdParamKey,
@@ -94,6 +114,7 @@ export function StoreProvider(props: StoreProviderProps) {
         searchPhrase: rawSearchPhrase,
         selectedNode,
         setActiveView,
+        setConnectionsMode,
         setPublishers,
         setSearchPhrase,
       }}

@@ -2,27 +2,20 @@ import React, { useRef, useState } from 'react'
 import { Map as Kartta } from 'react-map-gl'
 import { DefaultViewState, MapId, MapboxToken } from '../consts'
 import { useNavigateToNodeCallback } from '../hooks'
-import { ConnectionsMode } from '../types'
+import { useHud } from '../utils'
 import { InteractiveLayerIds, setNodeFeatureState } from '../utils/map'
 import { isOperatorNodeGeoFeature } from '../utils/nodes'
 import { MapConnectionLayer } from './MapConnectionLayer'
 import { MapMarkerLayer } from './MapMarkerLayer'
-import { MapNavigationControl } from './MapNavigationControl'
 
 export function Map() {
-  const streamId: string | undefined = undefined
-
-  const [connectionMode, setConnectionMode] = useState<ConnectionsMode>(ConnectionsMode.Auto)
-
-  const showConnections = !streamId
-    ? connectionMode === ConnectionsMode.Always
-    : connectionMode === ConnectionsMode.Auto
-
   const lastHoveredNodeLocationIdRef = useRef<string | null>(null)
 
   const navigateToNode = useNavigateToNodeCallback()
 
   const [cursor, setCursor] = useState<string | undefined>()
+
+  const { showConnections, showConnectionsToggle } = useHud()
 
   return (
     <Kartta
@@ -31,6 +24,7 @@ export function Map() {
       mapStyle="mapbox://styles/mattinnes/cklaehqgx01yh17pdfs03tt8t"
       interactiveLayerIds={InteractiveLayerIds}
       cursor={cursor}
+      attributionControl={false}
       initialViewState={DefaultViewState}
       onClick={(e) => {
         const feature: GeoJSON.Feature | undefined = (e.features || [])[0]
@@ -65,18 +59,8 @@ export function Map() {
         setCursor(nodeLocationId ? 'pointer' : undefined)
       }}
     >
-      <MapConnectionLayer visible={showConnections} />
+      {(showConnections || showConnectionsToggle) && <MapConnectionLayer />}
       <MapMarkerLayer />
-      <MapNavigationControl
-        onToggleConnections={() => {
-          /*
-           * @todo Rename `Always` to just `On` (= On/Off).
-           */
-          setConnectionMode((current) =>
-            current === ConnectionsMode.Always ? ConnectionsMode.Off : ConnectionsMode.Always,
-          )
-        }}
-      />
     </Kartta>
   )
 }

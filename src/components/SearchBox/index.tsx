@@ -1,12 +1,14 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../Store'
 import { useGlobalKeyDownEffect, useStreamIdParam } from '../../hooks'
 import { ActiveView } from '../../types'
+import { isFramed } from '../../utils'
+import { NetworkMetricKey } from '../../utils/streams'
 import { useIsSearching, useSearch } from '../../utils/search'
-import { NetworkStats, StreamStats } from '../Stats'
+import { NetworkStats, NetworkStatsGraph, StreamStats } from '../Stats'
 import { NoSearchResults } from './NoSearchResults'
-import { Search, SlideHandle } from './Search'
+import { Search, SlideHandle, StatsWrap } from './Search'
 import { SearchInput } from './SearchInput'
 import { SearchResults } from './SearchResults'
 
@@ -38,6 +40,8 @@ export function SearchBox() {
 
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const [networkMetricKey, setNetworkMetricKey] = useState<NetworkMetricKey>()
+
   useGlobalKeyDownEffect(
     '/',
     () => {
@@ -60,54 +64,75 @@ export function SearchBox() {
         }}
         ref={searchRef}
       >
-        <SlideHandle />
-        <SearchInput
-          inputRef={inputRef}
-          value={searchPhrase}
-          displayValue={displaySearchPhrase}
-          onChange={(e) => {
-            const { value } = e.target
+        <div>
+          <SlideHandle />
+          <SearchInput
+            inputRef={inputRef}
+            value={searchPhrase}
+            displayValue={displaySearchPhrase}
+            onChange={(e) => {
+              const { value } = e.target
 
-            setSearchPhrase(value)
+              setSearchPhrase(value)
 
-            if (streamId) {
-              if (value !== streamId) {
-                navigate('/')
+              if (streamId) {
+                if (value !== streamId) {
+                  navigate(
+                    { pathname: '/', search: window.location.search },
+                    {
+                      replace: isFramed(),
+                    },
+                  )
+                }
+              } else if (selectedNodeId && value !== selectedNodeId) {
+                navigate(
+                  { pathname: '/', search: window.location.search },
+                  {
+                    replace: isFramed(),
+                  },
+                )
               }
-            } else if (selectedNodeId && value !== selectedNodeId) {
-              navigate('/')
-            }
-          }}
-          onClearButtonClick={() => {
-            if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
-              navigate('/')
-            }
+            }}
+            onClearButtonClick={() => {
+              if (searchPhrase === selectedNodeId || searchPhrase === streamId) {
+                navigate(
+                  { pathname: '/', search: window.location.search },
+                  {
+                    replace: isFramed(),
+                  },
+                )
+              }
 
-            setSearchPhrase('')
+              setSearchPhrase('')
 
-            inputRef.current?.focus()
-          }}
-          onFocus={() => {
-            setActiveView(ActiveView.List)
-          }}
-          onBlur={() => {
-            setActiveView(ActiveView.Map)
-          }}
-          onKeyDown={(e) => {
-            if (e.key !== 'Escape') {
-              return
-            }
+              inputRef.current?.focus()
+            }}
+            onFocus={() => {
+              setActiveView(ActiveView.List)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape') {
+                return
+              }
 
-            if (searchPhrase === '') {
-              inputRef.current?.blur()
+              if (searchPhrase === '') {
+                inputRef.current?.blur()
 
-              return
-            }
+                return
+              }
 
-            setSearchPhrase('')
-          }}
-        />
-        {streamId ? <StreamStats streamId={streamId} /> : <NetworkStats />}
+              setSearchPhrase('')
+            }}
+          />
+          <StatsWrap>
+            {streamId ? (
+              <StreamStats streamId={streamId} />
+            ) : (
+              <NetworkStats metricKey={networkMetricKey} onMetricKeyChange={setNetworkMetricKey} />
+            )}
+          </StatsWrap>
+          {networkMetricKey && <NetworkStatsGraph metricKey={networkMetricKey} />}
+        </div>
         {searchResults.length > 0 && (
           <SearchResults
             results={searchResults}
@@ -127,10 +152,10 @@ export function SearchBox() {
             }}
           />
         )}
+        {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
+          <NoSearchResults search={finalPhrase} />
+        )}
       </Search>
-      {finalPhrase.length > 0 && !isSearchPending && searchResults.length === 0 && (
-        <NoSearchResults search={finalPhrase} />
-      )}
     </>
   )
 }

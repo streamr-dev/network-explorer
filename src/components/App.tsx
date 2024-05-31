@@ -2,8 +2,8 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React from 'react'
 import { MapProvider } from 'react-map-gl'
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
-import styled from 'styled-components'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import styled, { css } from 'styled-components'
 import { StoreProvider } from '../Store'
 import {
   useMap,
@@ -11,16 +11,19 @@ import {
   useSelectedPlaceLocationEffect,
   useStreamIdParam,
 } from '../hooks'
+import { useAutoCenterNodeEffect, useHud } from '../utils'
 import { useIsFetchingOperatorNodesForStream } from '../utils/nodes'
 import { getQueryClient } from '../utils/queries'
+import { TabletMedia } from '../utils/styled'
+import { Backdrop } from './Backdrop'
 import { ErrorBoundary } from './ErrorBoundary'
-import Layout from './Layout'
 import UnstyledLoadingIndicator from './LoadingIndicator'
 import { Map } from './Map'
+import { MapNavigationControl } from './MapNavigationControl'
 import NetworkSelector from './NetworkSelector'
 import { NodeTopologyList } from './NodeTopologyList'
 import { PublisherDetector } from './PublisherDetector'
-import { SearchBox } from './SearchBox'
+import { Sidebar } from './Sidebar'
 import { StreamTopologyList } from './StreamTopologyList'
 import StreamrClientProvider from './StreamrClientProvider'
 
@@ -35,22 +38,69 @@ function Page() {
 
   const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
+  const { showNetworkSelector, showSearch, showNodeList, compact } = useHud()
+
   return (
     <StoreProvider>
       <PublisherDetector />
       <Map />
       <MapAutoUpdater />
       <LoadingIndicator large loading={isLoadingNodes} />
-      <Layout>
-        <ErrorBoundary>
-          <NetworkSelector />
-          <SearchBox />
-          <Outlet />
-        </ErrorBoundary>
-      </Layout>
+      <ErrorBoundary>
+        <Controls $compact={compact}>
+          <NetworkSelectorWrap $alwaysGrow={!showSearch}>
+            {showNetworkSelector && <NetworkSelector />}
+          </NetworkSelectorWrap>
+          <MapNavigationControl />
+        </Controls>
+        <Backdrop />
+        <Sidebar />
+      </ErrorBoundary>
     </StoreProvider>
   )
 }
+
+const NetworkSelectorWrap = styled.div<{ $alwaysGrow?: boolean }>`
+  ${({ $alwaysGrow = false }) =>
+    $alwaysGrow
+      ? css`
+          flex-grow: 1;
+        `
+      : css`
+          &:empty {
+            display: none;
+          }
+        `}
+
+  @media ${TabletMedia} {
+    flex-grow: 1;
+
+    &:empty {
+      display: block;
+    }
+  }
+`
+
+const Controls = styled.div<{ $compact?: boolean }>`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100vh;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+
+  ${({ $compact }) =>
+    $compact
+      ? css`
+          padding: max(12px, min(16px, 10vw));
+        `
+      : css`
+          padding: max(12px, min(32px, 10vw));
+        `}
+`
 
 function MapAutoUpdater() {
   const map = useMap()
@@ -66,6 +116,8 @@ function MapAutoUpdater() {
   useSelectedPlaceLocationEffect(({ longitude, latitude, zoom }) => {
     map?.flyTo({ center: [longitude, latitude], zoom })
   })
+
+  useAutoCenterNodeEffect()
 
   return null
 }

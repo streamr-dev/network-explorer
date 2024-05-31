@@ -1,9 +1,83 @@
 import React from 'react'
 import styled from 'styled-components'
+import { useStore } from '../Store'
 import { DefaultViewState } from '../consts'
 import { useMap } from '../hooks'
-import { SM } from '../utils/styled'
+import { ConnectionsMode } from '../types'
+import { useHud } from '../utils'
 import { Tooltip } from './Tooltip'
+
+export function MapNavigationControl() {
+  const map = useMap()
+
+  const { setConnectionsMode } = useStore()
+
+  const { showConnectionsToggle, showResetViewportButton, showZoomButtons } = useHud()
+
+  if (!showConnectionsToggle && !showResetViewportButton && !showZoomButtons) {
+    return null
+  }
+
+  return (
+    <NavigationControlRoot>
+      {showConnectionsToggle && (
+        <ButtonGroup>
+          <Tooltip value="Show node connections">
+            <ConnectionButton
+              type="button"
+              onClick={() => {
+                setConnectionsMode((current) => {
+                  return current === ConnectionsMode.Always
+                    ? ConnectionsMode.Off
+                    : ConnectionsMode.Always
+                })
+              }}
+            >
+              <ConnectionIcon />
+            </ConnectionButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {showResetViewportButton && (
+        <ButtonGroup>
+          <Tooltip value="Reset the map">
+            <ResetButton
+              type="button"
+              onClick={() => {
+                map?.flyTo({
+                  center: [DefaultViewState.longitude, DefaultViewState.latitude],
+                  zoom: DefaultViewState.zoom,
+                })
+              }}
+            >
+              <RefreshIcon />
+            </ResetButton>
+          </Tooltip>
+        </ButtonGroup>
+      )}
+      {showZoomButtons && (
+        <ZoomGroup>
+          <Button
+            type="button"
+            onClick={() => {
+              map?.zoomIn()
+            }}
+          >
+            <PlusIcon />
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              map?.zoomOut()
+            }}
+          >
+            <MinusIcon />
+          </Button>
+        </ZoomGroup>
+      )}
+    </NavigationControlRoot>
+  )
+}
 
 const Button = styled.button`
   width: 40px;
@@ -169,76 +243,5 @@ const ButtonGroup = styled.div`
 const ZoomGroup = styled(ButtonGroup)``
 
 const NavigationControlRoot = styled.div`
-  position: absolute;
-  right: 16px;
-  top: 64px;
-
-  ${ZoomGroup} {
-    display: none;
-  }
-
-  @media (min-width: ${SM}px) {
-    top: auto;
-    right: 32px;
-    bottom: 32px;
-
-    ${ZoomGroup} {
-      display: flex;
-    }
-  }
+  pointer-events: auto;
 `
-
-interface NavigationControlProps {
-  onToggleConnections(): void
-}
-
-export function MapNavigationControl(props: NavigationControlProps) {
-  const { onToggleConnections } = props
-
-  const map = useMap()
-
-  return (
-    <NavigationControlRoot>
-      <ButtonGroup>
-        <Tooltip value="Show node connections">
-          <ConnectionButton type="button" onClick={onToggleConnections}>
-            <ConnectionIcon />
-          </ConnectionButton>
-        </Tooltip>
-      </ButtonGroup>
-      <ButtonGroup>
-        <Tooltip value="Reset the map">
-          <ResetButton
-            type="button"
-            onClick={() => {
-              map?.flyTo({
-                center: [DefaultViewState.longitude, DefaultViewState.latitude],
-                zoom: DefaultViewState.zoom,
-              })
-            }}
-          >
-            <RefreshIcon />
-          </ResetButton>
-        </Tooltip>
-      </ButtonGroup>
-      <ZoomGroup>
-        <Button
-          type="button"
-          onClick={() => {
-            map?.zoomIn()
-          }}
-        >
-          <PlusIcon />
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            map?.zoomOut()
-          }}
-        >
-          <MinusIcon />
-        </Button>
-      </ZoomGroup>
-    </NavigationControlRoot>
-  )
-}

@@ -1,119 +1,102 @@
-import styled, { css } from 'styled-components'
-import { ActiveView } from '../../types'
-import { SM } from '../../utils/styled'
-import ControlBox from '../ControlBox'
-import Error from '../Error'
+import styled from 'styled-components'
+import { TabletMedia } from '../../utils/styled'
+import ControlBox, { ControlBoxBorderRadius } from '../ControlBox'
 import { Graphs } from '../Graphs'
 import { Stats } from '../Stats'
 import { SearchInput, SearchInputInner } from './SearchInput'
 import { SearchResultsRoot } from './SearchResults'
 
 export const SlideHandle = styled.div`
-  position: absolute;
-  height: 4px;
-  width: 40px;
-  background: #e7e7e7;
-  border-radius: 2px;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: none;
+  height: 22px;
+  position: relative;
+
+  &::before {
+    background: #e7e7e7;
+    border-radius: 2px;
+    content: '';
+    height: 4px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+  }
 `
 
+export const StatsWrap = styled.div``
+
 export const Search = styled(ControlBox)`
+  border-radius: ${ControlBoxBorderRadius}px ${ControlBoxBorderRadius}px 0 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
   height: 100%;
+  position: relative;
+  pointer-events: auto;
 
-  ${SearchInput} {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-  }
-
-  > *:last-child {
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-  }
-
-  > * + * {
-    border-top: 1px solid #efefef;
-  }
-
-  @media (max-width: ${SM}px) {
-    box-shadow: none;
-
-    ${SearchResultsRoot} {
-      padding: 8px 16px;
-      height: 100%;
-    }
-
-    ${SlideHandle} {
-      display: block;
-    }
-
-    ${SearchInput} {
-      padding: 22px 16px 16px 16px;
-      border-radius: 0px;
-
-      ${SearchInputInner} {
-        border: 1px solid #efefef;
-        border-radius: 4px;
-      }
-    }
-
-    ${SearchInput} + ${Stats} {
-      border: 1px solid #efefef;
-      margin: 0 16px 16px 16px;
-      border-radius: 0 0 8px 8px;
-    }
-
-    ${({ theme }) =>
-      theme.activeView === ActiveView.Map &&
-      css`
-        ${SearchResultsRoot} {
-          display: none;
-        }
-      `}
-
-    ${({ theme }) =>
-      !!theme.hasStats &&
-      !theme.resultsActive &&
-      css`
-        ${SearchInput} {
-          padding-bottom: 0;
-
-          ${SearchInputInner} {
-            border-bottom: 0;
-            border-radius: 8px 8px 0 0;
-          }
-        }
-      `}
-
-    ${({ theme }) =>
-      theme.activeView === ActiveView.List &&
-      !!theme.resultsActive &&
-      css`
-        ${Stats},
-        ${Graphs},
-      ${Error} {
-          display: none;
-        }
-      `}
+  > * {
+    min-width: 0;
   }
 
   ${Stats} {
-    background-color: #ffffff;
+    background: #ffffff;
+    border: 1px solid #efefef;
+    border-radius: 0 0 4px 4px;
+    border-top: 0px;
   }
 
-  @media (min-width: ${SM}px) {
-    ${({ theme }) =>
-      theme.resultsActive &&
-      css`
-        ${Graphs} {
-          display: none;
-        }
-      `}
+  ${StatsWrap} {
+    padding: 0 16px 16px;
+  }
+
+  ${SearchInput} {
+    padding: 0 16px;
+  }
+
+  ${SearchInputInner} {
+    border: 1px solid #efefef;
+    border-radius: 4px 4px 0 0;
+  }
+
+  ${Graphs} {
+    border-top: 1px solid #efefef;
+  }
+
+  ${SearchResultsRoot} {
+    border-top: 1px solid #efefef;
+    padding: 16px;
+  }
+
+  @media ${TabletMedia} {
+    border-radius: ${ControlBoxBorderRadius}px;
+    height: auto;
+
+    ${Stats} {
+      border: 0;
+      border-radius: 0 0 4px 4px;
+      border-top: 1px solid #efefef;
+    }
+
+    ${SearchInput} {
+      padding: 0;
+    }
+
+    ${SearchInputInner} {
+      border: 0;
+    }
+
+    ${StatsWrap} {
+      padding: 0;
+      border: 0;
+    }
+
+    ${SlideHandle} {
+      display: none;
+    }
 
     ${SearchResultsRoot} {
-      height: 280px;
+      max-height: 336px;
+      padding: 0;
     }
   }
 `
