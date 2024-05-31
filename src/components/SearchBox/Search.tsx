@@ -32,6 +32,11 @@ export const Search = styled(ControlBox)`
   grid-template-rows: auto 1fr;
   height: 100%;
   position: relative;
+  pointer-events: auto;
+
+  > * {
+    min-width: 0;
+  }
 
   ${Stats} {
     background: #ffffff;
@@ -64,6 +69,7 @@ export const Search = styled(ControlBox)`
 
   @media ${TabletMedia} {
     border-radius: ${ControlBoxBorderRadius}px;
+    height: auto;
 
     ${Stats} {
       border: 0;

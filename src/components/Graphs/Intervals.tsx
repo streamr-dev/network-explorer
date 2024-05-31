@@ -86,4 +86,6 @@ export const Intervals = styled(UnstyledIntervals)`
   justify-content: space-between;
   align-content: center;
   padding: 0 1rem;
+  min-width: 0;
+  overflow: hidden;
 `

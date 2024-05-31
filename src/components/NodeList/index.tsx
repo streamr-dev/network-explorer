@@ -1,10 +1,9 @@
 import React, { ReactNode, RefObject } from 'react'
 import styled from 'styled-components'
 import { MEDIUM, SANS } from '../../utils/styled'
-import ControlBox from '../ControlBox'
 import Pager from './Pager'
 
-export const NodeListInner = styled.div`
+const NodeListInner = styled.div`
   padding: 16px;
   font-size: 12px;
 
@@ -38,8 +37,14 @@ interface NodeListProps {
 
 export function NodeList({ innerRef, children }: NodeListProps) {
   return (
-    <ControlBox ref={innerRef}>
+    <NodeListRoot ref={innerRef}>
       <NodeListInner>{children}</NodeListInner>
-    </ControlBox>
+    </NodeListRoot>
   )
 }
+
+const NodeListRoot = styled.div`
+  max-height: 100%;
+  overflow: auto;
+  pointer-events: auto;
+`
