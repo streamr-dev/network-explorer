@@ -89,14 +89,41 @@ export function useDebounce<T>(value: T, delay: number) {
 }
 
 const Hud = {
+  /**
+   * Set `ConnectionMode.Always` on load.
+   */
   showConnections: /*         */ 0x0001,
+  /**
+   * Show the connection mode toggle.
+   */
   showConnectionsToggle: /*   */ 0x0002,
+  /**
+   * Show the node list for the current context (stream or selected node).
+   */
   showNodeList: /*            */ 0x0004,
+  /**
+   * Show the network selector dropdown.
+   */
   showNetworkSelector: /*     */ 0x0008,
+  /**
+   * Show the viewport reset button.
+   */
   showResetViewportButton: /* */ 0x0010,
+  /**
+   * Show the search.
+   */
   showSearch: /*              */ 0x0020,
+  /**
+   * Use tighter padding around the search and the controls.
+   */
   compact: /*                 */ 0x0040,
+  /**
+   * Show zoom in and out buttons.
+   */
   showZoomButtons: /*         */ 0x0080,
+  /**
+   * Fly to node on select.
+   */
   autoCenter: /*              */ 0x0100,
 } as const
 
