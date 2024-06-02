@@ -38,7 +38,7 @@ function Page() {
 
   const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
 
-  const { showNetworkSelector, showSearch, showNodeList, compact } = useHud()
+  const { showNetworkSelector, showSearch, compact } = useHud()
 
   return (
     <StoreProvider>

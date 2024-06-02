@@ -165,7 +165,7 @@ export function useNavigateToNodeCallback() {
 
       setActiveView(ActiveView.Map)
     },
-    [navigate, streamId, setSearchPhrase],
+    [navigate, streamId, setSearchPhrase, setActiveView],
   )
 }
 
