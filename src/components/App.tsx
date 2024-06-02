@@ -86,9 +86,9 @@ const Controls = styled.div<{ $compact?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 100vh;
+  height: 100%;
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   right: 0;
   top: 0;
 

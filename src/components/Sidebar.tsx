@@ -132,7 +132,7 @@ const SidebarInner = styled.div`
 
 const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean; $compact?: boolean }>`
   box-sizing: border-box;
-  height: 100vh;
+  height: 100%;
   left: 0;
   overflow: hidden;
   pointer-events: none;
