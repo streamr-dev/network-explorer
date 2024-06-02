@@ -95,7 +95,7 @@ const Controls = styled.div<{ $compact?: boolean }>`
   ${({ $compact }) =>
     $compact
       ? css`
-          padding: max(12px, min(16px, 10vw));
+          padding: max(12px, min(24px, 10vw));
         `
       : css`
           padding: max(12px, min(32px, 10vw));

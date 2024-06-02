@@ -149,10 +149,10 @@ const SidebarRoot = styled.div<{ $expand?: boolean; $animate?: boolean; $compact
   ${({ $compact = false }) =>
     $compact
       ? css`
-          padding-top: min(calc(40px + 20vw), 72px);
+          padding-top: min(calc(40px + 20vw), 88px);
 
           @media ${TabletMedia} {
-            padding: 16px;
+            padding: 24px;
           }
         `
       : css`
