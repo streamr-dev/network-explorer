@@ -9,7 +9,7 @@
     "@ibm/plex": "^5.1.3",
     "@streamr/sdk": "^100.1.2",
     "@streamr/utils": "^100.2.0",
-    "@tanstack/react-query": "^5.28.4",
+    "@tanstack/react-query": "^5.44.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^15.0.6",
     "@testing-library/user-event": "^7.2.1",
