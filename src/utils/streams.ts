@@ -1,4 +1,4 @@
-import { ResendOptions, StreamDefinition, StreamMessage } from '@streamr/sdk'
+import { ResendOptions, StreamDefinition, StreamMessage, StreamrClientConfig } from '@streamr/sdk'
 import { keyToArrayIndex } from '@streamr/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -13,6 +13,7 @@ import {
   GetStreamsQueryVariables,
 } from '../generated/gql/indexer'
 import { getIndexerClient } from './queries'
+import { config } from '@streamr/config'
 
 function getLimitedStreamsQueryKey(phrase: string, limit: number) {
   return ['useLimitedStreamsQuery', phrase, limit]
@@ -191,10 +192,22 @@ export function useRecentOperatorNodeMetricEntry(nodeId: string) {
   return recent
 }
 
+export function getStreamrClientConfig(): StreamrClientConfig {
+  return {
+    metrics: false,
+    contracts: {
+      ethereumNetwork: {
+        chainId: config.polygon.id,
+      },
+      rpcs: config.polygon.rpcEndpoints.slice(0, 1)
+    },
+  }
+}
+
 async function getStreamrClientInstance() {
   const StreamrClient = (await import('@streamr/sdk')).default
 
-  return new StreamrClient()
+  return new StreamrClient(getStreamrClientConfig())
 }
 
 export function useStreamFromClient(streamId: string) {
