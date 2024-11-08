@@ -10,7 +10,7 @@ import { Tooltip } from './Tooltip'
 export function MapNavigationControl() {
   const map = useMap()
 
-  const { setConnectionsMode } = useStore()
+  const { setConnectionsMode, connectionsMode } = useStore()
 
   const { showConnectionsToggle, showResetViewportButton, showZoomButtons } = useHud()
 
@@ -25,6 +25,7 @@ export function MapNavigationControl() {
           <Tooltip value="Show node connections">
             <ConnectionButton
               type="button"
+              $isActive={connectionsMode === ConnectionsMode.Always}
               onClick={() => {
                 setConnectionsMode((current) => {
                   return current === ConnectionsMode.Always
@@ -109,10 +110,16 @@ const Button = styled.button`
   }
 `
 
-const ConnectionButton = styled(Button)`
+const ConnectionButton = styled(Button)<{ $isActive?: boolean }>`
+  color: ${({ $isActive }) => ($isActive ? '#0324ff' : 'inherit')};
+
+  &:hover {
+    color: ${({ $isActive }) => ($isActive ? '#7b8fff' : '#a3a3a3')};
+  }
+
   &:active,
   &:focus {
-    color: #0324ff;
+    color: ${({ $isActive }) => ($isActive ? '#0324ff' : '#323232')};
   }
 
   svg {

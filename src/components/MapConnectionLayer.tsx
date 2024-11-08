@@ -3,13 +3,14 @@ import { Layer, Source } from 'react-map-gl'
 import { useNodeConnections } from '../utils'
 import { useStore } from '../Store'
 import { ConnectionsMode } from '../types'
+import { useStreamIdParam } from '../hooks'
 
 export function MapConnectionLayer() {
   const connections = useNodeConnections()
+  const { connectionsMode, selectedNode } = useStore()
+  const streamId = useStreamIdParam()
 
-  const { connectionsMode } = useStore()
-
-  const visible = connectionsMode === ConnectionsMode.Always
+  const visible = connectionsMode === ConnectionsMode.Always || !!streamId || !!selectedNode
 
   const lineData = useMemo(
     function getFeatureConnection(): GeoJSON.FeatureCollection {
