@@ -41,7 +41,7 @@ function Page() {
   const { showNetworkSelector, showSearch, compact } = useHud()
 
   return (
-    <StoreProvider>
+    <>
       <PublisherDetector />
       <Map />
       <MapAutoUpdater />
@@ -56,7 +56,7 @@ function Page() {
         <Backdrop />
         <Sidebar />
       </ErrorBoundary>
-    </StoreProvider>
+    </>
   )
 }
 
@@ -126,18 +126,20 @@ export function App() {
   return (
     <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
       <QueryClientProvider client={getQueryClient()}>
-        <StreamrClientProvider>
-          <MapProvider>
-            <Routes>
-              <Route element={<Page />}>
-                <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
-                <Route path="/streams/:streamId" element={<StreamTopologyList />} />
-                <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
-                <Route index element={<NodeTopologyList />} />
-              </Route>
-            </Routes>
-          </MapProvider>
-        </StreamrClientProvider>
+        <StoreProvider>
+          <StreamrClientProvider>
+            <MapProvider>
+              <Routes>
+                <Route element={<Page />}>
+                  <Route path="/streams/:streamId/nodes/:nodeId" element={<StreamTopologyList />} />
+                  <Route path="/streams/:streamId" element={<StreamTopologyList />} />
+                  <Route path="/nodes/:nodeId" element={<NodeTopologyList />} />
+                  <Route index element={<NodeTopologyList />} />
+                </Route>
+              </Routes>
+            </MapProvider>
+          </StreamrClientProvider>
+        </StoreProvider>
       </QueryClientProvider>
     </BrowserRouter>
   )

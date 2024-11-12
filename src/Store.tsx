@@ -17,8 +17,10 @@ import { ActiveView, ConnectionsMode, OperatorNode } from './types'
 import { useHud } from './utils'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
+import { POLYGON_CHAIN_ID } from './utils/chains'
 
 interface Store {
+  chainId: number
   activeView: ActiveView
   connectionsMode: ConnectionsMode
   displaySearchPhrase: string
@@ -29,6 +31,7 @@ interface Store {
   publishers: Record<string, string | undefined>
   searchPhrase: string
   selectedNode: OperatorNode | null
+  setChainId(value: number): void
   setActiveView(value: ActiveView): void
   setConnectionsMode: Dispatch<SetStateAction<ConnectionsMode>>
   setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
@@ -36,6 +39,7 @@ interface Store {
 }
 
 const StoreContext = createContext<Store>({
+  chainId: POLYGON_CHAIN_ID,
   activeView: ActiveView.Map,
   connectionsMode: ConnectionsMode.Auto,
   displaySearchPhrase: '',
@@ -46,6 +50,7 @@ const StoreContext = createContext<Store>({
   publishers: {},
   searchPhrase: '',
   selectedNode: null,
+  setChainId: () => {},
   setActiveView: () => {},
   setConnectionsMode: () => {},
   setPublishers: () => ({}),
@@ -71,6 +76,8 @@ export function StoreProvider(props: StoreProviderProps) {
       zoom: DefaultViewState.zoom,
     })
   })
+
+  const [chainId, setChainId] = useState(POLYGON_CHAIN_ID)
 
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
 
@@ -99,10 +106,15 @@ export function StoreProvider(props: StoreProviderProps) {
     [showConnections],
   )
 
+  useEffect(() => {
+    console.log('Store: Chain ID changed:', chainId)
+  }, [chainId])
+
   return (
     <StoreContext.Provider
       {...props}
       value={{
+        chainId,
         activeView,
         connectionsMode,
         displaySearchPhrase,
@@ -113,6 +125,7 @@ export function StoreProvider(props: StoreProviderProps) {
         publishers,
         searchPhrase: rawSearchPhrase,
         selectedNode,
+        setChainId,
         setActiveView,
         setConnectionsMode,
         setPublishers,

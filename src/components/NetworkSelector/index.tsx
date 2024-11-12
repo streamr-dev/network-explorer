@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { SANS } from '../../utils/styled'
 import { Tooltip } from '../Tooltip'
+import { useStore } from '../../Store'
+import { POLYGON_CHAIN_ID, POLYGON_AMOY_CHAIN_ID } from '../../utils/chains'
 
 const GlobeIcon = () => (
   <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,6 +31,10 @@ const TickIcon = () => (
 
 const MainnetTheme = {
   color: '#0EAC1B',
+}
+
+const AmoyTheme = {
+  color: '#FF6B00',
 }
 
 const NetworkIndicator = styled.div`
@@ -120,6 +126,8 @@ const NetworkSelectorRoot = styled.div`
 `
 
 export default function NetworkSelector() {
+  const { chainId, setChainId } = useStore()
+
   const [open, setOpen] = useState<boolean>(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -166,17 +174,28 @@ export default function NetworkSelector() {
       <Tooltip value={!open ? 'Network selector' : undefined}>
         <Button type="button" onClick={toggleOpen}>
           <GlobeIcon />
-          <NetworkIndicator theme={MainnetTheme} />
+          <NetworkIndicator theme={chainId === POLYGON_AMOY_CHAIN_ID ? AmoyTheme : MainnetTheme} />
         </Button>
       </Tooltip>
       {!!open && (
         <NetworkList>
-          <NetworkItem type="button">
+          <NetworkItem type="button" onClick={() => setChainId(POLYGON_CHAIN_ID)}>
             <NetworkIndicator theme={MainnetTheme} />
             <NetworkName>Mainnet</NetworkName>
-            <div>
-              <TickIcon />
-            </div>
+            {chainId === POLYGON_CHAIN_ID && (
+              <div>
+                <TickIcon />
+              </div>
+            )}
+          </NetworkItem>
+          <NetworkItem type="button" onClick={() => setChainId(POLYGON_AMOY_CHAIN_ID)}>
+            <NetworkIndicator theme={AmoyTheme} />
+            <NetworkName>Amoy</NetworkName>
+            {chainId === POLYGON_AMOY_CHAIN_ID && (
+              <div>
+                <TickIcon />
+              </div>
+            )}
           </NetworkItem>
         </NetworkList>
       )}

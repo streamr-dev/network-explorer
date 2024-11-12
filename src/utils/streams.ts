@@ -15,8 +15,8 @@ import {
 import { getIndexerClient } from './queries'
 import { config } from '@streamr/config'
 
-function getLimitedStreamsQueryKey(phrase: string, limit: number) {
-  return ['useLimitedStreamsQuery', phrase, limit]
+function getLimitedStreamsQueryKey(phrase: string, limit: number, chainId: number) {
+  return ['useLimitedStreamsQuery', phrase, limit, chainId]
 }
 
 interface UseLimitedStreamsQueryParams {
@@ -26,9 +26,10 @@ interface UseLimitedStreamsQueryParams {
 
 export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
   const { phrase, limit = 20 } = params
+  const { chainId } = useStore()
 
   return useQuery({
-    queryKey: getLimitedStreamsQueryKey(phrase, limit),
+    queryKey: getLimitedStreamsQueryKey(phrase, limit, chainId),
     queryFn: async () => {
       if (!phrase) {
         return []
@@ -36,7 +37,7 @@ export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
 
       const {
         data: { streams },
-      } = await getIndexerClient().query<GetStreamsQuery, GetStreamsQueryVariables>({
+      } = await getIndexerClient(chainId).query<GetStreamsQuery, GetStreamsQueryVariables>({
         query: GetStreamsDocument,
         variables: {
           searchTerm: phrase,
@@ -192,29 +193,37 @@ export function useRecentOperatorNodeMetricEntry(nodeId: string) {
   return recent
 }
 
-export function getStreamrClientConfig(): StreamrClientConfig {
+export function getStreamrClientConfig(chainId: number): StreamrClientConfig {
+  const networkConfig = Object.values(config).find((network) => network.id === chainId)
+
+  if (!networkConfig) {
+    throw new Error(`No Streamr Clientconfiguration found for chain ID ${chainId}`)
+  }
+
   return {
     metrics: false,
     contracts: {
       ethereumNetwork: {
-        chainId: config.polygon.id,
+        chainId: networkConfig.id,
       },
-      rpcs: config.polygon.rpcEndpoints.slice(0, 1)
+      rpcs: networkConfig.rpcEndpoints.slice(0, 1),
     },
   }
 }
 
-async function getStreamrClientInstance() {
+async function getStreamrClientInstance(chainId: number) {
   const StreamrClient = (await import('@streamr/sdk')).default
 
-  return new StreamrClient(getStreamrClientConfig())
+  return new StreamrClient(getStreamrClientConfig(chainId))
 }
 
 export function useStreamFromClient(streamId: string) {
+  const { chainId } = useStore()
+
   return useQuery({
-    queryKey: ['useStreamFromClient', streamId],
+    queryKey: ['useStreamFromClient', streamId, chainId],
     queryFn: async () => {
-      const client = await getStreamrClientInstance()
+      const client = await getStreamrClientInstance(chainId)
 
       return client.getStream(streamId)
     },
