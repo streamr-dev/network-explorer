@@ -11,7 +11,9 @@ import { useOperatorNodesForStreamQuery } from './nodes'
 export function useNodeConnections() {
   const streamId = useStreamIdParam() || undefined
 
-  const { data: nodes } = useOperatorNodesForStreamQuery(streamId)
+  const { chainId } = useStore()
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId, chainId)
 
   const { selectedNode } = useStore()
 
@@ -159,7 +161,9 @@ export function useAutoCenterNodeEffect() {
 
   const streamId = useStreamIdParam()
 
-  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined)
+  const { chainId } = useStore()
+
+  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined, chainId)
 
   const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
 

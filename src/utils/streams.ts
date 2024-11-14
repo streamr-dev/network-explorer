@@ -193,22 +193,39 @@ export function useRecentOperatorNodeMetricEntry(nodeId: string) {
   return recent
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function getStreamrClientConfig(chainId: number): StreamrClientConfig {
-  const networkConfig = Object.values(config).find((network) => network.id === chainId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chainConfig = Object.values(config).find((network) => network.id === chainId) as any
 
-  if (!networkConfig) {
-    throw new Error(`No Streamr Clientconfiguration found for chain ID ${chainId}`)
+  if (!chainConfig) {
+    throw new Error(`No Streamr Client configuration found for chain ID ${chainId}`)
   }
 
-  return {
+  const clientConfig: StreamrClientConfig = {
     metrics: false,
-    contracts: {
-      ethereumNetwork: {
-        chainId: networkConfig.id,
-      },
-      rpcs: networkConfig.rpcEndpoints.slice(0, 1),
-    },
   }
+
+  // Set network entrypoints if provided
+  if (chainConfig.entryPoints && chainConfig.entryPoints.length > 0) {
+    clientConfig.network = {
+      controlLayer: {
+        entryPoints: chainConfig.entryPoints,
+      },
+    }
+  }
+
+  clientConfig.contracts = {
+    ethereumNetwork: {
+      chainId,
+    },
+    rpcs: chainConfig.rpcEndpoints.slice(0, 1),
+    streamRegistryChainAddress: chainConfig.contracts.StreamRegistry,
+    streamStorageRegistryChainAddress: chainConfig.contracts.StreamStorageRegistry,
+    theGraphUrl: chainConfig.theGraphUrl,
+  }
+
+  return clientConfig
 }
 
 async function getStreamrClientInstance(chainId: number) {

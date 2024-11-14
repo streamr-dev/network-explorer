@@ -242,8 +242,7 @@ export const Stats = styled(UnstyledStats)`
   position: relative;
 `
 
-function useStreamStatsQuery(streamId: string) {
-  const { chainId } = useStore()
+function useStreamStatsQuery(streamId: string, chainId: number) {
   return useQuery({
     queryKey: ['useStreamStatsQuery', streamId, chainId],
     queryFn: async () => {
@@ -285,7 +284,9 @@ const defaultStreamStats = {
 }
 
 export function StreamStats({ streamId }: StreamStatsProps) {
-  const { data: stats } = useStreamStatsQuery(streamId)
+  const { chainId } = useStore()
+
+  const { data: stats } = useStreamStatsQuery(streamId, chainId)
 
   const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
 

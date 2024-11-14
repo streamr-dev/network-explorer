@@ -1,10 +1,10 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { MapProvider } from 'react-map-gl'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import styled, { css } from 'styled-components'
-import { StoreProvider } from '../Store'
+import { StoreProvider, useStore } from '../Store'
 import {
   useMap,
   useSelectedNodeLocationEffect,
@@ -33,15 +33,32 @@ const LoadingIndicator = styled(UnstyledLoadingIndicator)`
   z-index: 4;
 `
 
+function UrlParamsSynchronizer() {
+  const { nodeId, streamId } = useParams()
+  const { setUrlParams } = useStore()
+
+  useEffect(() => {
+    setUrlParams({
+      nodeId: nodeId || null,
+      streamId: streamId || null,
+    })
+  }, [nodeId, streamId, setUrlParams])
+
+  return null
+}
+
 function Page() {
   const streamId = useStreamIdParam()
 
-  const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined)
+  const { chainId } = useStore()
+
+  const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined, chainId)
 
   const { showNetworkSelector, showSearch, compact } = useHud()
 
   return (
     <>
+      <UrlParamsSynchronizer />
       <PublisherDetector />
       <Map />
       <MapAutoUpdater />
