@@ -17,7 +17,7 @@ import { ActiveView, ConnectionsMode, OperatorNode } from './types'
 import { useHud } from './utils'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
-import { POLYGON_CHAIN_ID } from './utils/chains'
+import { DEFAULT_CHAIN_ID, SUPPORTED_CHAIN_IDS } from './utils/chains'
 
 interface Store {
   chainId: number
@@ -39,7 +39,7 @@ interface Store {
 }
 
 const StoreContext = createContext<Store>({
-  chainId: POLYGON_CHAIN_ID,
+  chainId: DEFAULT_CHAIN_ID,
   activeView: ActiveView.Map,
   connectionsMode: ConnectionsMode.Auto,
   displaySearchPhrase: '',
@@ -61,6 +61,9 @@ interface StoreProviderProps {
   children?: ReactNode
 }
 
+// Add a constant for the storage key
+const CHAIN_ID_STORAGE_KEY = 'network-explorer-chain-id'
+
 export function StoreProvider(props: StoreProviderProps) {
   const selectedNode = useNodeByNodeIdParam()
 
@@ -77,7 +80,17 @@ export function StoreProvider(props: StoreProviderProps) {
     })
   })
 
-  const [chainId, setChainId] = useState(POLYGON_CHAIN_ID)
+  // Initialize chainId from localStorage
+  const [chainId, setChainId] = useState(() => {
+    const stored = localStorage.getItem(CHAIN_ID_STORAGE_KEY)
+
+    // Check if the stored value is a valid network chainId
+    if (stored && SUPPORTED_CHAIN_IDS.includes(parseInt(stored, 10))) {
+      return parseInt(stored, 10)
+    }
+
+    return DEFAULT_CHAIN_ID
+  })
 
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
 
@@ -106,7 +119,9 @@ export function StoreProvider(props: StoreProviderProps) {
     [showConnections],
   )
 
+  // Persist chainId changes
   useEffect(() => {
+    localStorage.setItem(CHAIN_ID_STORAGE_KEY, chainId.toString())
     console.log('Store: Chain ID changed:', chainId)
   }, [chainId])
 

@@ -2,6 +2,8 @@ import { config } from '@streamr/config'
 
 export const POLYGON_CHAIN_ID = config.polygon.id
 export const POLYGON_AMOY_CHAIN_ID = config.polygonAmoy.id
+export const DEFAULT_CHAIN_ID = POLYGON_CHAIN_ID
+export const SUPPORTED_CHAIN_IDS = [POLYGON_CHAIN_ID, POLYGON_AMOY_CHAIN_ID]
 
 const INDEXER_URLS: Record<number, string> = {
   [POLYGON_CHAIN_ID]: 'https://stream-metrics.streamr.network/api',
