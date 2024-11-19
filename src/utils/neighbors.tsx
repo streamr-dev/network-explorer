@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { MinuteMs } from '../consts'
 import { getNeighbors } from '../getters'
+import { useStore } from '../Store'
 
-function getOperatorNodeNeighborsQueryKey(nodeId: string | undefined) {
-  return ['useOperatorNodeNeighborsQuery', nodeId || '']
+function getOperatorNodeNeighborsQueryKey(nodeId: string | undefined, chainId: number) {
+  return ['useOperatorNodeNeighborsQuery', nodeId || '', chainId]
 }
 
 interface UseOperatorNodeNeighborsQueryOptions {
@@ -15,13 +16,15 @@ export function useOperatorNodeNeighborsQuery(
   options: UseOperatorNodeNeighborsQueryOptions = {},
 ) {
   const { streamId } = options
+  const { chainId } = useStore()
 
   return useQuery({
-    queryKey: getOperatorNodeNeighborsQueryKey(nodeId),
+    queryKey: getOperatorNodeNeighborsQueryKey(nodeId, chainId),
     queryFn: async () => {
       const neighbours = await getNeighbors({
         node: nodeId,
         streamId,
+        chainId,
       })
 
       if (!streamId) {

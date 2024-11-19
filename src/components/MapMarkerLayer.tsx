@@ -4,13 +4,16 @@ import { useStreamIdParam } from '../hooks'
 import { OperatorNode } from '../types'
 import { NodeLayerId, NodeSourceId, getNodeLocationId } from '../utils/map'
 import { useOperatorNodesForStreamQuery } from '../utils/nodes'
+import { useStore } from '../Store'
 
 const EmptyNodes: OperatorNode[] = []
 
 export function MapMarkerLayer() {
+  const { chainId } = useStore()
+
   const streamId = useStreamIdParam()
 
-  const nodesQuery = useOperatorNodesForStreamQuery(streamId || undefined)
+  const nodesQuery = useOperatorNodesForStreamQuery(streamId || undefined, chainId)
 
   const nodes = nodesQuery.data || EmptyNodes
 

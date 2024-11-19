@@ -1,17 +1,20 @@
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client'
 import { QueryClient } from '@tanstack/react-query'
+import { getIndexerUrl } from './chains'
 
-let indexerGraphClient: ApolloClient<NormalizedCacheObject> | undefined
+let indexerGraphClients: Record<number, ApolloClient<NormalizedCacheObject>> = {}
 
-export function getIndexerClient(): ApolloClient<NormalizedCacheObject> {
-  if (!indexerGraphClient) {
-    indexerGraphClient = new ApolloClient({
-      uri: 'https://stream-metrics.streamr.network/api',
+export function getIndexerClient(chainId: number): ApolloClient<NormalizedCacheObject> {
+  if (!indexerGraphClients[chainId]) {
+    const uri = getIndexerUrl(chainId)
+
+    indexerGraphClients[chainId] = new ApolloClient({
+      uri,
       cache: new InMemoryCache(),
     })
   }
 
-  return indexerGraphClient
+  return indexerGraphClients[chainId]
 }
 
 let queryClient: QueryClient | undefined

@@ -8,7 +8,9 @@ import { TopologyList } from './TopologyList'
 const EmptyNodes: OperatorNode[] = []
 
 export function NodeTopologyList() {
-  const nodes = useOperatorNodesForStreamQuery(undefined).data || EmptyNodes
+  const { chainId } = useStore()
+
+  const nodes = useOperatorNodesForStreamQuery(undefined, chainId).data || EmptyNodes
 
   const { selectedNode } = useStore()
 
