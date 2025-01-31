@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { useStore } from '../Store'
 import { DefaultViewState } from '../consts'
 import { useMap, useStreamIdParam } from '../hooks'
-import { OperatorNode } from '../types'
+import { ConnectionsMode, OperatorNode } from '../types'
 import { getNodeLocationId } from './map'
 import { useOperatorNodeNeighborsQuery } from './neighbors'
 import { useOperatorNodesForStreamQuery } from './nodes'
@@ -13,13 +13,22 @@ export function useNodeConnections() {
 
   const { data: nodes } = useOperatorNodesForStreamQuery(streamId)
 
-  const { selectedNode } = useStore()
+  const { selectedNode, connectionsMode } = useStore()
 
   const { data: neighbors } = useOperatorNodeNeighborsQuery(selectedNode?.id, { streamId })
 
   return useMemo(
     function getConnectionsFromNodesAndNeighbors() {
+      // Return early if we don't have the required data
       if (!nodes || !neighbors) {
+        return []
+      }
+
+      // Only show connections if:
+      // 1. We have a streamId (showing all connections for a stream), OR
+      // 2. We have a selected node (showing connections for that node), OR
+      // 3. ConnectionsMode is set to Always
+      if (!streamId && !selectedNode?.id && connectionsMode !== ConnectionsMode.Always) {
         return []
       }
 
@@ -65,7 +74,7 @@ export function useNodeConnections() {
 
       return connections
     },
-    [nodes, neighbors],
+    [nodes, neighbors, selectedNode, streamId, connectionsMode],
   )
 }
 
