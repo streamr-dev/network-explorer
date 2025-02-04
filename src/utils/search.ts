@@ -5,13 +5,16 @@ import { useIsFetchingOperatorNodesForStream, useOperatorNodesForStreamQuery } f
 import { useIsFetchingLocationFeatures, useLocationFeaturesQuery } from './places'
 import { useLimitedStreamsQuery } from './streams'
 import { truncate } from './text'
+import { useStore } from '../Store'
 
 function getValidSearchPhrase(phrase: string) {
   return phrase.length < 3 ? '' : phrase.toLowerCase()
 }
 
 export function useIsSearching(phrase: string) {
-  const isFetchingNodes = useIsFetchingOperatorNodesForStream(undefined)
+  const { chainId } = useStore()
+
+  const isFetchingNodes = useIsFetchingOperatorNodesForStream(chainId, undefined)
 
   const isFetchingPlaces = useIsFetchingLocationFeatures(getValidSearchPhrase(phrase))
 
@@ -19,7 +22,9 @@ export function useIsSearching(phrase: string) {
 }
 
 export function useSearch({ phrase: phraseParam = '' }) {
-  const nodesQuery = useOperatorNodesForStreamQuery(undefined)
+  const { chainId } = useStore()
+
+  const nodesQuery = useOperatorNodesForStreamQuery(chainId, undefined)
 
   const phrase = useDebounce(getValidSearchPhrase(phraseParam), 250)
 

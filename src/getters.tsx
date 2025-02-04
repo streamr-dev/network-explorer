@@ -13,12 +13,13 @@ import { getIndexerClient } from './utils/queries'
 interface GetOperatorNodesParams {
   ids?: string[]
   streamId?: string
+  chainId: number
 }
 
 export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<OperatorNode[]> {
   const pageSize = 500
 
-  const { ids, streamId } = params
+  const { ids, streamId, chainId } = params
 
   const items: OperatorNode[] = []
 
@@ -27,7 +28,7 @@ export async function getOperatorNodes(params: GetOperatorNodesParams): Promise<
   for (;;) {
     const {
       data: { nodes },
-    } = await getIndexerClient().query<GetNodesQuery, GetNodesQueryVariables>({
+    } = await getIndexerClient(chainId).query<GetNodesQuery, GetNodesQueryVariables>({
       fetchPolicy: 'network-only',
       query: GetNodesDocument,
       variables: {
@@ -70,12 +71,13 @@ interface GetNeighborsParams {
   node?: string
   streamId?: string
   streamPartitionId?: string
+  chainId: number
 }
 
 export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbour[]> {
   const pageSize = 1000
 
-  const { node, streamPartitionId } = params
+  const { node, streamPartitionId, chainId } = params
 
   const items: Neighbour[] = []
 
@@ -86,7 +88,7 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbou
   for (;;) {
     const {
       data: { neighbors },
-    } = await getIndexerClient().query<GetNeighborsQuery, GetNeighborsQueryVariables>({
+    } = await getIndexerClient(chainId).query<GetNeighborsQuery, GetNeighborsQueryVariables>({
       fetchPolicy: 'network-only',
       query: GetNeighborsDocument,
       variables: {

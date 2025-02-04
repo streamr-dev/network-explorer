@@ -28,6 +28,7 @@ import { Graphs } from './Graphs'
 import { Interval } from './Graphs/Graphs'
 import { Intervals } from './Graphs/Intervals'
 import { TimeSeries } from './Graphs/TimeSeries'
+import { useStore } from '../Store'
 
 type StatProps = {
   id: string
@@ -241,13 +242,13 @@ export const Stats = styled(UnstyledStats)`
   position: relative;
 `
 
-function useStreamStatsQuery(streamId: string) {
+function useStreamStatsQuery(chainId: number, streamId: string) {
   return useQuery({
-    queryKey: ['useStreamStatsQuery', streamId],
+    queryKey: ['useStreamStatsQuery', chainId, streamId],
     queryFn: async () => {
       const {
         data: { streams },
-      } = await getIndexerClient().query<GetStreamsQuery, GetStreamsQueryVariables>({
+      } = await getIndexerClient(chainId).query<GetStreamsQuery, GetStreamsQueryVariables>({
         query: GetStreamsDocument,
         variables: {
           ids: [streamId],
@@ -283,7 +284,9 @@ const defaultStreamStats = {
 }
 
 export function StreamStats({ streamId }: StreamStatsProps) {
-  const { data: stats } = useStreamStatsQuery(streamId)
+  const { chainId } = useStore()
+
+  const { data: stats } = useStreamStatsQuery(chainId, streamId)
 
   const { messagesPerSecond, peerCount, latency } = stats || defaultStreamStats
 

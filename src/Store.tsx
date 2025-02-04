@@ -10,15 +10,21 @@ import React, {
   useReducer,
   useState,
 } from 'react'
-import { useParams } from 'react-router-dom'
 import { DefaultViewState } from './consts'
-import { useGlobalKeyDownEffect, useMap, useStreamIdParam } from './hooks'
+import { useGlobalKeyDownEffect, useMap } from './hooks'
 import { ActiveView, ConnectionsMode, OperatorNode } from './types'
 import { useHud } from './utils'
 import { useOperatorNodesForStreamQuery } from './utils/nodes'
 import { truncate } from './utils/text'
+import { DEFAULT_CHAIN_ID, getPersistedChainId, persistChainId } from './utils/chains'
+
+interface UrlParams {
+  nodeId: string | null
+  streamId: string | null
+}
 
 interface Store {
+  chainId: number
   activeView: ActiveView
   connectionsMode: ConnectionsMode
   displaySearchPhrase: string
@@ -29,6 +35,9 @@ interface Store {
   publishers: Record<string, string | undefined>
   searchPhrase: string
   selectedNode: OperatorNode | null
+  urlParams: UrlParams
+  setUrlParams(value: UrlParams): void
+  setChainId(value: number): void
   setActiveView(value: ActiveView): void
   setConnectionsMode: Dispatch<SetStateAction<ConnectionsMode>>
   setPublishers: Dispatch<SetStateAction<Record<string, string | undefined>>>
@@ -36,6 +45,7 @@ interface Store {
 }
 
 const StoreContext = createContext<Store>({
+  chainId: DEFAULT_CHAIN_ID,
   activeView: ActiveView.Map,
   connectionsMode: ConnectionsMode.Auto,
   displaySearchPhrase: '',
@@ -46,6 +56,9 @@ const StoreContext = createContext<Store>({
   publishers: {},
   searchPhrase: '',
   selectedNode: null,
+  urlParams: { nodeId: null, streamId: null },
+  setUrlParams: () => {},
+  setChainId: () => {},
   setActiveView: () => {},
   setConnectionsMode: () => {},
   setPublishers: () => ({}),
@@ -57,7 +70,10 @@ interface StoreProviderProps {
 }
 
 export function StoreProvider(props: StoreProviderProps) {
-  const selectedNode = useNodeByNodeIdParam()
+  const [urlParams, setUrlParams] = useState<UrlParams>({
+    nodeId: null,
+    streamId: null,
+  })
 
   const [locationParamKey, invalidateLocationParamKey] = useReducer((x: number) => x + 1, 0)
 
@@ -71,6 +87,8 @@ export function StoreProvider(props: StoreProviderProps) {
       zoom: DefaultViewState.zoom,
     })
   })
+
+  const [chainId, setChainId] = useState(getPersistedChainId())
 
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Map)
 
@@ -99,10 +117,29 @@ export function StoreProvider(props: StoreProviderProps) {
     [showConnections],
   )
 
+  useEffect(() => {
+    persistChainId(chainId)
+  }, [chainId])
+
+  const { streamId, nodeId: activeNodeId } = urlParams
+  const { data: nodes } = useOperatorNodesForStreamQuery(chainId, streamId || undefined)
+
+  const selectedNode = useMemo(
+    function findNodeById() {
+      if (!nodes || !activeNodeId) {
+        return null
+      }
+
+      return nodes.find(({ id }) => id === activeNodeId) || null
+    },
+    [activeNodeId, nodes],
+  )
+
   return (
     <StoreContext.Provider
       {...props}
       value={{
+        chainId,
         activeView,
         connectionsMode,
         displaySearchPhrase,
@@ -113,6 +150,9 @@ export function StoreProvider(props: StoreProviderProps) {
         publishers,
         searchPhrase: rawSearchPhrase,
         selectedNode,
+        urlParams,
+        setUrlParams,
+        setChainId,
         setActiveView,
         setConnectionsMode,
         setPublishers,
@@ -124,23 +164,4 @@ export function StoreProvider(props: StoreProviderProps) {
 
 export function useStore() {
   return useContext(StoreContext)
-}
-
-function useNodeByNodeIdParam() {
-  const streamId = useStreamIdParam()
-
-  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined)
-
-  const { nodeId: activeNodeId = null } = useParams<{ nodeId: string }>()
-
-  return useMemo(
-    function findNodeById() {
-      if (!nodes || !activeNodeId) {
-        return null
-      }
-
-      return nodes.find(({ id }) => id === activeNodeId) || null
-    },
-    [activeNodeId, nodes],
-  )
 }

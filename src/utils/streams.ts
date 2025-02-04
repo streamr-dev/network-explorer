@@ -15,8 +15,8 @@ import {
 import { getIndexerClient } from './queries'
 import { config } from '@streamr/config'
 
-function getLimitedStreamsQueryKey(phrase: string, limit: number) {
-  return ['useLimitedStreamsQuery', phrase, limit]
+function getLimitedStreamsQueryKey(chainId: number, phrase: string, limit: number) {
+  return ['useLimitedStreamsQuery', chainId, phrase, limit]
 }
 
 interface UseLimitedStreamsQueryParams {
@@ -26,9 +26,10 @@ interface UseLimitedStreamsQueryParams {
 
 export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
   const { phrase, limit = 20 } = params
+  const { chainId } = useStore()
 
   return useQuery({
-    queryKey: getLimitedStreamsQueryKey(phrase, limit),
+    queryKey: getLimitedStreamsQueryKey(chainId, phrase, limit),
     queryFn: async () => {
       if (!phrase) {
         return []
@@ -36,7 +37,7 @@ export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
 
       const {
         data: { streams },
-      } = await getIndexerClient().query<GetStreamsQuery, GetStreamsQueryVariables>({
+      } = await getIndexerClient(chainId).query<GetStreamsQuery, GetStreamsQueryVariables>({
         query: GetStreamsDocument,
         variables: {
           searchTerm: phrase,
@@ -192,29 +193,54 @@ export function useRecentOperatorNodeMetricEntry(nodeId: string) {
   return recent
 }
 
-export function getStreamrClientConfig(): StreamrClientConfig {
-  return {
-    metrics: false,
-    contracts: {
-      ethereumNetwork: {
-        chainId: config.polygon.id,
-      },
-      rpcs: config.polygon.rpcEndpoints.slice(0, 1)
-    },
+// eslint-disable-next-line import/no-unused-modules
+export function getStreamrClientConfig(chainId: number): StreamrClientConfig {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chainConfig = Object.values(config).find((network) => network.id === chainId) as any
+
+  if (!chainConfig) {
+    throw new Error(`No Streamr Client configuration found for chain ID ${chainId}`)
   }
+
+  const clientConfig: StreamrClientConfig = {
+    metrics: false,
+  }
+
+  // Set network entrypoints if provided
+  if (chainConfig.entryPoints && chainConfig.entryPoints.length > 0) {
+    clientConfig.network = {
+      controlLayer: {
+        entryPoints: chainConfig.entryPoints,
+      },
+    }
+  }
+
+  clientConfig.contracts = {
+    ethereumNetwork: {
+      chainId,
+    },
+    rpcs: chainConfig.rpcEndpoints.slice(0, 1),
+    streamRegistryChainAddress: chainConfig.contracts.StreamRegistry,
+    streamStorageRegistryChainAddress: chainConfig.contracts.StreamStorageRegistry,
+    theGraphUrl: chainConfig.theGraphUrl,
+  }
+
+  return clientConfig
 }
 
-async function getStreamrClientInstance() {
+async function getStreamrClientInstance(chainId: number) {
   const StreamrClient = (await import('@streamr/sdk')).default
 
-  return new StreamrClient(getStreamrClientConfig())
+  return new StreamrClient(getStreamrClientConfig(chainId))
 }
 
 export function useStreamFromClient(streamId: string) {
+  const { chainId } = useStore()
+
   return useQuery({
-    queryKey: ['useStreamFromClient', streamId],
+    queryKey: ['useStreamFromClient', streamId, chainId],
     queryFn: async () => {
-      const client = await getStreamrClientInstance()
+      const client = await getStreamrClientInstance(chainId)
 
       return client.getStream(streamId)
     },

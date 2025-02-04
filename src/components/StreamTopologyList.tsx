@@ -11,7 +11,9 @@ export function StreamTopologyList() {
 
   const navigateToNode = useNavigateToNodeCallback()
 
-  const { data: nodes = [] } = useOperatorNodesForStreamQuery(streamId)
+  const { chainId } = useStore()
+
+  const { data: nodes = [] } = useOperatorNodesForStreamQuery(chainId, streamId || undefined)
 
   const { selectedNode } = useStore()
 

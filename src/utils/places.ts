@@ -1,6 +1,7 @@
 import { useIsFetching, useQuery } from '@tanstack/react-query'
 import { MapboxToken } from '../consts'
 import { PlaceFeature, PlacesResponse } from '../types'
+import { useStore } from '../Store'
 
 interface UseLocationFeaturesQueryParams {
   place?: string | [number, number]
@@ -11,8 +12,8 @@ interface UseLocationFeaturesQueryOptions<T> {
   eligible?: (feature: PlaceFeature) => boolean
 }
 
-function getLocationFeaturesQueryKey(place: string) {
-  return ['useLocationFeaturesQuery', place]
+function getLocationFeaturesQueryKey(chainId: number, place: string) {
+  return ['useLocationFeaturesQuery', chainId, place]
 }
 
 export function useLocationFeaturesQuery<T = PlaceFeature>(
@@ -20,11 +21,12 @@ export function useLocationFeaturesQuery<T = PlaceFeature>(
   options: UseLocationFeaturesQueryOptions<T> = {},
 ) {
   const { place: placeParam = '' } = params
+  const { chainId } = useStore()
 
   const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
 
   return useQuery({
-    queryKey: getLocationFeaturesQueryKey(place),
+    queryKey: getLocationFeaturesQueryKey(chainId, place),
     queryFn: async ({ signal }) => {
       const result: T[] = []
 
@@ -60,9 +62,10 @@ export function useLocationFeaturesQuery<T = PlaceFeature>(
 }
 
 export function useIsFetchingLocationFeatures(place: string) {
+  const { chainId } = useStore()
   const queryCount = useIsFetching({
     exact: true,
-    queryKey: getLocationFeaturesQueryKey(place),
+    queryKey: getLocationFeaturesQueryKey(chainId, place),
   })
 
   return queryCount > 0
