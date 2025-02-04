@@ -24,6 +24,7 @@ export interface Neighbour {
   nodeId0: string
   nodeId1: string
   streamPartitionId: string
+  rtt?: number
 }
 
 interface Stream {

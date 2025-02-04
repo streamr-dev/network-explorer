@@ -35,6 +35,7 @@ export type Neighbor = {
   __typename?: 'Neighbor';
   nodeId1: Scalars['String']['output'];
   nodeId2: Scalars['String']['output'];
+  rtt?: Maybe<Scalars['Int']['output']>;
   streamPartId: Scalars['String']['output'];
 };
 
@@ -171,7 +172,7 @@ export type GetNeighborsQueryVariables = Exact<{
 }>;
 
 
-export type GetNeighborsQuery = { __typename?: 'Query', neighbors: { __typename?: 'Neighbors', cursor?: string | null, items: Array<{ __typename?: 'Neighbor', streamPartId: string, nodeId1: string, nodeId2: string }> } };
+export type GetNeighborsQuery = { __typename?: 'Query', neighbors: { __typename?: 'Neighbors', cursor?: string | null, items: Array<{ __typename?: 'Neighbor', streamPartId: string, nodeId1: string, nodeId2: string, rtt?: number | null }> } };
 
 
 export const GetNodesDocument = gql`
@@ -229,6 +230,7 @@ export const GetNeighborsDocument = gql`
       streamPartId
       nodeId1
       nodeId2
+      rtt
     }
     cursor
   }
