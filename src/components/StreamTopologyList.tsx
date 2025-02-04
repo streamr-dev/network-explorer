@@ -13,7 +13,7 @@ export function StreamTopologyList() {
 
   const { chainId } = useStore()
 
-  const { data: nodes = [] } = useOperatorNodesForStreamQuery(streamId, chainId)
+  const { data: nodes = [] } = useOperatorNodesForStreamQuery(chainId, streamId || undefined)
 
   const { selectedNode } = useStore()
 

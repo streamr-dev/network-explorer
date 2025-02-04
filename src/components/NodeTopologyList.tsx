@@ -10,7 +10,7 @@ const EmptyNodes: OperatorNode[] = []
 export function NodeTopologyList() {
   const { chainId } = useStore()
 
-  const nodes = useOperatorNodesForStreamQuery(undefined, chainId).data || EmptyNodes
+  const nodes = useOperatorNodesForStreamQuery(chainId, undefined).data || EmptyNodes
 
   const { selectedNode } = useStore()
 

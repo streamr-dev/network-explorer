@@ -13,7 +13,7 @@ export function MapMarkerLayer() {
 
   const streamId = useStreamIdParam()
 
-  const nodesQuery = useOperatorNodesForStreamQuery(streamId || undefined, chainId)
+  const nodesQuery = useOperatorNodesForStreamQuery(chainId, streamId || undefined)
 
   const nodes = nodesQuery.data || EmptyNodes
 

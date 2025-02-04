@@ -52,7 +52,7 @@ function Page() {
 
   const { chainId } = useStore()
 
-  const isLoadingNodes = useIsFetchingOperatorNodesForStream(streamId || undefined, chainId)
+  const isLoadingNodes = useIsFetchingOperatorNodesForStream(chainId, streamId || undefined)
 
   const { showNetworkSelector, showSearch, compact } = useHud()
 

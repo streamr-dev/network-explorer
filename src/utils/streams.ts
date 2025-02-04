@@ -15,8 +15,8 @@ import {
 import { getIndexerClient } from './queries'
 import { config } from '@streamr/config'
 
-function getLimitedStreamsQueryKey(phrase: string, limit: number, chainId: number) {
-  return ['useLimitedStreamsQuery', phrase, limit, chainId]
+function getLimitedStreamsQueryKey(chainId: number, phrase: string, limit: number) {
+  return ['useLimitedStreamsQuery', chainId, phrase, limit]
 }
 
 interface UseLimitedStreamsQueryParams {
@@ -29,7 +29,7 @@ export function useLimitedStreamsQuery(params: UseLimitedStreamsQueryParams) {
   const { chainId } = useStore()
 
   return useQuery({
-    queryKey: getLimitedStreamsQueryKey(phrase, limit, chainId),
+    queryKey: getLimitedStreamsQueryKey(chainId, phrase, limit),
     queryFn: async () => {
       if (!phrase) {
         return []

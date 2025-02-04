@@ -12,8 +12,8 @@ interface UseLocationFeaturesQueryOptions<T> {
   eligible?: (feature: PlaceFeature) => boolean
 }
 
-function getLocationFeaturesQueryKey(place: string, chainId: number) {
-  return ['useLocationFeaturesQuery', place, chainId]
+function getLocationFeaturesQueryKey(chainId: number, place: string) {
+  return ['useLocationFeaturesQuery', chainId, place]
 }
 
 export function useLocationFeaturesQuery<T = PlaceFeature>(
@@ -26,7 +26,7 @@ export function useLocationFeaturesQuery<T = PlaceFeature>(
   const place = typeof placeParam === 'string' ? placeParam : placeParam.join(',')
 
   return useQuery({
-    queryKey: getLocationFeaturesQueryKey(place, chainId),
+    queryKey: getLocationFeaturesQueryKey(chainId, place),
     queryFn: async ({ signal }) => {
       const result: T[] = []
 
@@ -65,7 +65,7 @@ export function useIsFetchingLocationFeatures(place: string) {
   const { chainId } = useStore()
   const queryCount = useIsFetching({
     exact: true,
-    queryKey: getLocationFeaturesQueryKey(place, chainId),
+    queryKey: getLocationFeaturesQueryKey(chainId, place),
   })
 
   return queryCount > 0

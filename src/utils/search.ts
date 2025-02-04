@@ -14,7 +14,7 @@ function getValidSearchPhrase(phrase: string) {
 export function useIsSearching(phrase: string) {
   const { chainId } = useStore()
 
-  const isFetchingNodes = useIsFetchingOperatorNodesForStream(undefined, chainId)
+  const isFetchingNodes = useIsFetchingOperatorNodesForStream(chainId, undefined)
 
   const isFetchingPlaces = useIsFetchingLocationFeatures(getValidSearchPhrase(phrase))
 
@@ -24,7 +24,7 @@ export function useIsSearching(phrase: string) {
 export function useSearch({ phrase: phraseParam = '' }) {
   const { chainId } = useStore()
 
-  const nodesQuery = useOperatorNodesForStreamQuery(undefined, chainId)
+  const nodesQuery = useOperatorNodesForStreamQuery(chainId, undefined)
 
   const phrase = useDebounce(getValidSearchPhrase(phraseParam), 250)
 

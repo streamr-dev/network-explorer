@@ -2,13 +2,13 @@ import { useIsFetching, useQuery } from '@tanstack/react-query'
 import { MinuteMs } from '../consts'
 import { getOperatorNodes } from '../getters'
 
-function getOperatorNodesForStreamQueryKey(streamId: string | undefined, chainId: number) {
-  return ['useOperatorNodesForStreamQuery', streamId || '', chainId]
+function getOperatorNodesForStreamQueryKey(chainId: number, streamId: string | undefined) {
+  return ['useOperatorNodesForStreamQuery', chainId, streamId || '']
 }
 
-export function useOperatorNodesForStreamQuery(streamId: string | undefined, chainId: number) {
+export function useOperatorNodesForStreamQuery(chainId: number, streamId: string | undefined) {
   return useQuery({
-    queryKey: getOperatorNodesForStreamQueryKey(streamId, chainId),
+    queryKey: getOperatorNodesForStreamQueryKey(chainId, streamId),
     queryFn: () =>
       getOperatorNodes({
         streamId,
@@ -18,10 +18,10 @@ export function useOperatorNodesForStreamQuery(streamId: string | undefined, cha
   })
 }
 
-export function useIsFetchingOperatorNodesForStream(streamId: string | undefined, chainId: number) {
+export function useIsFetchingOperatorNodesForStream(chainId: number, streamId: string | undefined) {
   const queryCount = useIsFetching({
     exact: true,
-    queryKey: getOperatorNodesForStreamQueryKey(streamId, chainId),
+    queryKey: getOperatorNodesForStreamQueryKey(chainId, streamId),
   })
 
   return queryCount > 0

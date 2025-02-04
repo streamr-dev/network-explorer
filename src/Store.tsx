@@ -122,7 +122,7 @@ export function StoreProvider(props: StoreProviderProps) {
   }, [chainId])
 
   const { streamId, nodeId: activeNodeId } = urlParams
-  const { data: nodes } = useOperatorNodesForStreamQuery(streamId || undefined, chainId)
+  const { data: nodes } = useOperatorNodesForStreamQuery(chainId, streamId || undefined)
 
   const selectedNode = useMemo(
     function findNodeById() {

@@ -3,8 +3,8 @@ import { MinuteMs } from '../consts'
 import { getNeighbors } from '../getters'
 import { useStore } from '../Store'
 
-function getOperatorNodeNeighborsQueryKey(nodeId: string | undefined, chainId: number) {
-  return ['useOperatorNodeNeighborsQuery', nodeId || '', chainId]
+function getOperatorNodeNeighborsQueryKey(chainId: number, nodeId: string | undefined) {
+  return ['useOperatorNodeNeighborsQuery', chainId, nodeId || '']
 }
 
 interface UseOperatorNodeNeighborsQueryOptions {
@@ -19,7 +19,7 @@ export function useOperatorNodeNeighborsQuery(
   const { chainId } = useStore()
 
   return useQuery({
-    queryKey: getOperatorNodeNeighborsQueryKey(nodeId, chainId),
+    queryKey: getOperatorNodeNeighborsQueryKey(chainId, nodeId),
     queryFn: async () => {
       const neighbours = await getNeighbors({
         node: nodeId,
