@@ -65,6 +65,7 @@ gql`
         streamPartId
         nodeId1
         nodeId2
+        rtt
       }
       cursor
     }

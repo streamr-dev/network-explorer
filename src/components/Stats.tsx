@@ -29,6 +29,7 @@ import { Interval } from './Graphs/Graphs'
 import { Intervals } from './Graphs/Intervals'
 import { TimeSeries } from './Graphs/TimeSeries'
 import { useStore } from '../Store'
+import { getNeighbors } from '../getters'
 
 type StatProps = {
   id: string
@@ -264,8 +265,24 @@ function useStreamStatsQuery(chainId: number, streamId: string) {
 
       const { messagesPerSecond, peerCount } = stream
 
+      const neighbors = await getNeighbors({
+        streamId: stream.id,
+        chainId,
+      })
+
+      const validRTTs = neighbors
+        .map((n) => n.rtt)
+        .filter((rtt): rtt is number => typeof rtt === 'number' && rtt > 0)
+
+      // Calculate average one-way latency from neighbors with valid RTT.
+      // Latency is the average RTT of neighbors in the stream, divided by 2.
+      const latency =
+        validRTTs.length > 0
+          ? validRTTs.reduce((sum, rtt) => sum + rtt, 0) / validRTTs.length / 2
+          : undefined
+
       return {
-        latency: undefined as undefined | number,
+        latency,
         messagesPerSecond,
         peerCount,
       }
@@ -297,7 +314,7 @@ export function StreamStats({ streamId }: StreamStatsProps) {
       <Stat
         id="latency"
         label="Latency ms"
-        value={latency == null ? undefined : latency.toFixed(2)}
+        value={latency == null ? undefined : latency.toFixed(0)}
       />
     </Stats>
   )

@@ -77,7 +77,7 @@ interface GetNeighborsParams {
 export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbour[]> {
   const pageSize = 1000
 
-  const { node, streamPartitionId, chainId } = params
+  const { node, streamId, streamPartitionId, chainId } = params
 
   const items: Neighbour[] = []
 
@@ -95,6 +95,7 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbou
         cursor,
         node,
         pageSize,
+        streamId,
         streamPart: streamPartitionId,
       },
     })
@@ -103,6 +104,7 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbou
       nodeId1: a,
       nodeId2: b,
       streamPartId: finalStreamPartitionId,
+      rtt,
     } of neighbors.items) {
       const pair = [a, b].sort() as [string, string]
 
@@ -120,6 +122,7 @@ export async function getNeighbors(params: GetNeighborsParams): Promise<Neighbou
         nodeId0,
         nodeId1,
         streamPartitionId: finalStreamPartitionId,
+        rtt: rtt ?? undefined,
       })
     }
 
