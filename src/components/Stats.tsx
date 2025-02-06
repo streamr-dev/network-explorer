@@ -434,7 +434,6 @@ const defaultMetricEntry = {
 
 export function NodeStats({ nodeId }: NodeStatsProps) {
   const [metricKey, setMetricKey] = useState<NodeMetricKey>('broadcastMessagesPerSecond')
-
   const [interval, setInterval] = useState<Interval>('realtime')
 
   const reports = useSortedOperatorNodeMetricEntries({
@@ -447,8 +446,19 @@ export function NodeStats({ nodeId }: NodeStatsProps) {
     [reports, metricKey],
   )
 
-  const { broadcastMessagesPerSecond, broadcastBytesPerSecond, receiveBytesPerSecond } =
-    useRecentOperatorNodeMetricEntry(nodeId) || defaultMetricEntry
+  const recentMetrics = useRecentOperatorNodeMetricEntry(nodeId)
+
+  // Get last values from historical data if there is no realtime metrics
+  const lastMetrics = useMemo(() => {
+    if (recentMetrics) {
+      return recentMetrics
+    }
+
+    const lastReport = reports[reports.length - 1]
+    return lastReport || defaultMetricEntry
+  }, [recentMetrics, reports])
+
+  const { broadcastMessagesPerSecond, broadcastBytesPerSecond, receiveBytesPerSecond } = lastMetrics
 
   return (
     <>

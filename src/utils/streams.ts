@@ -136,8 +136,6 @@ export function useSortedOperatorNodeMetricEntries(
 
   const partition = useStreamPartitionFromNodeId(nodeId, stream)
 
-  console.log('partition', partition)
-
   return useStreamMessagesOrderedByTime<NodeMetricReport>(
     {
       streamId,
