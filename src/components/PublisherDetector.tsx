@@ -1,10 +1,10 @@
 import { ResendOptions } from '@streamr/sdk'
-import { keyToArrayIndex } from '@streamr/utils'
 import { useEffect, useMemo, useRef } from 'react'
 import { useResend } from 'streamr-client-react'
 import { useStore } from '../Store'
 import { MinuteMs } from '../consts'
 import { useStreamFromClient } from '../utils/streams'
+import { useStreamPartitionFromNodeId } from '../hooks'
 
 export function PublisherDetector() {
   const { selectedNode, publishers, setPublishers } = useStore()
@@ -17,12 +17,9 @@ export function PublisherDetector() {
 
   const { data: stream } = streamQuery
 
-  const partition = useMemo(
-    () => (stream && nodeId ? keyToArrayIndex(stream.getMetadata().partitions, nodeId) : undefined),
-    [stream, nodeId],
-  )
-
   const publisherId = nodeId ? publishers[nodeId] : undefined
+
+  const partition = useStreamPartitionFromNodeId(nodeId, stream)
 
   const mappingRef = useRef<typeof publishers>({})
 
