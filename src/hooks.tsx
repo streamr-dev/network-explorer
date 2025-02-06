@@ -6,6 +6,8 @@ import { MapId } from './consts'
 import { ActiveView } from './types'
 import { isFramed } from './utils'
 import { getNodeLocationId, setNodeFeatureState } from './utils/map'
+import { Stream } from '@streamr/sdk'
+import { keyToArrayIndex } from '@streamr/utils'
 
 export function useGlobalKeyDownEffect(
   key: string | RegExp,
@@ -243,4 +245,27 @@ export function useSelectedPlaceLocationEffect(
     },
     [longitude, latitude, zoom, locationParamKey],
   )
+}
+
+export function useStreamPartitionFromNodeId(
+  nodeId: string | undefined,
+  stream: Stream | undefined,
+) {
+  const [partition, setPartition] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const fetchStreamMetadata = async () => {
+      if (stream && nodeId != null) {
+        const metadata = await stream.getMetadata()
+        const partitions = metadata.partitions != null ? (metadata.partitions as number) : undefined
+        if (partitions != null) {
+          setPartition(keyToArrayIndex(partitions, nodeId))
+        }
+      }
+    }
+
+    fetchStreamMetadata()
+  }, [stream, nodeId])
+
+  return partition
 }

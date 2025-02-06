@@ -1,5 +1,4 @@
 import { ResendOptions, StreamDefinition, StreamMessage, StreamrClientConfig } from '@streamr/sdk'
-import { keyToArrayIndex } from '@streamr/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSubscribe } from 'streamr-client-react'
@@ -14,6 +13,7 @@ import {
 } from '../generated/gql/indexer'
 import { getIndexerClient } from './queries'
 import { config } from '@streamr/config'
+import { useStreamPartitionFromNodeId } from '../hooks'
 
 function getLimitedStreamsQueryKey(chainId: number, phrase: string, limit: number) {
   return ['useLimitedStreamsQuery', chainId, phrase, limit]
@@ -134,10 +134,9 @@ export function useSortedOperatorNodeMetricEntries(
 
   const { data: stream } = streamQuery
 
-  const partition = useMemo(
-    () => (stream ? keyToArrayIndex(stream.getMetadata().partitions, nodeId) : undefined),
-    [stream, nodeId],
-  )
+  const partition = useStreamPartitionFromNodeId(nodeId, stream)
+
+  console.log('partition', partition)
 
   return useStreamMessagesOrderedByTime<NodeMetricReport>(
     {
